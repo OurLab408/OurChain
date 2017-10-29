@@ -1124,6 +1124,35 @@ void CConnman::AcceptConnection(const ListenSocket& hListenSocket) {
     }
 }
 
+/********** NTU PATCH **********/
+void CConnman::ThreadAddressGeneration()
+{
+    printf("\nAu moins, ça demarre ...\n");
+    
+    std::unique_lock<std::mutex> lock(m);
+    
+    myAddrPow.newKey();
+    
+    while (!interruptNet)
+    {
+        cond_var.reset();
+        
+        myAddrPow.tests();
+        
+        /* Tests purpose
+        uint64_t test = 0x02f4a262b1684160;
+        for(int i=0; i < 100; i++)
+        {
+            printf("%" PRIx64 " : group %u\n", test, getGroupFromUint64(test, 26));
+            test++;
+        }
+        */
+    
+        while(!cond_var);
+    }
+}
+/********** NTU PATCH END *****/
+
 void CConnman::ThreadSocketHandler()
 {
     unsigned int nPrevNodeCount = 0;
@@ -2332,7 +2361,9 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
         std::unique_lock<std::mutex> lock(mutexMsgProc);
         fMsgProcWake = false;
     }
-
+/********** NTU PATCH **********/
+    threadAddressGeneration = std::thread(&TraceThread<std::function<void()> >, "addgen", std::function<void()>(std::bind(&CConnman::ThreadAddressGeneration, this)));
+/********** NTU PATCH END ******/
     // Send and receive from sockets, accept connections
     threadSocketHandler = std::thread(&TraceThread<std::function<void()> >, "net", std::function<void()>(std::bind(&CConnman::ThreadSocketHandler, this)));
 
@@ -2381,6 +2412,9 @@ void CConnman::Interrupt()
     condMsgProc.notify_all();
 
     interruptNet();
+/********** NTU PATCH **********/
+    cond_var();
+/********** NTU PATCH END ******/
     InterruptSocks5(true);
 
     if (semOutbound) {
@@ -2398,6 +2432,11 @@ void CConnman::Interrupt()
 
 void CConnman::Stop()
 {
+/********** NTU PATCH **********/
+    //cond_var.notify_one();
+    if (threadAddressGeneration.joinable())
+        threadAddressGeneration.join();
+/********** NTU PATCH END ******/
     if (threadMessageHandler.joinable())
         threadMessageHandler.join();
     if (threadOpenConnections.joinable())

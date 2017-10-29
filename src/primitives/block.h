@@ -9,6 +9,9 @@
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+/********** NTU PATCH **********/
+#include "version.h"
+/********** NTU PATCH END ******/
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -27,6 +30,12 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+/********** NTU PATCH **********/
+    uint256  hashMerkleRoot2;        //2nd merkle root hash (future implementation, Steven's EPoW)
+    uint32_t nNonce2;               //2nd nonce for the 2nd PoW (cf. Steven's EPoW)
+    uint32_t nShardsForNextGen;     //Number of shards to create for the next blocks epoch
+    uint32_t blockchainID;          //for future purpose
+/********** NTU PATCH END ******/
 
     CBlockHeader()
     {
@@ -43,6 +52,15 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+/********** NTU PATCH **********/
+        if(nVersion >= NTU_SHARDING_VERSION)   //If the version is a sharded one -> different header
+        {
+            READWRITE(hashMerkleRoot2);
+            READWRITE(nNonce2);
+            READWRITE(nShardsForNextGen);
+            READWRITE(blockchainID);
+        }
+/********** NTU PATCH END ******/
     }
 
     void SetNull()
@@ -53,6 +71,12 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+/********** NTU PATCH **********/
+        hashMerkleRoot2.SetNull();
+        nNonce2 = 0;
+        nShardsForNextGen = 0;
+        blockchainID = 0;  
+/********** NTU PATCH END ******/
     }
 
     bool IsNull() const
@@ -113,6 +137,12 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+/********** NTU PATCH **********/
+        block.hashMerkleRoot2   = hashMerkleRoot2;
+        block.nNonce2           = nNonce2;
+        block.nShardsForNextGen = nShardsForNextGen;
+        block.blockchainID      = blockchainID;
+/********** NTU PATCH **********/
         return block;
     }
 

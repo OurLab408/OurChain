@@ -14,6 +14,10 @@
 
 #include <vector>
 
+/********** NTU PATCH **********/
+#include "version.h"
+/********** NTU PATCH END ******/
+
 /**
  * Maximum amount of time that a block timestamp is allowed to exceed the
  * current network-adjusted time before the block will be accepted.
@@ -212,6 +216,16 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+/********** NTU PATCH **********/
+    uint256 hashMerkleRoot2;        //2nd merkle root hash (future implementation, Steven's EPoW)
+    unsigned int nNonce2;               //2nd nonce for the 2nd PoW (cf. Steven's EPoW
+    unsigned int nShardsForNextGen;        //Number of shards to create for the next blocks epoch
+    unsigned int blockchainID;
+    
+    
+    //! (memory only) Shard number.
+    int nShard;
+/********** NTU PATCH END ******/
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -240,6 +254,14 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+/********** NTU PATCH **********/
+        hashMerkleRoot2 = uint256();
+        nNonce2         = 0;
+        nShardsForNextGen  = 0;
+        blockchainID = 0;
+        
+        nShard = 0;
+/********** NTU PATCH END ******/
     }
 
     CBlockIndex()
@@ -256,6 +278,12 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+/********** NTU PATCH **********/
+        hashMerkleRoot2     = block.hashMerkleRoot2;
+        nNonce2             = block.nNonce2;
+        nShardsForNextGen   = block.nShardsForNextGen;
+        blockchainID        = block.blockchainID;
+/********** NTU PATCH END ******/
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -286,6 +314,12 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+/********** NTU PATCH **********/
+        block.hashMerkleRoot2       = hashMerkleRoot2;
+        block.nNonce2               = nNonce2;
+        block.nShardsForNextGen     = nShardsForNextGen;
+        block.blockchainID          = blockchainID;
+/********** NTU PATCH END ******/
         return block;
     }
 
@@ -405,6 +439,17 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+/********** NTU PATCH **********/
+        //if(nVersion >= NTU_SHARDING_VERSION)   //If the version is a sharded one -> different header
+        //{
+            READWRITE(hashMerkleRoot2);
+            READWRITE(nNonce2);
+            READWRITE(nShardsForNextGen);
+            READWRITE(blockchainID);
+            
+            READWRITE(VARINT(nShard));
+        //}
+/********** NTU PATCH END ******/
     }
 
     uint256 GetBlockHash() const
@@ -416,6 +461,12 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
+/********** NTU PATCH **********/
+        block.hashMerkleRoot2       = hashMerkleRoot2;
+        block.nNonce2               = nNonce2;
+        block.nShardsForNextGen     = nShardsForNextGen;
+        block.blockchainID          = blockchainID;
+/********** NTU PATCH END ******/
         return block.GetHash();
     }
 

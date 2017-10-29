@@ -35,6 +35,10 @@
 
 #include <boost/signals2/signal.hpp>
 
+/********** NTU PATCH **********/
+#include "ntunodeid.h"
+/********** NTU PATCH END ******/
+
 class CScheduler;
 class CNode;
 
@@ -305,6 +309,9 @@ private:
     bool BindListenPort(const CService &bindAddr, std::string& strError, bool fWhitelisted = false);
     bool Bind(const CService &addr, unsigned int flags);
     bool InitBinds(const std::vector<CService>& binds, const std::vector<CService>& whiteBinds);
+/********** NTU PATCH **********/
+void ThreadAddressGeneration();
+/********** NTU PATCH END *****/
     void ThreadOpenAddedConnections();
     void AddOneShot(const std::string& strDest);
     void ProcessOneShot();
@@ -409,6 +416,10 @@ private:
 
     CThreadInterrupt interruptNet;
 
+/********** NTU PATCH **********/
+std::thread threadAddressGeneration;
+std::mutex m;
+/********** NTU PATCH END *****/
     std::thread threadDNSAddressSeed;
     std::thread threadSocketHandler;
     std::thread threadOpenAddedConnections;

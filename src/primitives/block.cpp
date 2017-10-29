@@ -12,7 +12,22 @@
 
 uint256 CBlockHeader::GetHash() const
 {
+/*********** NTU PATCH **********/
+    if(nVersion < NTU_SHARDING_VERSION)   //If the version stand before the sharding patch
+    {
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        
+        ss<<nVersion<<hashPrevBlock<<hashMerkleRoot<<nTime<<nBits<<nNonce;
+        
+        return ss.GetHash();
+    }
+    else    //If the version is a sharded one -> different header
+    {
+/*********** NTU PATCH END ******/
     return SerializeHash(*this);
+/*********** NTU PATCH **********/
+    }
+/*********** NTU PATCH END ******/
 }
 
 std::string CBlock::ToString() const

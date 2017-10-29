@@ -12,6 +12,15 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
+/********** NTU PATCH **********/
+//#include <condition_variable>
+
+#include "threadinterrupt.h"
+
+extern CThreadInterrupt cond_var;
+
+//extern std::condition_variable cond_var;
+/********** NTU PATCH END ******/
 
 ////////////////////////////////////////////////
 //                                            //

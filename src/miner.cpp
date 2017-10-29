@@ -148,6 +148,15 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     nHeight = pindexPrev->nHeight + 1;
 
     pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
+    
+/********** NTU PATCH **********/
+    //If we enabled the sharding version, we add the hash address in the coinbase of the block
+    if(pblock->nVersion >= NTU_SHARDING_VERSION)
+    {
+        pblock->nShardsForNextGen = mempool.nbGroups();
+    }
+/********** NTU PATCH END ******/
+    
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (chainparams.MineBlocksOnDemand())
@@ -185,7 +194,20 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout.resize(1);
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
     coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-    coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+/********** NTU PATCH **********/
+    //If we enabled the sharding version, we add the hash address in the coinbase of the block
+    if(pblock->nVersion >= NTU_SHARDING_VERSION)
+    {
+        coinbaseTx.vin[0].scriptSig = CScript() << nHeight << myAddrPow.getvch() << OP_0;
+        assert(coinbaseTx.vin[0].scriptSig.size() <= 2000);
+    }
+    else
+    {
+        coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+        assert(coinbaseTx.vin[0].scriptSig.size() <= 100);
+    }
+/********** NTU PATCH END ******/
+    //coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;
@@ -364,6 +386,12 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
     const int64_t MAX_CONSECUTIVE_FAILURES = 1000;
     int64_t nConsecutiveFailed = 0;
 
+/********** NTU PATCH **********/
+    //Copy our group number to avoid multiple calls to the function
+    unsigned int copyNbGroups = mempool.nbGroups();
+    unsigned int copyMyGroup = myAddrPow.getGroup(copyNbGroups);
+/********** NTU PATCH END ******/
+
     while (mi != mempool.mapTx.get<ancestor_score>().end() || !mapModifiedTx.empty())
     {
         // First try to find a new transaction in mapTx to evaluate.
@@ -453,6 +481,43 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
             continue;
         }
 
+/********** NTU PATCH **********/
+        //We only include the transactions of our shard
+        //bool test = ((iter->GetTx().GetHash().GetUint64(0)&(uint64_t)1) == 1);
+        bool test=0;
+        
+        //if (test) {
+        if (getGroupFromUint256(iter->GetTx().GetHash(), copyNbGroups) != copyMyGroup) {
+            if (fUsingModified) {
+                mapModifiedTx.get<ancestor_score>().erase(modit);
+                failedTx.insert(iter);
+            }
+            continue;
+        }
+        else
+        {
+            test=1;
+            printf("\nsame group, %16lx : %u", iter->GetTx().GetHash().GetUint64(0), getGroupFromUint256(iter->GetTx().GetHash(), copyNbGroups));
+        }
+        
+/********** NTU PATCH END ******/
+        //If there is ancestors, skip, because we take only transaction of our shard (need to be improved)
+        if (ancestors.size() > 1) {
+            
+            if (fUsingModified) {
+                mapModifiedTx.get<ancestor_score>().erase(modit);
+                failedTx.insert(iter);
+            }
+            
+            continue;
+        }
+        else
+        {
+            if(test)
+                printf(" and no ancestor.");
+        }
+/********** NTU PATCH END ******/
+
         // This transaction will make it in; reset the failed counter.
         nConsecutiveFailed = 0;
 
@@ -485,8 +550,12 @@ void IncrementExtraNonce(CBlock* pblock, const CBlockIndex* pindexPrev, unsigned
     ++nExtraNonce;
     unsigned int nHeight = pindexPrev->nHeight+1; // Height first in coinbase required for block.version=2
     CMutableTransaction txCoinbase(*pblock->vtx[0]);
-    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
-    assert(txCoinbase.vin[0].scriptSig.size() <= 100);
+/********** NTU PATCH **********/
+    txCoinbase.vin[0].scriptSig = (CScript() << nHeight << myAddrPow.getvch() << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
+    assert(txCoinbase.vin[0].scriptSig.size() <= 2000);
+/********** NTU PATCH END ******/
+    //txCoinbase.vin[0].scriptSig = (CScript() << nHeight << CScriptNum(nExtraNonce)) + COINBASE_FLAGS;
+    //assert(txCoinbase.vin[0].scriptSig.size() <= 100);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(txCoinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);

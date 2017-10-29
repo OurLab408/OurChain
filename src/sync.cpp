@@ -11,6 +11,10 @@
 
 #include <boost/thread.hpp>
 
+/********** NTU PATCH **********/
+CThreadInterrupt cond_var;
+/********** NTU PATCH END ******/
+
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {

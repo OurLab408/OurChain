@@ -605,6 +605,55 @@ public:
         LOCK(cs);
         return mapTx.size();
     }
+    
+/********** NTU PATCH **********/
+/*
+This function return the number
+of groups needed by the network
+to process the transactions. it
+regulates the size of the TxPool
+(simple PID corrector)
+*/
+    unsigned int nbGroups()
+    {
+        unsigned long sizeOfPool = this->size();
+        
+        unsigned int nbRet=0;
+        
+        double result = 0, P = 20, I
+         = 0.9, D = 0.5, error;
+        
+        //Mean number of Tx we want to have in the mempool (regulation value)
+        //100 is too low, it's just for test purpose
+        unsigned int command = 100;
+        
+        static double Ival = 0, prevError = 0;
+        
+        error = (double)command - (double)sizeOfPool;
+        
+        Ival = (Ival + error)*I;
+        
+        
+        result = (error*P + Ival + (error-prevError)*D)*(-0.0004);
+        //result = (error*P + Ival + (error-prevError)*D)*(-0.00004);
+        
+        //There should be minimul 1 group
+        if(result < 1)
+            result = 1;
+        
+        nbRet = static_cast<unsigned int>(result);
+        
+        printf("\nMempool size:  %lu\n", sizeOfPool);
+        printf("\nDouble error:  %lf\n", error);
+        printf("\nDouble result: %lf\n", result);
+        printf("\nUint result:   %u\n", nbRet);
+        
+        prevError = error;
+            
+        return nbRet;
+        //return 7;   //test purpose, force the number of groups on 2
+    }
+/********** NTU PATCH END ******/
 
     uint64_t GetTotalTxSize()
     {

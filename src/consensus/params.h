@@ -46,6 +46,10 @@ struct Params {
     int BIP65Height;
     /** Block height at which BIP66 becomes active */
     int BIP66Height;
+/********** NTU PATCH **********/
+    /** Block height at which sharding becomes active */
+    //int BIPntuHeight;
+/********** NTU PATCH END ******/
     /**
      * Minimum blocks including miner confirmation of the total of 2016 blocks in a retargeting period,
      * (nPowTargetTimespan / nPowTargetSpacing) which is also used for BIP9 deployments.

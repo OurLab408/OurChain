@@ -49,6 +49,11 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread.hpp>
 
+/********** NTU PATCH **********/
+#include "init.h"
+#include "ntunodeid.h"
+/********** NTU PATCH END ******/
+
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
 #endif
@@ -61,6 +66,9 @@ CCriticalSection cs_main;
 
 BlockMap mapBlockIndex;
 CChain chainActive;
+/********** NTU PATCH **********/
+CChain chainZero;   //Branch of the shard 0 that contain the informations on the number of shards 
+/********** NTU PATCH END ******/
 CBlockIndex *pindexBestHeader = nullptr;
 CWaitableCriticalSection csBestBlock;
 CConditionVariable cvBlockChange;
@@ -2619,7 +2627,17 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BLOCK_VALID_TREE);
     if (pindexBestHeader == nullptr || pindexBestHeader->nChainWork < pindexNew->nChainWork)
+/********** NTU PATCH **********/
+    {
         pindexBestHeader = pindexNew;
+        //cond_var.notify_one();
+        
+        cond_var();
+        
+        printf("\nNb of groups needed: %u\n", mempool.nbGroups());
+    }
+/********** NTU PATCH END ******/
+        //pindexBestHeader = pindexNew;
 
     setDirtyBlockIndex.insert(pindexNew);
 
@@ -3140,6 +3158,42 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
     int nHeight = pindex->nHeight;
 
+/********** NTU PATCH **********/
+if(block.nVersion >= NTU_SHARDING_VERSION)
+{
+    //Do we agree with the number of groups needed ?
+    //TODO: Skip this checking if we update the chain at the beginning.
+    if(nHeight == pindexBestHeader->nHeight)
+    if((block.nShardsForNextGen < (mempool.nbGroups() * 0.9)) || (block.nShardsForNextGen > (mempool.nbGroups() * 1.1)))
+    {
+        printf("\n%u   !=   %u\n", block.nShardsForNextGen, mempool.nbGroups());
+        //return error("AcceptBlock(): Does not agree on number of groups for next gen");
+    }
+    
+    CScript script;
+    script = block.vtx[0]->vin[0].scriptSig;
+    CScript::const_iterator pc = script.begin();
+    
+    opcodetype opcode;
+    
+    std::vector<unsigned char> vchPushValue;
+    
+    script.GetOp(pc, opcode, vchPushValue); //Just to change the pointer
+    script.GetOp(pc, opcode, vchPushValue); //Here is the second element -> the node ID
+    
+    AddrPow testSerial;
+    
+    testSerial.fromvch(vchPushValue);
+    
+    testSerial.printTests("Validation");
+    
+    pindex->nShard = testSerial.getGroup(mempool.nbGroups());
+    
+    printf("\nShard number: %u\n", pindex->nShard);
+}
+/********** NTU PATCH END ******/
+
+
     // Write block to history file
     try {
         unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
@@ -3528,6 +3582,12 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Check whether we have a transaction index
     pblocktree->ReadFlag("txindex", fTxIndex);
     LogPrintf("%s: transaction index %s\n", __func__, fTxIndex ? "enabled" : "disabled");
+
+/********** NTU PATCH **********/
+    cond_var();
+    
+    printf("\nNb of groups needed: %u\n", mempool.nbGroups());
+/********** NTU PATCH END ******/
 
     return true;
 }

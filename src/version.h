@@ -42,4 +42,9 @@ static const int SHORT_IDS_BLOCKS_VERSION = 70014;
 //! not banning for invalid compact blocks starts with this version
 static const int INVALID_CB_NO_BAN_VERSION = 70015;
 
+/********** NTU PATCH **********/
+//! NTU sharding starts with this version
+static const int NTU_SHARDING_VERSION = 0x50000000;
+/********** NTU PATCH END ******/
+
 #endif // BITCOIN_VERSION_H
