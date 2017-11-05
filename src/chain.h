@@ -209,6 +209,7 @@ public:
     //! block header
     int nVersion;
     uint256 hashMerkleRoot;
+    uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
@@ -235,11 +236,12 @@ public:
         nSequenceId = 0;
         nTimeMax = 0;
 
-        nVersion       = 0;
-        hashMerkleRoot = uint256();
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
+        nVersion          = 0;
+        hashMerkleRoot    = uint256();
+        hashContractState = uint256();
+        nTime             = 0;
+        nBits             = 0;
+        nNonce            = 0;
     }
 
     CBlockIndex()
@@ -251,11 +253,12 @@ public:
     {
         SetNull();
 
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
+        nVersion          = block.nVersion;
+        hashMerkleRoot    = block.hashMerkleRoot;
+        hashContractState = block.hashContractState;
+        nTime             = block.nTime;
+        nBits             = block.nBits;
+        nNonce            = block.nNonce;
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -282,10 +285,11 @@ public:
         block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
+        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashContractState = hashContractState;
+        block.nTime             = nTime;
+        block.nBits             = nBits;
+        block.nNonce            = nNonce;
         return block;
     }
 
@@ -322,9 +326,10 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
+            hashContractState.ToString(),
             GetBlockHash().ToString());
     }
 
@@ -402,6 +407,7 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -410,12 +416,13 @@ public:
     uint256 GetBlockHash() const
     {
         CBlockHeader block;
-        block.nVersion        = nVersion;
-        block.hashPrevBlock   = hashPrev;
-        block.hashMerkleRoot  = hashMerkleRoot;
-        block.nTime           = nTime;
-        block.nBits           = nBits;
-        block.nNonce          = nNonce;
+        block.nVersion          = nVersion;
+        block.hashPrevBlock     = hashPrev;
+        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashContractState = hashContractState;
+        block.nTime             = nTime;
+        block.nBits             = nBits;
+        block.nNonce            = nNonce;
         return block.GetHash();
     }
 

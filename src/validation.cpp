@@ -14,6 +14,7 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
+#include "contract/processing.h"
 #include "cuckoocache.h"
 #include "fs.h"
 #include "hash.h"
@@ -1819,6 +1820,13 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
 
     if (fJustCheck)
         return true;
+
+    // Apply changes of contract state on disk by running contracts
+    for (const auto& tx : block.vtx) {
+        if (ProcessContract(tx->GetHash().ToString(), tx->contract) == false) {
+            /* TODO: perform contract state recovery */
+        }
+    }
 
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || !pindex->IsValid(BLOCK_VALID_SCRIPTS))

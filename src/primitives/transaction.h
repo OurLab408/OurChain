@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "amount.h"
+#include "contract/contract.h"
 #include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
@@ -199,6 +200,9 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
 
     s >> tx.nVersion;
     unsigned char flags = 0;
+
+    s >> tx.contract;
+
     tx.vin.clear();
     tx.vout.clear();
     /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
@@ -247,6 +251,9 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         s << vinDummy;
         s << flags;
     }
+
+    s << tx.contract;
+
     s << tx.vin;
     s << tx.vout;
     if (flags & 1) {
@@ -279,6 +286,7 @@ public:
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
     const int32_t nVersion;
+    const Contract contract;
     const std::vector<CTxIn> vin;
     const std::vector<CTxOut> vout;
     const uint32_t nLockTime;
@@ -362,6 +370,7 @@ public:
 struct CMutableTransaction
 {
     int32_t nVersion;
+    Contract contract;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     uint32_t nLockTime;

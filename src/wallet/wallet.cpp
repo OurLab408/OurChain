@@ -11,6 +11,7 @@
 #include "wallet/coincontrol.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
+#include "contract/contract.h"
 #include "fs.h"
 #include "init.h"
 #include "key.h"
@@ -2611,7 +2612,7 @@ static CFeeRate GetDiscardRate(const CBlockPolicyEstimator& estimator)
 }
 
 bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, const Contract *contract)
 {
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
@@ -2669,6 +2670,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
 
     assert(txNew.nLockTime <= (unsigned int)chainActive.Height());
     assert(txNew.nLockTime < LOCKTIME_THRESHOLD);
+
+    // If the transaction interacts with smart contracts, fill the related field.
+    if (contract != NULL) txNew.contract = *contract;
+
     FeeCalculation feeCalc;
     CAmount nFeeNeeded;
     unsigned int nBytes;
