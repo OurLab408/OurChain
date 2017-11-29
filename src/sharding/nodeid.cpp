@@ -1,4 +1,4 @@
-#include "ntunodeid.h"
+#include "nodeid.h"
 #include "txmempool.h"
 
 AddrPow myAddrPow;

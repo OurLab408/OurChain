@@ -36,7 +36,7 @@
 #include <boost/signals2/signal.hpp>
 
 /********** NTU PATCH **********/
-#include "ntunodeid.h"
+#include "sharding/nodeid.h"
 /********** NTU PATCH END ******/
 
 class CScheduler;

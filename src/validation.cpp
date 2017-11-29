@@ -51,7 +51,7 @@
 
 /********** NTU PATCH **********/
 #include "init.h"
-#include "ntunodeid.h"
+#include "sharding/nodeid.h"
 /********** NTU PATCH END ******/
 
 #if defined(NDEBUG)

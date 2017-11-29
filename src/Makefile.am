@@ -117,7 +117,6 @@ BITCOIN_CORE_H = \
   netbase.h \
   netmessagemaker.h \
   noui.h \
-  ntunodeid.h\
   policy/feerate.h \
   policy/fees.h \
   policy/policy.h \
@@ -138,6 +137,7 @@ BITCOIN_CORE_H = \
   script/sign.h \
   script/standard.h \
   script/ismine.h \
+  sharding/nodeid.h\
   streams.h \
   support/allocators/secure.h \
   support/allocators/zeroafterfree.h \
@@ -199,7 +199,6 @@ libbitcoin_server_a_SOURCES = \
   net.cpp \
   net_processing.cpp \
   noui.cpp \
-  ntunodeid.cpp\
   policy/fees.cpp \
   policy/policy.cpp \
   policy/rbf.cpp \
@@ -213,6 +212,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/server.cpp \
   script/sigcache.cpp \
   script/ismine.cpp \
+  sharding/nodeid.cpp\
   timedata.cpp \
   torcontrol.cpp \
   txdb.cpp \

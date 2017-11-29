@@ -108,7 +108,7 @@ public:
         {
             fNew=0;
             /*
-            We use the generic function declared in "ntunodeid.cpp" to get
+            We use the generic function declared in "nodeid.cpp" to get
             the group. We only have to pass the address and the number of
             groups.
             */
