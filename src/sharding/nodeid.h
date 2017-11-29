@@ -1,5 +1,8 @@
 /********** NTU PATCH **********/
 
+#ifndef BITCOIN_SHARDING_NODEID_H
+#define BITCOIN_SHARDING_NODEID_H
+
 #include "arith_uint256.h"
 #include <inttypes.h>
 #include "validation.h"
@@ -201,5 +204,6 @@ public:
 
 extern AddrPow myAddrPow;
 
-/********** NTU PATCH END *****/
+#endif // BITCOIN_SHARDING_NODEID_H
 
+/********** NTU PATCH END *****/
