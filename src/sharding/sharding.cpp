@@ -4,7 +4,16 @@
 #include "uint256.h"
 #include "sharding.h"
 
-/* See RPC getchaintips */
+/*
+ * Compare the priority of the given two blocks for blockchain finalization.
+ * Return true if priority(a) > priority(b).
+ */
+bool compare_block_priority(const CBlockIndex *a, const CBlockIndex *b)
+{
+    /* Complete implementation should not have equal priority */
+    return a->GetBlockTime() < b->GetBlockTime();
+}
+
 struct CompareBlocksByHeight
 {
     bool operator()(const CBlockIndex* a, const CBlockIndex* b) const
@@ -43,10 +52,12 @@ const CBlockIndex *get_shard_tip(unsigned shard)
 
     setTips.insert(chainActive.Tip());
 
+    const CBlockIndex *earliest = nullptr;
     for (const CBlockIndex* block : setTips) {
-        /* TODO: Handle forks in a same shard */
-        if (getGroupFromUint256(block->GetBlockHash(), mempool.nbGroups()) == shard) return block;
+        if (getGroupFromUint256(block->GetBlockHash(), mempool.nbGroups()) == shard && (earliest == nullptr || compare_block_priority(block, earliest) == true)) {
+            earliest = block;
+        }
     }
 
-    return NULL;
+    return earliest;
 }
