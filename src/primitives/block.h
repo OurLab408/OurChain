@@ -85,6 +85,8 @@ public:
     }
 
     uint256 GetHash() const;
+    uint256 GetHash2() const;
+    //b04902091
 
     int64_t GetBlockTime() const
     {

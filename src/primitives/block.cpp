@@ -10,24 +10,22 @@
 #include "utilstrencodings.h"
 #include "crypto/common.h"
 
+//b04902091
 uint256 CBlockHeader::GetHash() const
 {
-/*********** NTU PATCH **********/
-    if(nVersion < NTU_SHARDING_VERSION)   //If the version stand before the sharding patch
-    {
         CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
         
         ss<<nVersion<<hashPrevBlock<<hashMerkleRoot<<nTime<<nBits<<nNonce;
         
         return ss.GetHash();
-    }
-    else    //If the version is a sharded one -> different header
-    {
-/*********** NTU PATCH END ******/
-    return SerializeHash(*this);
-/*********** NTU PATCH **********/
-    }
-/*********** NTU PATCH END ******/
+}
+uint256 CBlockHeader::GetHash2() const
+{
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+
+        ss<<nVersion<<hashPrevBlock<<hashMerkleRoot2<<nTime<<nBits<<nNonce2;
+
+        return ss.GetHash();
 }
 
 std::string CBlock::ToString() const

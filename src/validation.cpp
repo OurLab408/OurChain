@@ -53,6 +53,9 @@
 #include "init.h"
 #include "sharding/nodeid.h"
 /********** NTU PATCH END ******/
+//b04902091
+#include "EPow.h"
+//b04902091
 
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
@@ -2793,7 +2796,11 @@ static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state,
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     // These are checks that are independent of context.
-
+//b04902091
+    if(!CheckEPow(block.GetHash2(),block.GetHash())){
+        return false;
+    }
+//b04902091
     if (block.fChecked)
         return true;
 
