@@ -28,12 +28,12 @@ struct CompareBlocksByHeight
     }
 };
 
-const CBlockIndex *get_shard_tip(unsigned shard)
+CBlockIndex *get_shard_tip(unsigned shard)
 {
     /* See RPC getchaintips */
-    std::set<const CBlockIndex*, CompareBlocksByHeight> setTips;
-    std::set<const CBlockIndex*> setOrphans;
-    std::set<const CBlockIndex*> setPrevs;
+    std::set<CBlockIndex*, CompareBlocksByHeight> setTips;
+    std::set<CBlockIndex*> setOrphans;
+    std::set<CBlockIndex*> setPrevs;
 
     for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex)
     {
@@ -43,7 +43,7 @@ const CBlockIndex *get_shard_tip(unsigned shard)
         }
     }
 
-    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it)
+    for (std::set<CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it)
     {
         if (setPrevs.erase(*it) == 0) {
             setTips.insert(*it);
@@ -52,8 +52,8 @@ const CBlockIndex *get_shard_tip(unsigned shard)
 
     setTips.insert(chainActive.Tip());
 
-    const CBlockIndex *earliest = nullptr;
-    for (const CBlockIndex* block : setTips) {
+    CBlockIndex *earliest = nullptr;
+    for (CBlockIndex* block : setTips) {
         if (getGroupFromUint256(block->GetBlockHash(), mempool.nbGroups()) == shard && (earliest == nullptr || compare_block_priority(block, earliest) == true)) {
             earliest = block;
         }

@@ -21,6 +21,7 @@
 #include "pow.h"
 #include "primitives/transaction.h"
 #include "script/standard.h"
+#include "sharding/sharding.h"
 #include "timedata.h"
 #include "txmempool.h"
 #include "util.h"
@@ -144,6 +145,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     pblocktemplate->vTxSigOpsCost.push_back(-1); // updated at end
 
     LOCK2(cs_main, mempool.cs);
+    int shards = mempool.nbGroups();
+    int my_shard = myAddrPow.getGroup(shards);
     CBlockIndex* pindexPrev = chainActive.Tip();
     nHeight = pindexPrev->nHeight + 1;
 
@@ -153,7 +156,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     //If we enabled the sharding version, we add the hash address in the coinbase of the block
     if(pblock->nVersion >= NTU_SHARDING_VERSION)
     {
-        pblock->nShardsForNextGen = mempool.nbGroups();
+        pblock->nShardsForNextGen = shards;
     }
 /********** NTU PATCH END ******/
     
@@ -179,7 +182,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
 
     int nPackagesSelected = 0;
     int nDescendantsUpdated = 0;
-    addPackageTxs(nPackagesSelected, nDescendantsUpdated);
+    addPackageTxs(nPackagesSelected, nDescendantsUpdated, shards);
 
     int64_t nTime1 = GetTimeMicros();
 
@@ -365,7 +368,7 @@ void BlockAssembler::SortForBlock(const CTxMemPool::setEntries& package, CTxMemP
 // Each time through the loop, we compare the best transaction in
 // mapModifiedTxs with the next transaction in the mempool to decide what
 // transaction package to work on next.
-void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated)
+void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated, int shards)
 {
     // mapModifiedTx will store sorted packages after they are modified
     // because some of their txs are already in the block
@@ -387,9 +390,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
     int64_t nConsecutiveFailed = 0;
 
 /********** NTU PATCH **********/
-    //Copy our group number to avoid multiple calls to the function
-    unsigned int copyNbGroups = mempool.nbGroups();
-    unsigned int copyMyGroup = myAddrPow.getGroup(copyNbGroups);
+    unsigned int copyMyGroup = myAddrPow.getGroup(shards);
 /********** NTU PATCH END ******/
 
     while (mi != mempool.mapTx.get<ancestor_score>().end() || !mapModifiedTx.empty())
@@ -487,7 +488,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
         bool test=0;
         
         //if (test) {
-        if (getGroupFromUint256(iter->GetTx().GetHash(), copyNbGroups) != copyMyGroup) {
+        if (getGroupFromUint256(iter->GetTx().GetHash(), shards) != copyMyGroup) {
             if (fUsingModified) {
                 mapModifiedTx.get<ancestor_score>().erase(modit);
                 failedTx.insert(iter);
@@ -497,7 +498,7 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
         else
         {
             test=1;
-            printf("\nsame group, %16lx : %u", iter->GetTx().GetHash().GetUint64(0), getGroupFromUint256(iter->GetTx().GetHash(), copyNbGroups));
+            printf("\nsame group, %16lx : %u", iter->GetTx().GetHash().GetUint64(0), getGroupFromUint256(iter->GetTx().GetHash(), shards));
         }
         
 /********** NTU PATCH END ******/

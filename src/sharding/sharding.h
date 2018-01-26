@@ -4,6 +4,6 @@
 #include "uint256.h"
 
 /* Get the tip of a given shard. */
-const CBlockIndex *get_shard_tip(int shard);
+CBlockIndex *get_shard_tip(unsigned shard);
 
 #endif // BITCOIN_SHARDING_SHARDING_H
