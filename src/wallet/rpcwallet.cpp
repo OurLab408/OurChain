@@ -3172,13 +3172,13 @@ static void SendContractTx(CWallet * const pwallet, const Contract *contract, co
     }
 }
 
-static bool LoadContractCode(Contract &contract, const std::string &filename)
+static bool ReadFile(const std::string &filename, std::string &buf)
 {
     std::string line;
     std::ifstream file(filename);
 
     if (file.is_open() == false) return false;
-    while (getline(file, line)) contract.code += (line + "\n");
+    while (getline(file, line)) buf += (line + "\n");
     file.close();
     return true;
 }
@@ -3208,7 +3208,7 @@ UniValue deploycontract(const JSONRPCRequest& request)
 
     // Contract fields
     Contract contract;
-    if (LoadContractCode(contract, request.params[0].get_str()) == false) {
+    if (ReadFile(request.params[0].get_str(), contract.code) == false) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "File does not exist.");
     }
     contract.action = contract_action::ACTION_NEW;
@@ -3302,6 +3302,27 @@ UniValue callcontract(const JSONRPCRequest& request)
     return wtx.GetHash().GetHex();
 }
 
+UniValue dumpcontractmessage(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "dumpcontractmessage \"txid\"\n"
+            "\nDump the message file of a smart contract.\n"
+            "\nArguments:\n"
+            "1. \"txid\"        (string) The txid of the deployment transaction\n"
+            "\nResult\n"
+            "message           (string) Content of the message file\n"
+            "\nExamples:\n" +
+            HelpExampleCli("dumpcontractmessage", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\""));
+    }
+
+    std::string filename = GetDataDir().string() + "/contracts/" + request.params[0].get_str() + "/out";
+    std::string buf;
+    ReadFile(filename, buf);
+
+    return buf;
+}
+
 extern UniValue abortrescan(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue dumpprivkey(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue importprivkey(const JSONRPCRequest& request);
@@ -3368,6 +3389,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "removeprunedfunds",        &removeprunedfunds,        true,   {"txid"} },
     { "wallet",             "deploycontract",           &deploycontract,           false,  {"filename","initializer"} },
     { "wallet",             "callcontract",             &callcontract,             false,  {"txid","function"} },
+    { "wallet",             "dumpcontractmessage",      &dumpcontractmessage,      true,   {"txid"} },
 
     { "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
 };
