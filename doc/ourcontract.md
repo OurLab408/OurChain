@@ -28,7 +28,7 @@ Ourcontract uses C as its programming language, with some additional constrants:
 
 2. External functions are not allowed, except for those declared in "ourcontract.h"
 
-For more details, see the example contract "vote.c" and the API header "ourcontract.h"
+For more details, see the example contract "[vote.c](/example/vote.c)" and the API header "[ourcontract.h](/src/contract/ourcontract.h)"
 
 Off-chain Testing
 -----------------
