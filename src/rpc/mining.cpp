@@ -129,24 +129,24 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
 //b04902091
-	uint256 newhash = pblock->GetHash();
-	uint64_t nTotalTries = nMaxTries+1;
-	LogPrintf("%llu my hash %s\n",nTotalTries-nMaxTries,newhash.GetHex());
-	uint256 maxhash = newhash;
-	pblock->hashMerkleRoot2 = pblock->hashMerkleRoot;        //2nd merkle root hash (future implementation, Steven's EPoW)
-	pblock->nNonce2 = pblock->nNonce;
+        uint256 newhash = pblock->GetHash();
+        uint64_t nTotalTries = nMaxTries + 1;
+        LogPrintf("%llu my hash %s\n", nTotalTries - nMaxTries, newhash.GetHex());
+        uint256 maxhash = newhash;
+        pblock->hashMerkleRoot2 = pblock->hashMerkleRoot; // 2nd merkle root hash (future implementation, Steven's EPoW)
+        pblock->nNonce2 = pblock->nNonce;
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(newhash, pblock->nBits, Params().GetConsensus())) {
             ++pblock->nNonce;
             --nMaxTries;
-	    if(nMaxTries > 0){
-		newhash = pblock->GetHash();
-		LogPrintf("%llu my hash now %s old max %s\n",nTotalTries-nMaxTries,newhash.GetHex(),maxhash.GetHex());
-		if(UintToArith256(newhash) > UintToArith256(maxhash)){
-		    maxhash = newhash;
-		    pblock->hashMerkleRoot2 = pblock->hashMerkleRoot;
-		    pblock->nNonce2 = pblock->nNonce;
-		}
-	   }
+            if (nMaxTries > 0) {
+                newhash = pblock->GetHash();
+                LogPrintf("%llu my hash now %s old max %s\n", nTotalTries - nMaxTries, newhash.GetHex(), maxhash.GetHex());
+                if (UintToArith256(newhash) > UintToArith256(maxhash)) {
+                    maxhash = newhash;
+                    pblock->hashMerkleRoot2 = pblock->hashMerkleRoot;
+                    pblock->nNonce2 = pblock->nNonce;
+                }
+            }
         }
 //b04902091
         if (nMaxTries == 0) {
