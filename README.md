@@ -10,7 +10,7 @@ Installation
 
 See [doc/build-unix.md](doc/build-unix.md).
 
-Ourcontract
+OurContract
 -----------
 
 See [doc/ourcontract.md](doc/ourcontract.md).
