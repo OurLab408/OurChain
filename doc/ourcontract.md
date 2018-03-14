@@ -1,4 +1,4 @@
-Ourcontract
+OurContract
 ===========
 
 Ourcontract is the smart contract platform built on Ourcoin. This documentation gives a brief overview on Ourcontract programming, testing, and execution.
