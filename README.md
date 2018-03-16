@@ -1,4 +1,4 @@
-Ourcoin
+OurCoin
 =======
 
 The goal of this project is to bring better performance and features to the blockchain technology.
