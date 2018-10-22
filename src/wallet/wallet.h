@@ -6,21 +6,23 @@
 #ifndef BITCOIN_WALLET_WALLET_H
 #define BITCOIN_WALLET_WALLET_H
 
-#include <amount.h>
+
 #include <outputtype.h>
-#include <policy/feerate.h>
-#include <streams.h>
-#include <tinyformat.h>
-#include <ui_interface.h>
-#include <utilstrencodings.h>
-#include <validationinterface.h>
-#include <script/ismine.h>
-#include <script/sign.h>
 #include <util.h>
-#include <wallet/crypter.h>
 #include <wallet/coinselection.h>
-#include <wallet/walletdb.h>
-#include <wallet/rpcwallet.h>
+#include "amount.h"
+#include "policy/feerate.h"
+#include "streams.h"
+#include "tinyformat.h"
+#include "ui_interface.h"
+#include "utilstrencodings.h"
+#include "validationinterface.h"
+#include "contract/contract.h"
+#include "script/ismine.h"
+#include "script/sign.h"
+#include "wallet/crypter.h"
+#include "wallet/walletdb.h"
+#include "wallet/rpcwallet.h"
 
 #include <algorithm>
 #include <atomic>
@@ -972,9 +974,9 @@ public:
      * selected by SelectCoins(); Also create the change output, when needed
      * @note passing nChangePosInOut as -1 will result in setting a random position
      */
-    bool CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosInOut,
-                           std::string& strFailReason, const CCoinControl& coin_control, bool sign = true);
     bool CommitTransaction(CTransactionRef tx, mapValue_t mapValue, std::vector<std::pair<std::string, std::string>> orderForm, std::string fromAccount, CReserveKey& reservekey, CConnman* connman, CValidationState& state);
+    bool CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosInOut,
+                           std::string& strFailReason, const CCoinControl& coin_control, bool sign = true, const Contract *contract = NULL);
 
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& entries);
     bool AddAccountingEntry(const CAccountingEntry&);

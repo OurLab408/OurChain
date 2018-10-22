@@ -3,33 +3,41 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <wallet/wallet.h>
 
-#include <checkpoints.h>
-#include <chain.h>
-#include <wallet/coincontrol.h>
-#include <consensus/consensus.h>
-#include <consensus/validation.h>
-#include <fs.h>
-#include <key.h>
+#include "wallet/wallet.h"
+
 #include <key_io.h>
-#include <keystore.h>
-#include <validation.h>
-#include <net.h>
-#include <policy/fees.h>
-#include <policy/policy.h>
-#include <policy/rbf.h>
-#include <primitives/block.h>
-#include <primitives/transaction.h>
-#include <script/script.h>
 #include <shutdown.h>
-#include <timedata.h>
-#include <txmempool.h>
-#include <utilmoneystr.h>
 #include <wallet/fees.h>
 #include <wallet/walletutil.h>
-
 #include <algorithm>
+#include "base58.h"
+#include "checkpoints.h"
+#include "chain.h"
+#include "wallet/coincontrol.h"
+#include "consensus/consensus.h"
+#include "consensus/validation.h"
+#include "contract/contract.h"
+#include "fs.h"
+#include "init.h"
+#include "key.h"
+#include "keystore.h"
+#include "validation.h"
+#include "net.h"
+#include "policy/fees.h"
+#include "policy/policy.h"
+#include "policy/rbf.h"
+#include "primitives/block.h"
+#include "primitives/transaction.h"
+#include "script/script.h"
+#include "script/sign.h"
+#include "scheduler.h"
+#include "timedata.h"
+#include "txmempool.h"
+#include "util.h"
+#include "ui_interface.h"
+#include "utilmoneystr.h"
+
 #include <assert.h>
 #include <future>
 
@@ -2661,8 +2669,8 @@ OutputType CWallet::TransactionChangeType(OutputType change_type, const std::vec
     return m_default_address_type;
 }
 
-bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransactionRef& tx, CReserveKey& reservekey, CAmount& nFeeRet,
-                         int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
+                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, const Contract *contract)
 {
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
@@ -2718,6 +2726,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
 
     assert(txNew.nLockTime <= (unsigned int)chainActive.Height());
     assert(txNew.nLockTime < LOCKTIME_THRESHOLD);
+
+    // If the transaction interacts with smart contracts, fill the related field.
+    if (contract != NULL) txNew.contract = *contract;
+
     FeeCalculation feeCalc;
     CAmount nFeeNeeded;
     int nBytes;

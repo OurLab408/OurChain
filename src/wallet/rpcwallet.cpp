@@ -3,36 +3,42 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <amount.h>
+
 #include <chain.h>
-#include <consensus/validation.h>
-#include <core_io.h>
-#include <httpserver.h>
-#include <validation.h>
 #include <key_io.h>
-#include <net.h>
 #include <outputtype.h>
-#include <policy/feerate.h>
-#include <policy/fees.h>
-#include <policy/policy.h>
-#include <policy/rbf.h>
-#include <rpc/mining.h>
 #include <rpc/rawtransaction.h>
-#include <rpc/server.h>
 #include <rpc/util.h>
-#include <script/sign.h>
 #include <shutdown.h>
-#include <timedata.h>
-#include <util.h>
-#include <utilmoneystr.h>
-#include <wallet/coincontrol.h>
-#include <wallet/feebumper.h>
 #include <wallet/rpcwallet.h>
-#include <wallet/wallet.h>
-#include <wallet/walletdb.h>
 #include <wallet/walletutil.h>
+#include "amount.h"
+#include "base58.h"
+#include "chain.h"
+#include "consensus/validation.h"
+#include "contract/contract.h"
+#include "core_io.h"
+#include "init.h"
+#include "httpserver.h"
+#include "validation.h"
+#include "net.h"
+#include "policy/feerate.h"
+#include "policy/fees.h"
+#include "policy/policy.h"
+#include "policy/rbf.h"
+#include "rpc/mining.h"
+#include "rpc/server.h"
+#include "script/sign.h"
+#include "timedata.h"
+#include "util.h"
+#include "utilmoneystr.h"
+#include "wallet/coincontrol.h"
+#include "wallet/feebumper.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 #include <stdint.h>
+#include <fstream>
 
 #include <univalue.h>
 
@@ -2396,7 +2402,17 @@ static UniValue gettransaction(const JSONRPCRequest& request)
     CAmount nNet = nCredit - nDebit;
     CAmount nFee = (wtx.IsFromMe(filter) ? wtx.tx->GetValueOut() - nDebit : 0);
 
-    entry.pushKV("amount", ValueFromAmount(nNet - nFee));
+    if (wtx.tx->contract.action == contract_action::ACTION_NEW) {
+        entry.push_back(Pair("contract_action", "ACTION_NEW"));
+        entry.push_back(Pair("contract_code_size", wtx.tx->contract.code.size()));
+        entry.push_back(Pair("contract_args_size", wtx.tx->contract.args.size()));
+    } else if (wtx.tx->contract.action == contract_action::ACTION_CALL) {
+        entry.push_back(Pair("contract_action", "ACTION_CALL"));
+        entry.push_back(Pair("contract_callee", wtx.tx->contract.callee.ToString()));
+        entry.push_back(Pair("contract_args_size", wtx.tx->contract.args.size()));
+    }
+
+    entry.push_back(Pair("amount", ValueFromAmount(nNet - nFee)));
     if (wtx.IsFromMe(filter))
         entry.pushKV("fee", ValueFromAmount(nFee));
 
@@ -4133,6 +4149,34 @@ static UniValue AddressBookDataToJSON(const CAddressBookData& data, const bool v
     return ret;
 }
 
+static void SendContractTx(CWallet * const pwallet, const Contract *contract, const CTxDestination &address, CWalletTx& wtxNew, const CCoinControl& coin_control)
+{
+    CAmount curBalance = pwallet->GetBalance();
+
+    if (pwallet->GetBroadcastTransactions() && !g_connman)
+        throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
+
+    // Parse Bitcoin address
+    CScript scriptPubKey = GetScriptForDestination(address);
+
+    // Create and send the transaction
+    CReserveKey reservekey(pwallet);
+    CAmount nFeeRequired;
+    std::string strError;
+    std::vector<CRecipient> vecSend;
+    int nChangePosRet = -1;
+    CRecipient recipient = {scriptPubKey, curBalance, true};
+    vecSend.push_back(recipient);
+    if (!pwallet->CreateTransaction(vecSend, wtxNew, reservekey, nFeeRequired, nChangePosRet, strError, coin_control, true, contract)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+    CValidationState state;
+    if (!pwallet->CommitTransaction(wtxNew, reservekey, g_connman.get(), state)) {
+        strError = strprintf("Error: The transaction was rejected! Reason given: %s", state.GetRejectReason());
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+}
+
 UniValue getaddressinfo(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -4357,6 +4401,7 @@ UniValue sethdseed(const JSONRPCRequest& request)
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
     CWallet* const pwallet = wallet.get();
 
+
     if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
         return NullUniValue;
     }
@@ -4385,7 +4430,6 @@ UniValue sethdseed(const JSONRPCRequest& request)
 
     if (IsInitialBlockDownload()) {
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Cannot set a new HD seed while still in Initial Block Download");
-    }
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
@@ -4753,6 +4797,146 @@ UniValue walletcreatefundedpsbt(const JSONRPCRequest& request)
     return result;
 }
 
+UniValue deploycontract(const JSONRPCRequest& request)
+{
+    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 1) {
+        throw std::runtime_error(
+            "deploycontract \"filename\" ( \"argv[1]\" \"argv[2]\" ... )\n"
+            "\nDeploy a smart contract and call its main function immediately.\n"
+            "\nArguments:\n"
+            "1. \"filename\"    (string) The file containing smart contract code.\n"
+            "2. \"argv[]\"      (string, optional) The arguments to be passed to the main function.\n"
+            "\nResult\n"
+            "\"txid\"           (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("deploycontract", "\"contract.c\"") +
+            HelpExampleCli("deploycontract", "\"contract.c\" \"arg\""));
+    }
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    // Contract fields
+    Contract contract;
+    if (ReadFile(request.params[0].get_str(), contract.code) == false) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "File does not exist.");
+    }
+    contract.action = contract_action::ACTION_NEW;
+    if (request.params.size() > 1) {
+        for (unsigned i = 1; i < request.params.size(); i++)
+            contract.args.push_back(request.params[i].get_str());
+    }
+
+    // getnewaddress
+    if (!pwallet->IsLocked())
+        pwallet->TopUpKeyPool();
+
+    // Generate a new key that is added to wallet
+    CPubKey newKey;
+    if (!pwallet->GetKeyFromPool(newKey))
+        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+    CKeyID keyID = newKey.GetID();
+
+    std::string strAccount;
+    pwallet->SetAddressBook(keyID, strAccount, "receive");
+
+    // sendtoaddress
+    CBitcoinAddress address(CBitcoinAddress(keyID).ToString());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    CWalletTx wtx;
+    CCoinControl no_coin_control;
+    SendContractTx(pwallet, &contract, address.Get(), wtx, no_coin_control);
+
+    return wtx.GetHash().GetHex();
+}
+
+UniValue callcontract(const JSONRPCRequest& request)
+{
+    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 2) {
+        throw std::runtime_error(
+            "callcontract \"txid\" ( \"argv[1]\" \"argv[2]\" ... )\n"
+            "\nCall the main function of a smart contract.\n"
+            "\nArguments:\n"
+            "1. \"txid\"        (string) The txid of the deployment transaction\n"
+            "2. \"argv[]\"      (string, optional) The arguments to be passed to the main function.\n"
+            "\nResult\n"
+            "\"txid\"           (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("callcontract", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"arg\""));
+    }
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    // Contract fields
+    Contract contract;
+    contract.action = contract_action::ACTION_CALL;
+    contract.callee.SetHex(request.params[0].get_str());
+    if (request.params.size() > 1) {
+        for (unsigned i = 1; i < request.params.size(); i++)
+            contract.args.push_back(request.params[i].get_str());
+    }
+
+    // getnewaddress
+    if (!pwallet->IsLocked())
+        pwallet->TopUpKeyPool();
+
+    // Generate a new key that is added to wallet
+    CPubKey newKey;
+    if (!pwallet->GetKeyFromPool(newKey))
+        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+    CKeyID keyID = newKey.GetID();
+
+    std::string strAccount;
+    pwallet->SetAddressBook(keyID, strAccount, "receive");
+
+    // sendtoaddress
+    CBitcoinAddress address(CBitcoinAddress(keyID).ToString());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    CWalletTx wtx;
+    CCoinControl no_coin_control;
+    SendContractTx(pwallet, &contract, address.Get(), wtx, no_coin_control);
+
+    return wtx.GetHash().GetHex();
+}
+
+UniValue dumpcontractmessage(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 1) {
+        throw std::runtime_error(
+            "dumpcontractmessage \"txid\"\n"
+            "\nDump the message file of a smart contract.\n"
+            "\nArguments:\n"
+            "1. \"txid\"        (string) The txid of the deployment transaction\n"
+            "\nResult\n"
+            "message           (string) Content of the message file\n"
+            "\nExamples:\n" +
+            HelpExampleCli("dumpcontractmessage", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\""));
+    }
+
+    std::string filename = GetDataDir().string() + "/contracts/" + request.params[0].get_str() + "/out";
+    std::string buf;
+    ReadFile(filename, buf);
+
+    return buf;
+}
+
 extern UniValue abortrescan(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue dumpprivkey(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue importprivkey(const JSONRPCRequest& request);
@@ -4836,6 +5020,11 @@ static const CRPCCommand commands[] =
     { "wallet",             "listlabels",                       &listlabels,                    {"purpose"} },
     { "wallet",             "listreceivedbylabel",              &listreceivedbylabel,           {"minconf","include_empty","include_watchonly"} },
     { "wallet",             "setlabel",                         &setlabel,                      {"address","label"} },
+    
+    /** Contract functions */
+    { "wallet",             "deploycontract",           &deploycontract,           false,  {"filename","initializer"} },
+    { "wallet",             "callcontract",             &callcontract,             false,  {"txid","function"} },
+    { "wallet",             "dumpcontractmessage",      &dumpcontractmessage,      true,   {"txid"} },
 
     { "generating",         "generate",                         &generate,                      {"nblocks","maxtries"} },
 };

@@ -7,10 +7,11 @@
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
 #include <stdint.h>
-#include <amount.h>
-#include <script/script.h>
-#include <serialize.h>
-#include <uint256.h>
+#include "amount.h"
+#include "contract/contract.h"
+#include "script/script.h"
+#include "serialize.h"
+#include "uint256.h"
 
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
 
@@ -199,6 +200,9 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
 
     s >> tx.nVersion;
     unsigned char flags = 0;
+
+    s >> tx.contract;
+
     tx.vin.clear();
     tx.vout.clear();
     /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
@@ -247,6 +251,9 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         s << vinDummy;
         s << flags;
     }
+
+    s << tx.contract;
+
     s << tx.vin;
     s << tx.vout;
     if (flags & 1) {
@@ -278,6 +285,8 @@ public:
     // actually immutable; deserialization and assignment are implemented,
     // and bypass the constness. This is safe, as they update the entire
     // structure, including the hash.
+    const int32_t nVersion;
+    const Contract contract;
     const std::vector<CTxIn> vin;
     const std::vector<CTxOut> vout;
     const int32_t nVersion;
@@ -359,6 +368,8 @@ public:
 /** A mutable version of CTransaction. */
 struct CMutableTransaction
 {
+    int32_t nVersion;
+    Contract contract;
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
     int32_t nVersion;

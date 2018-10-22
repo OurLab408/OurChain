@@ -1,9 +1,10 @@
-Bitcoin Core integration/staging tree
-=====================================
+OurCoin
+=======
 
-[![Build Status](https://travis-ci.org/bitcoin/bitcoin.svg?branch=master)](https://travis-ci.org/bitcoin/bitcoin)
+The goal of this project is to bring better performance and features to the blockchain technology.
 
-https://bitcoincore.org
+All of the work is currently based on Bitcoin source code.
+
 
 What is Bitcoin?
 ----------------
@@ -62,15 +63,13 @@ to add a test plan to the pull request description if testing the changes is
 not straightforward.
 
 Translations
+=======
+Installation
 ------------
 
-Changes to translations as well as new translations can be submitted to
-[Bitcoin Core's Transifex page](https://www.transifex.com/projects/p/bitcoin/).
+See [doc/build-unix.md](doc/build-unix.md).
 
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
+OurContract
+-----------
 
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
-
-Translators should also subscribe to the [mailing list](https://groups.google.com/forum/#!forum/bitcoin-translators).
+See [doc/ourcontract.md](doc/ourcontract.md).
