@@ -11,6 +11,7 @@
 #include "wallet/coincontrol.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
+#include "contract/contract.h"
 #include "fs.h"
 #include "init.h"
 #include "key.h"
@@ -111,6 +112,8 @@ public:
     }
 
     void operator()(const CNoDestination &none) {}
+
+    void operator()(const CContID &contID) {}
 };
 
 const CWalletTx* CWallet::GetWalletTx(const uint256& hash) const
@@ -1249,6 +1252,9 @@ void CWallet::BlockConnected(const std::shared_ptr<const CBlock>& pblock, const 
     }
     for (size_t i = 0; i < pblock->vtx.size(); i++) {
         SyncTransaction(pblock->vtx[i], pindex, i);
+    }
+    for (size_t i = 0, j = pblock->vtx.size(); i < pblock->vvtx.size(); i++, j++) {
+        SyncTransaction(pblock->vvtx[i], pindex, j);
     }
 }
 
@@ -2611,7 +2617,8 @@ static CFeeRate GetDiscardRate(const CBlockPolicyEstimator& estimator)
 }
 
 bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign)
+                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, const Contract *contract,
+                                bool allowDust)
 {
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
@@ -2669,6 +2676,10 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
 
     assert(txNew.nLockTime <= (unsigned int)chainActive.Height());
     assert(txNew.nLockTime < LOCKTIME_THRESHOLD);
+
+    // If the transaction interacts with smart contracts, fill the related field.
+    if (contract != NULL) txNew.contract = *contract;
+
     FeeCalculation feeCalc;
     CAmount nFeeNeeded;
     unsigned int nBytes;
@@ -2742,7 +2753,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                         }
                     }
 
-                    if (IsDust(txout, ::dustRelayFee))
+                    if (!allowDust && IsDust(txout, ::dustRelayFee))
                     {
                         if (recipient.fSubtractFeeFromAmount && nFeeRet > 0)
                         {
@@ -2930,6 +2941,8 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
         }
 
         // Embed the constructed transaction data in wtxNew.
+        if( txNew.contract.action == 1 )
+            txNew.contract.address = txNew.GetHash();
         wtxNew.SetTx(MakeTransactionRef(std::move(txNew)));
 
         // Limit size

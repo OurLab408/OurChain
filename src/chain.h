@@ -14,9 +14,6 @@
 
 #include <vector>
 
-/********** NTU PATCH **********/
-#include "version.h"
-/********** NTU PATCH END ******/
 
 /**
  * Maximum amount of time that a block timestamp is allowed to exceed the
@@ -210,22 +207,23 @@ public:
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
 
+    //! The time at which this block is received from the network
+    uint32_t nArrivalTime;
+
     //! block header
     int nVersion;
     uint256 hashMerkleRoot;
+    uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
-/********** NTU PATCH **********/
-    uint256 hashMerkleRoot2;        //2nd merkle root hash (future implementation, Steven's EPoW)
-    unsigned int nNonce2;               //2nd nonce for the 2nd PoW (cf. Steven's EPoW
-    unsigned int nShardsForNextGen;        //Number of shards to create for the next blocks epoch
-    unsigned int blockchainID;
-    
-    
-    //! (memory only) Shard number.
-    int nShard;
-/********** NTU PATCH END ******/
+    uint32_t nTimeNonce;
+    uint256 maxhash;
+    uint256  hashMerkleRoot2;        //2nd merkle root hash (future implementation, Steven's EPoW)
+    uint32_t nNonce2;               //2nd nonce for the 2nd PoW (cf. Steven's EPoW)
+    uint32_t nTimeNonce2;
+    uint256 maxhash2;
+//b04902091
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -248,20 +246,21 @@ public:
         nStatus = 0;
         nSequenceId = 0;
         nTimeMax = 0;
+        nArrivalTime = 0;
 
         nVersion       = 0;
         hashMerkleRoot = uint256();
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
-/********** NTU PATCH **********/
+        nTimeNonce = 0;
+        maxhash = uint256();
+        nTimeNonce2 = 0;
+        maxhash2 = uint256();
         hashMerkleRoot2 = uint256();
-        nNonce2         = 0;
-        nShardsForNextGen  = 0;
-        blockchainID = 0;
-        
-        nShard = 0;
-/********** NTU PATCH END ******/
+        nNonce2 = 0;
+//b04902091
+        hashContractState = uint256();
     }
 
     CBlockIndex()
@@ -278,12 +277,14 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
-/********** NTU PATCH **********/
-        hashMerkleRoot2     = block.hashMerkleRoot2;
-        nNonce2             = block.nNonce2;
-        nShardsForNextGen   = block.nShardsForNextGen;
-        blockchainID        = block.blockchainID;
-/********** NTU PATCH END ******/
+        nTimeNonce     = block.nTimeNonce;
+        maxhash        = block.maxhash;
+        hashMerkleRoot2= block.hashMerkleRoot2;
+        nNonce2        = block.nNonce2;
+        nTimeNonce2    = block.nTimeNonce2;
+        maxhash2       = block.maxhash2;
+//b04902091
+        hashContractState = block.hashContractState;
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -304,6 +305,11 @@ public:
         return ret;
     }
 
+    int64_t GetArrivalTime() const
+    {
+        return (int64_t)nArrivalTime;
+    }
+
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
@@ -314,12 +320,14 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-/********** NTU PATCH **********/
+        block.nTimeNonce            = nTimeNonce;
+        block.maxhash               = maxhash;
+        block.nTimeNonce2           = nTimeNonce2;
+        block.maxhash2              = maxhash2;
         block.hashMerkleRoot2       = hashMerkleRoot2;
         block.nNonce2               = nNonce2;
-        block.nShardsForNextGen     = nShardsForNextGen;
-        block.blockchainID          = blockchainID;
-/********** NTU PATCH END ******/
+//b04902091
+        block.hashContractState = hashContractState;
         return block;
     }
 
@@ -332,6 +340,12 @@ public:
     {
         return (int64_t)nTime;
     }
+
+    int64_t GetBlockFinishTime() const
+    {
+        return (int64_t)nTimeNonce;
+    }
+//b04902091
 
     int64_t GetBlockTimeMax() const
     {
@@ -356,9 +370,10 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
+            hashContractState.ToString(),
             GetBlockHash().ToString());
     }
 
@@ -431,25 +446,23 @@ public:
             READWRITE(VARINT(nDataPos));
         if (nStatus & BLOCK_HAVE_UNDO)
             READWRITE(VARINT(nUndoPos));
+        READWRITE(nArrivalTime);
 
         // block header
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-/********** NTU PATCH **********/
-        //if(nVersion >= NTU_SHARDING_VERSION)   //If the version is a sharded one -> different header
-        //{
-            READWRITE(hashMerkleRoot2);
-            READWRITE(nNonce2);
-            READWRITE(nShardsForNextGen);
-            READWRITE(blockchainID);
-            
-            READWRITE(VARINT(nShard));
-        //}
-/********** NTU PATCH END ******/
+	READWRITE(nTimeNonce);
+        READWRITE(maxhash);
+        READWRITE(nTimeNonce2);
+        READWRITE(maxhash2);
+        READWRITE(hashMerkleRoot2);
+        READWRITE(nNonce2);
+//b04902091
     }
 
     uint256 GetBlockHash() const
@@ -461,12 +474,14 @@ public:
         block.nTime           = nTime;
         block.nBits           = nBits;
         block.nNonce          = nNonce;
-/********** NTU PATCH **********/
-        block.hashMerkleRoot2       = hashMerkleRoot2;
-        block.nNonce2               = nNonce2;
-        block.nShardsForNextGen     = nShardsForNextGen;
-        block.blockchainID          = blockchainID;
-/********** NTU PATCH END ******/
+        block.nTimeNonce      = nTimeNonce;
+        block.maxhash         = maxhash;
+        block.nTimeNonce2     = nTimeNonce2;
+        block.maxhash2        = maxhash2;
+        block.hashMerkleRoot2 = hashMerkleRoot2;
+        block.nNonce2         = nNonce2;
+//b04902091
+        block.hashContractState = hashContractState;
         return block.GetHash();
     }
 

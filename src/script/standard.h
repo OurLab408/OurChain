@@ -27,6 +27,13 @@ public:
     CScriptID(const uint160& in) : uint160(in) {}
 };
 
+class CContID : public uint256
+{
+public:
+    CContID() : uint256() {}
+    CContID(const uint256& in) : uint256(in) {}
+};
+
 static const unsigned int MAX_OP_RETURN_RELAY = 83; //!< bytes (+1 for OP_RETURN, +2 for the pushdata opcodes)
 extern bool fAcceptDatacarrier;
 extern unsigned nMaxDatacarrierBytes;
@@ -66,9 +73,10 @@ public:
  *  * CNoDestination: no destination set
  *  * CKeyID: TX_PUBKEYHASH destination
  *  * CScriptID: TX_SCRIPTHASH destination
+ *  * CContID: 
  *  A CTxDestination is the internal data type encoded in a CBitcoinAddress
  */
-typedef boost::variant<CNoDestination, CKeyID, CScriptID> CTxDestination;
+typedef boost::variant<CNoDestination, CKeyID, CScriptID, CContID> CTxDestination;
 
 const char* GetTxnOutputType(txnouttype t);
 
@@ -80,5 +88,6 @@ CScript GetScriptForDestination(const CTxDestination& dest);
 CScript GetScriptForRawPubKey(const CPubKey& pubkey);
 CScript GetScriptForMultisig(int nRequired, const std::vector<CPubKey>& keys);
 CScript GetScriptForWitness(const CScript& redeemscript);
+CScript GetScriptForContract(const uint256& contractaddress);
 
 #endif // BITCOIN_SCRIPT_STANDARD_H

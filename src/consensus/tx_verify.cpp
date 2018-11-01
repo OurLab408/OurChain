@@ -192,11 +192,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
 
     if (tx.IsCoinBase())
     {
-/********** NTU PATCH **********/
-        // We need to increase the maximum size of coinbase script to store the group information
-        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 2000)
-/********** NTU PATCH END ******/
-        //if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
+        if (tx.vin[0].scriptSig.size() < 2 || tx.vin[0].scriptSig.size() > 100)
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
     }
     else
@@ -204,6 +200,15 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
         for (const auto& txin : tx.vin)
             if (txin.prevout.IsNull())
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
+    }
+
+    // Check ctid
+    if (tx.contract.action == 1)
+    {
+        CMutableTransaction mtx(tx);
+        mtx.contract.address.SetNull();
+        if (tx.contract.address != mtx.GetHash())
+            return state.DoS(100, false, REJECT_INVALID, "bad-ctid");
     }
 
     return true;

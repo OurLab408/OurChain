@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <queue>
 
 #include <boost/signals2/signal.hpp>
 

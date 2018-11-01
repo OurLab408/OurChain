@@ -80,6 +80,28 @@ public:
         return memusage::DynamicUsage(out.scriptPubKey);
     }
 };
+class ContState
+{
+public:
+    std::vector<COutPoint> coins;
+    std::vector<unsigned char> state;
+
+    template<typename Stream>
+    void Serialize(Stream &s) const {
+        ::Serialize(s, coins);
+        ::Serialize(s, state);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream &s) {
+        ::Unserialize(s, coins);
+        ::Unserialize(s, state);
+    }
+
+    size_t DynamicMemoryUsage() const {
+        return memusage::DynamicUsage(coins)+memusage::DynamicUsage(state);
+    }
+};
 
 class SaltedOutpointHasher
 {
@@ -97,6 +119,24 @@ public:
      */
     size_t operator()(const COutPoint& id) const {
         return SipHashUint256Extra(k0, k1, id.hash, id.n);
+    }
+};
+class SaltedHasher
+{
+private:
+    /** Salt */
+    const uint64_t k0, k1;
+
+public:
+    SaltedHasher();
+
+    /**
+     * This *must* return size_t. With Boost 1.46 on 32-bit systems the
+     * unordered_map will behave unpredictably if the custom hasher returns a
+     * uint64_t, resulting in failures when syncing the chain (#4634).
+     */
+    size_t operator()(const uint256& id) const {
+        return SipHashUint256(k0, k1, id);
     }
 };
 
@@ -118,8 +158,16 @@ struct CCoinsCacheEntry
     CCoinsCacheEntry() : flags(0) {}
     explicit CCoinsCacheEntry(Coin&& coin_) : coin(std::move(coin_)), flags(0) {}
 };
+struct CContStateCacheEntry
+{
+    ContState cs; // The actual cached data.
+
+    CContStateCacheEntry() {}
+    explicit CContStateCacheEntry(ContState&& _cs) : cs(std::move(_cs)) {}
+};
 
 typedef std::unordered_map<COutPoint, CCoinsCacheEntry, SaltedOutpointHasher> CCoinsMap;
+typedef std::unordered_map<uint256, CContStateCacheEntry, SaltedHasher> CContStateMap;
 
 /** Cursor for iterating over CoinsView state */
 class CCoinsViewCursor
@@ -151,6 +199,9 @@ public:
      */
     virtual bool GetCoin(const COutPoint &outpoint, Coin &coin) const;
 
+    //! Retrieve the state of contract.
+    virtual bool GetContState(const uint256 &ctid, ContState &cs) const;
+
     //! Just check whether a given outpoint is unspent.
     virtual bool HaveCoin(const COutPoint &outpoint) const;
 
@@ -165,7 +216,7 @@ public:
 
     //! Do a bulk modification (multiple Coin changes + BestBlock change).
     //! The passed mapCoins can be modified.
-    virtual bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock);
+    virtual bool BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, const uint256 &hashBlock);
 
     //! Get a cursor to iterate over the whole state
     virtual CCoinsViewCursor *Cursor() const;
@@ -187,11 +238,12 @@ protected:
 public:
     CCoinsViewBacked(CCoinsView *viewIn);
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
+    bool GetContState(const uint256 &ctid, ContState &cs) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
     uint256 GetBestBlock() const override;
     std::vector<uint256> GetHeadBlocks() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, const uint256 &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
 };
@@ -207,6 +259,7 @@ protected:
      */
     mutable uint256 hashBlock;
     mutable CCoinsMap cacheCoins;
+    mutable CContStateMap cacheContState;
 
     /* Cached dynamic memory usage for the inner Coin objects. */
     mutable size_t cachedCoinsUsage;
@@ -216,10 +269,11 @@ public:
 
     // Standard CCoinsView methods
     bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
+    bool GetContState(const uint256 &ctid, ContState &cs) const override;
     bool HaveCoin(const COutPoint &outpoint) const override;
     uint256 GetBestBlock() const override;
     void SetBestBlock(const uint256 &hashBlock);
-    bool BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) override;
+    bool BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, const uint256 &hashBlock) override;
     CCoinsViewCursor* Cursor() const override {
         throw std::logic_error("CCoinsViewCache cursor iteration not supported.");
     }
@@ -249,6 +303,8 @@ public:
      */
     void AddCoin(const COutPoint& outpoint, Coin&& coin, bool potential_overwrite);
 
+    void AddContState(const uint256& ctid, ContState&& cs);
+
     /**
      * Spend a coin. Pass moveto in order to get the deleted data.
      * If no unspent output exists for the passed outpoint, this call
@@ -269,7 +325,7 @@ public:
      */
     void Uncache(const COutPoint &outpoint);
 
-    //! Calculate the size of the cache (in number of transaction outputs)
+    //! Calculate the size of the cache (in number of transaction outputs and contract state)
     unsigned int GetCacheSize() const;
 
     //! Calculate the size of the cache (in bytes)
@@ -290,6 +346,7 @@ public:
 
 private:
     CCoinsMap::iterator FetchCoin(const COutPoint &outpoint) const;
+    CContStateMap::iterator FetchContState(const uint256 &ctid) const;
 
     /**
      * By making the copy constructor private, we prevent accidentally using it when one intends to create a cache on top of a base cache.
