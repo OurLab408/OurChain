@@ -8,31 +8,35 @@
 #define INIT_ACCOUNT_ARRAY_SIZE 20
 #define INIT_ALLOWANCE_ARRAY_SIZE 10
 #define INIT_ALLOWANCE_RECORD_ARRAY_SIZE 5
+#define MAX_LENGTH_NAME 20
+#define MAX_LENGTH_SYMBOL 10
+#define MAX_LENGTH_ADDRESS 40
+
 
 /*
    Define your own data structure to store user data
 */
 
 typedef struct token {
-    char name[20];
-    char symbol[10];
-    char contractOwnerAddress[40];
+    char name[MAX_LENGTH_NAME];
+    char symbol[MAX_LENGTH_SYMBOL];
+    char contractOwnerAddress[MAX_LENGTH_ADDRESS];
     int decimal;
     int totalSupply;
 } Token;
 
 typedef struct account {
-    char address[40];
+    char address[MAX_LENGTH_ADDRESS];
     int balance;
 } Account;
 
 typedef struct allowance_record {
-    char spender_address[40];
+    char spender_address[MAX_LENGTH_ADDRESS];
     int amount;
 } AllowanceRecord;
 
 typedef struct _allowance {
-    char allownace_owner_address[40];
+    char allownace_owner_address[MAX_LENGTH_ADDRESS];
     int record_count;
     int allocated_array_size;
 
@@ -90,6 +94,7 @@ static unsigned int writeAllowanceArrayToState(unsigned char*, unsigned int);
 
 static unsigned int compute_contract_size();
 
+/* Global variables */
 Account *globalAccountArray;
 Allowance *globalAllowanceArray;
 Token ourToken;
@@ -125,8 +130,11 @@ void print_token()
 
 void print_global_account_array()
 {
+    out_clear();
     for (int i = 0; i < theContractState.num_account; i++) {
-        err_printf("%s,%d\n", globalAccountArray[i].address, globalAccountArray[i].balance);
+
+        out_printf("%s %d\n", globalAccountArray[i].address, globalAccountArray[i].balance);
+        err_printf("%s %d\n", globalAccountArray[i].address, globalAccountArray[i].balance);
     }
     return;
 }
@@ -155,6 +163,8 @@ static int too_few_args()
     return -1;
 }
 
+
+/* Contract main function */
 int contract_main(int argc, char** argv)
 {
     if (argc < 2) {
@@ -162,21 +172,34 @@ int contract_main(int argc, char** argv)
         return -1;
     }
 
+    // Init function must be called in order to deploy the token contract successfully
+    // three more arguments need to be provided :
+    // argv[2] : contractOwnerAddress
+    // argv[3] : initialTotalSupply,
+    // argv[4] : tokenName
+    // argv[5] : tokenSymbol
     if (!strcmp(argv[1], CONTRACT_INIT_FUNC)) {
+        if (argc < 6)
+        {
+            too_few_args();
+            return -1;
+        }
+
+
         err_printf("init contract\n");
 
-        // contract-related data
-        strcpy(ourToken.contractOwnerAddress, "0xContractOwnerAddress");
-        strcpy(ourToken.name, "OurToken");
-        strcpy(ourToken.symbol, "OTK");
-        ourToken.decimal = 0;
-        ourToken.totalSupply = 1e8;
 
+        // contract-related data
+        strcpy(ourToken.contractOwnerAddress, argv[2]);
+        strcpy(ourToken.name, argv[3]);
+        strcpy(ourToken.symbol, argv[4]);
+        ourToken.totalSupply = atoi(argv[5]);
+        ourToken.decimal = 0;
         // contract-state data
         initAccountArray();
         initAllowanceArray();
         theContractState.size_contract = compute_contract_size();
-
+	print_global_account_array();
         writeState();
     } else {
         readState();
@@ -203,17 +226,21 @@ int contract_main(int argc, char** argv)
             if (argc < 5) {
                 return too_few_args();
             }
+
             err_printf("transfer:%d\n", transfer(argv[2], argv[3], atoi(argv[4])));
+            print_global_account_array();
         } else if (!strcmp(argv[1], "approve")) {
             if (argc < 5) {
                 return too_few_args();
             }
+
             err_printf("approve:%d\n", approve(argv[2], argv[3], atoi(argv[4])));
         } else if (!strcmp(argv[1], "transferFrom")) {
             if (argc < 6) {
                 return too_few_args();
             }
             err_printf("transferFrom:%d\n", transferFrom(argv[2], argv[3], argv[4], atoi(argv[5])));
+            print_global_account_array();
         } else if (!strcmp(argv[1], "buyToken")) {
             return 0;
         } else if (!strcmp(argv[1], "sellToken")) {
