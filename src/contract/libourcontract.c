@@ -105,6 +105,21 @@ int call_contract(const char *contract, int argc, char **argv)
     }
 
     push(contract);
+    //copy state file
+    char copying[PATH_MAX];
+    if (snprintf(copying, PATH_MAX, "%s/%s/state_bking",
+                 get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
+        err_printf("state_open: path too long\n");
+        return -1;
+    }
+    FILE *bking = fopen(copying, "w");
+    fprintf(bking, "1");
+    fclose(bking);
+    state_copy();
+    bking = fopen(copying, "w");
+    fprintf(bking, "0");
+    fclose(bking);
+
     int ret = contract_main(argc, argv);
     pop();
 
@@ -197,7 +212,7 @@ int out_clear()
 static int state_open(int flags)
 {
     char filename[PATH_MAX];
-    if (snprintf(filename, PATH_MAX, "%s/%s/state",
+    if (snprintf(filename, PATH_MAX, "%s/%s/state_tmp",
                  get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
         err_printf("state_open: path too long\n");
         return -1;
@@ -243,4 +258,55 @@ int state_write(const void *buf, int count)
     }
 
     return write(curr_frame->state_fd, buf, count);
+}
+
+int state_copy()
+{
+    char copy[PATH_MAX], backup[PATH_MAX], prestate[PATH_MAX], buf[1024];
+    if (snprintf(copy, PATH_MAX, "%s/%s/state_tmp",
+                 get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
+        err_printf("state_open: path too long\n");
+        return -1;
+    }
+    if (snprintf(backup, PATH_MAX, "%s/%s/state_backup",
+                 get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
+        err_printf("state_open: path too long\n");
+        return -1;
+    }
+    if (snprintf(prestate, PATH_MAX, "%s/%s/state",
+                 get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
+        err_printf("state_open: path too long\n");
+        return -1;
+    }
+
+    FILE *bk = fopen(backup,"wb");
+    if(bk == NULL) return -1;
+
+    FILE *prestate_fp = fopen(prestate,"rb");
+    if (prestate_fp == NULL) {
+        fclose(bk);
+        return -1;
+    }
+
+    FILE *tmp = fopen(copy,"wb");
+    if (prestate_fp == NULL) {
+        fclose(bk);
+        fclose(prestate_fp);
+        return -1;
+    }
+
+    int ret;
+
+    while((ret = fread(buf, sizeof(char), 1024, prestate_fp))==1024){
+        fwrite(buf, sizeof(char), 1024, tmp);
+        fwrite(buf, sizeof(char), 1024, bk);
+    }
+    fwrite(buf, sizeof(char), ret, tmp);
+    fwrite(buf, sizeof(char), ret, bk);
+    fflush(tmp);
+    fflush(bk);
+
+    fclose(tmp);
+    fclose(bk);
+    return 0;
 }

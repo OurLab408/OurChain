@@ -9,7 +9,11 @@
 
 typedef unsigned char uchar;
 
+int RecoverContractState(const uint256& contract);
+int WriteContractState(const uint256& contract);
+bool CheckBackup(const uint256& contract);
+
 bool ProcessContract(const Contract &contract, std::vector<CTxOut> &vTxOut, std::vector<uchar> &state, CAmount balance,
-					 std::vector<Contract> &nextContract);
+					 std::vector<Contract> &nextContract,  bool fJustCheck);
 					 
 #endif // BITCOIN_CONTRACT_PROCESSING_H

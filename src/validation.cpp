@@ -1177,7 +1177,7 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
 }
 
 CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs,
-                                  std::vector<Contract> &nextContract)
+                                  std::vector<Contract> &nextContract, bool fJustCheck)
 {
     if (cont.action==0) return CTransactionRef();
     CMutableTransaction mtx;
@@ -1190,7 +1190,7 @@ CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs,
         balance += inputs.AccessCoin(outpoint).out.nValue;
     }
 
-    if (!ProcessContract(cont,mtx.vout,cs.state,balance,nextContract)) return CTransactionRef();
+    if (!ProcessContract(cont, mtx.vout, cs.state,balance, nextContract, fJustCheck)) return CTransactionRef();
     // update cont state
     cs.coins.clear();
     inputs.AddContState(cont.address,std::move(cs));
@@ -1199,8 +1199,8 @@ CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs,
     CAmount amount = 0;
     for (const CTxOut &txout : mtx.vout)
         amount += txout.nValue;
-    assert(amount<=balance);
-    if(amount<balance)
+    assert(amount <= balance);
+    if(amount < balance)
         mtx.vout.push_back(CTxOut(balance-amount, GetScriptForContract(cont.address)));
     return MakeTransactionRef(mtx);
 }
@@ -1658,7 +1658,7 @@ static int64_t nTimeTotal = 0;
  *  Validity checks that depend on the UTXO set are also done; ConnectBlock()
  *  can fail if those validity checks fail (among other reasons). */
 static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex,
-                  CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck = false)
+                  CCoinsViewCache& view, const CChainParams& chainparams, bool fWriteContState = true, bool fJustCheck = false)
 {
     AssertLockHeld(cs_main);
     assert(pindex);
@@ -1837,8 +1837,12 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
             Contract cur = std::move(contractQueue.front());
             contractQueue.pop();
 
+            /*if(CheckBackup(cur.address)) {
+                RecoverContractState(cur.address);
+            }*/
+
             std::vector<Contract> contractCall;
-            CTransactionRef ptx = ProcessContractTx(cur, view, contractCall);
+            CTransactionRef ptx = ProcessContractTx(cur, view, contractCall, !fWriteContState);
             if (ptx) {
                 block.vvtx.push_back(ptx);
                 blockundo.vtxundo.push_back(CTxUndo());
@@ -3261,7 +3265,7 @@ bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams,
         return error("%s: Consensus::CheckBlock: %s", __func__, FormatStateMessage(state));
     if (!ContextualCheckBlock(block, state, chainparams.GetConsensus(), pindexPrev))
         return error("%s: Consensus::ContextualCheckBlock: %s", __func__, FormatStateMessage(state));
-    if (!ConnectBlock(block, state, &indexDummy, viewNew, chainparams, true))
+    if (!ConnectBlock(block, state, &indexDummy, viewNew, chainparams, false, true))
         return false;
     assert(state.IsValid());
 
@@ -3611,6 +3615,39 @@ bool LoadChainTip(const CChainParams& chainparams)
     return true;
 }
 
+bool VerifyState(const CChainParams& chainparams, CCoinsView *coinsview)
+{
+    /*CBlock block;
+    CCoinsViewCache view(coinsview);
+    CBlockIndex* pindexFailure = nullptr;
+    CValidationState state;
+    CBlockIndex *pindex = chainActive.Tip();
+    int nGoodTransactions = 0;
+
+    DisconnectResult res = DisconnectBlock(block, pindex, view);
+    if (res == DISCONNECT_FAILED) {
+        return error("VerifyState(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+    }
+    if (res == DISCONNECT_UNCLEAN) {
+        nGoodTransactions = 0;
+        pindexFailure = pindex;
+    } else {
+        nGoodTransactions += block.vtx.size();
+    }
+    if (pindexFailure)
+        return error("VerifyState(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
+
+    if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
+        return error("VerifyState(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+
+    LogPrintf("VerifyState(): connectblock");
+    if (!ConnectBlock(block, state, pindex, view, chainparams))
+        return error("VerifyState(): *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());*/
+
+    return true;
+}
+
+
 CVerifyDB::CVerifyDB()
 {
     uiInterface.ShowProgress(_("Verifying blocks..."), 0);
@@ -3704,7 +3741,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
             CBlock block;
             if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
                 return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
-            if (!ConnectBlock(block, state, pindex, coins, chainparams))
+            if (!ConnectBlock(block, state, pindex, coins, chainparams, false))
                 return error("VerifyDB(): *** found unconnectable block at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
         }
     }

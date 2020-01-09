@@ -321,7 +321,7 @@ BIP9Stats VersionBitsTipStatistics(const Consensus::Params& params, Consensus::D
 int VersionBitsTipStateSinceHeight(const Consensus::Params& params, Consensus::DeploymentPos pos);
 
 /** process contract and build contract tx */
-CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs);
+CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs, bool fJustCheck);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight);
@@ -420,6 +420,8 @@ void UpdateUncommittedBlockStructures(CBlock& block, const CBlockIndex* pindexPr
 
 /** Produce the necessary coinbase commitment for a block (modifies the hash, don't call for mined blocks). */
 std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBlockIndex* pindexPrev, const Consensus::Params& consensusParams);
+
+bool VerifyState(const CChainParams& chainparams, CCoinsView *coinsview);
 
 /** RAII wrapper for VerifyDB: Verify consistency of the block and coin databases */
 class CVerifyDB {

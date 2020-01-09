@@ -33,6 +33,8 @@ int state_read(void *buf, int count);
 /* write the state file of the calling contract */
 int state_write(const void *buf, int count);
 
+int state_copy();
+
 /* send some money to the target address */
 int send_money(const char *addr, long long amount);
 

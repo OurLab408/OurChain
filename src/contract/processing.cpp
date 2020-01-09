@@ -88,6 +88,7 @@ static int call_rt(const uint256& contract, const std::vector<std::string> &args
         argv[2] = hex_ctid.c_str();
         for (unsigned i = 0; i < args.size(); i++) argv[i + 3] = args[i].c_str();
         argv[args.size() + 3] = NULL;
+        LogPrintf("call_rt: \n");
         execvp("ourcontract-rt", (char* const*)argv);
         exit(EXIT_FAILURE);
     }
@@ -157,8 +158,81 @@ static int call_rt(const uint256& contract, const std::vector<std::string> &args
     return 0;
 }
 
+int RecoverContractState(const uint256& contract)
+{
+    char filename[PATH_MAX], backup[PATH_MAX], buf[1024];
+    if (snprintf(filename, PATH_MAX, "%s/%s/state",
+         GetContractsDir().string().c_str(), contract.GetHex().c_str()) >= PATH_MAX) {
+        LogPrintf("state_open: path too long\n");
+        return -1;
+    }
+
+    strcpy(backup, filename);
+    strcat(backup, "_backup");
+    FILE *src = fopen(backup, "rb");
+    FILE *dst = fopen(filename, "wb");
+    if (src == NULL || dst == NULL) LogPrintf("recover_contract_state: open failed\n");
+
+    int ret;
+    while ((ret = fread(buf, sizeof(char), 1024, src)) == 1024) {
+        fwrite(buf, sizeof(char), 1024, dst);
+    }
+    fwrite(buf, sizeof(char), ret, dst);
+    fflush(dst);
+
+    fclose(src);
+    fclose(dst);
+    return 0;
+}
+
+int WriteContractState(const uint256& contract)
+{
+    char filename[PATH_MAX], tmp[PATH_MAX], buf[1024];
+    if (snprintf(filename, PATH_MAX, "%s/%s/state",
+         GetContractsDir().string().c_str(), contract.GetHex().c_str()) >= PATH_MAX) {
+        LogPrintf("state_open: path too long\n");
+        return -1;
+    }
+
+    strcpy(tmp, filename);
+    strcat(tmp, "_tmp");
+    FILE *src = fopen(tmp, "rb");
+    FILE *dst = fopen(filename, "wb");
+    if (src == NULL || dst == NULL) LogPrintf("write_contract_state: open failed\n");
+
+    int ret;
+    while ((ret = fread(buf, sizeof(char), 1024, src)) == 1024) {
+        fwrite(buf, sizeof(char), 1024, dst);
+        fflush(dst);
+        LogPrintf("wait 20 seconds\n");
+        sleep(20);
+    }
+    fwrite(buf, sizeof(char), ret, dst);
+    fflush(dst);
+
+    fclose(src);
+    fclose(dst);
+    return 0;
+}
+
+bool CheckBackup(const uint256& contract)
+{
+    char filename[PATH_MAX];
+    int check;
+    if (snprintf(filename, PATH_MAX, "%s/%s/state_bking",
+         GetContractsDir().string().c_str(), contract.GetHex().c_str()) >= PATH_MAX) {
+        LogPrintf("state_open: path too long\n");
+        return false;
+    }
+    FILE *bking = fopen(filename,"r");
+    if(bking == NULL) return false;
+    fscanf(bking, "%d", &check);
+    fclose(bking);
+    return check;
+}
+
 bool ProcessContract(const Contract &contract, std::vector<CTxOut> &vTxOut, std::vector<uchar> &state, CAmount balance,
-                     std::vector<Contract> &nextContract)
+                     std::vector<Contract> &nextContract, bool fJustCheck)
 {
     if (contract.action == contract_action::ACTION_NEW) {
         fs::path new_dir = GetContractsDir() / contract.address.GetHex();
@@ -173,12 +247,10 @@ bool ProcessContract(const Contract &contract, std::vector<CTxOut> &vTxOut, std:
         }
 
         if (call_rt(contract.address, contract.args, vTxOut, state, nextContract) < 0) {
-            /* TODO: perform state recovery */
             return false;
         }
     } else if (contract.action == contract_action::ACTION_CALL) {
         if (call_rt(contract.address, contract.args, vTxOut, state, nextContract) < 0) {
-            /* TODO: perform state recovery */
             return false;
         }
     }
@@ -187,9 +259,11 @@ bool ProcessContract(const Contract &contract, std::vector<CTxOut> &vTxOut, std:
         amount = amount + out.nValue;
     }
     if(amount > balance) {
-        /* TODO: perform state recovery */
         return false;
     }
 
+    if (!fJustCheck) {
+        if(WriteContractState(contract.address) < 0) return false;
+    }
     return true;
 }

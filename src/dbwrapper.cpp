@@ -8,6 +8,7 @@
 #include "util.h"
 #include "random.h"
 
+#include <unistd.h>
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
@@ -106,6 +107,11 @@ CDBWrapper::CDBWrapper(const fs::path& path, size_t nCacheSize, bool fMemory, bo
         if (fWipe) {
             LogPrintf("Wiping LevelDB in %s\n", path.string());
             leveldb::Status result = leveldb::DestroyDB(path.string(), options);
+
+            fs::path contracts_dir;
+            contracts_dir = GetDataDir() / "contracts";
+            remove(contracts_dir.string().c_str());
+            
             dbwrapper_private::HandleError(result);
         }
         TryCreateDirectories(path);
