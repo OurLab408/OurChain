@@ -14,7 +14,6 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
-#include "contract/processing.h"
 #include "cuckoocache.h"
 #include "fs.h"
 #include "hash.h"
@@ -49,6 +48,11 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread.hpp>
+
+//b04902091
+#include "EPow.h"
+#include <stdio.h>
+//b04902091
 
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
@@ -95,24 +99,92 @@ CScript COINBASE_FLAGS;
 
 const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
-// Internal stuff
+// Internal stuffLogprintf
 namespace {
+
+    /** Ourcoin finality implementation. */
+    int64_t round_start_time = 0;
+    int64_t preround_finish_time = 0;
+    uint256 round_parent;
+
+    bool IsBroadcastDelayedBlock(const CBlockIndex *pindex) {
+        // Block finish time and arrival time differ too much!
+        int64_t diff = pindex->GetBlockFinishTime() - pindex->GetArrivalTime();
+        /*if (diff >= ROUND_INTERVAL || diff <= -ROUND_INTERVAL){
+            LogPrintf("%s is DelayedBlock, arrival=%u, finish=%u, diff=%lld\n",pindex->GetBlockHash().ToString().c_str(),pindex->nArrivalTime,pindex->nTimeNonce,diff);
+            return true;
+        }*/
+        return false;
+    }
+
+    bool IsRoundExpired() {
+        int64_t now_time = GetAdjustedTime();
+        //LogPrintf("now %lld, round_start_time %lld\n",now_time,round_start_time);
+        //if (GetAdjustedTime() >= round_start_time + ROUND_INTERVAL) return true;
+        if (now_time >= round_start_time + ROUND_INTERVAL) return true;
+        return false;
+    }
+
+    bool IsCurrentRoundBlock(const CBlockIndex *pindex) {
+        if (pindex->GetBlockFinishTime() >= preround_finish_time &&
+            pindex->GetBlockFinishTime() < round_start_time + ROUND_INTERVAL &&
+            pindex->pprev != nullptr &&
+            pindex->pprev->GetBlockHash() == round_parent) return true;
+        LogPrintf("No CurrentRoundBlock %s finish time %lld round start time %lld, parent %s, round_parent %s\n",pindex->GetBlockHash().ToString(),pindex->GetBlockFinishTime(),round_start_time,pindex->pprev->GetBlockHash().ToString(),round_parent.ToString());
+        return false;
+    }
+
+    bool IsNextRoundBlock(const CBlockIndex *pindex) {
+        if (pindex->GetBlockFinishTime() >= round_start_time + ROUND_INTERVAL &&
+            pindex->pprev != nullptr &&
+            pindex->pprev->GetBlockHash() == chainActive.Tip()->GetBlockHash()) return true;
+        LogPrintf("No NextRoundBlock %s finish time %lld round start time %lld, parent %s\n",pindex->GetBlockHash().ToString(),pindex->GetBlockFinishTime(),round_start_time,pindex->pprev->GetBlockHash().ToString());
+        return false;
+    }
+
+    void UpdateRound(const CBlockIndex *pindex) {
+        if(pindex->pprev->GetBlockFinishTime() > round_start_time + ROUND_INTERVAL) preround_finish_time = pindex->pprev->GetBlockFinishTime();
+        else preround_finish_time = round_start_time + ROUND_INTERVAL;
+        round_start_time = pindex->GetBlockFinishTime();
+        round_parent = pindex->pprev->GetBlockHash();
+        //LogPrintf("UpdateRound: preround finish time %lld, round start time %lld, round_parent %s\n",preround_finish_time,round_start_time,round_parent.ToString());
+    }
+
+    bool AbsoluteTimeComparator(const CBlockIndex *pa, const CBlockIndex *pb) {
+        // First sort by earliest time mined (needs finish_time implemented), ...
+        if (pa->GetBlockFinishTime() < pb->GetBlockFinishTime()) return false;
+        if (pa->GetBlockFinishTime() > pb->GetBlockFinishTime()) return true;
+
+        // ... then by most total EPoW (needs EPoW implemented), ...
+        CBlockHeader ba, bb;
+        ba = pa->GetBlockHeader();
+        bb = pb->GetBlockHeader();
+        if (CompareEPow(ba, bb) > 0) return false;
+        if (CompareEPow(ba, bb) < 0) return true;
+        //if (UintToArith256(ba.GetHash()) > UintToArith256(bb.GetHash()))
+        //if (UintToArith256(ba.GetHash()) < UintToArith256(bb.GetHash()))
+        if(UintToArith256(ba.GetHash()) != UintToArith256(bb.GetHash())) LogPrintf("draw,pa>pb? %d, a=%s, b=%s\n",(pa > pb),ba.GetHash().ToString(),bb.GetHash().ToString());
+
+        // Use pointer address as tie breaker (should only happen with blocks
+        // loaded from disk, as those all have id 0).
+        if (pa < pb) return false;
+        if (pa > pb) return true;
+
+        // Identical blocks.
+        return false;
+    }
 
     struct CBlockIndexWorkComparator
     {
         bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
-            // First sort by most total work, ...
+            // The two blocks are in the same round.
+            if (pa->pprev != nullptr && pb->pprev != nullptr &&
+                pa->pprev->GetBlockHash() == pb->pprev->GetBlockHash())
+                return AbsoluteTimeComparator(pa, pb);
+
+            // Latest round first.
             if (pa->nChainWork > pb->nChainWork) return false;
             if (pa->nChainWork < pb->nChainWork) return true;
-
-            // ... then by earliest time received, ...
-            if (pa->nSequenceId < pb->nSequenceId) return false;
-            if (pa->nSequenceId > pb->nSequenceId) return true;
-
-            // Use pointer address as tie breaker (should only happen with blocks
-            // loaded from disk, as those all have id 0).
-            if (pa < pb) return false;
-            if (pa > pb) return true;
 
             // Identical blocks.
             return false;
@@ -445,6 +517,11 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
     const CTransaction& tx = *ptx;
     const uint256 hash = tx.GetHash();
     AssertLockHeld(cs_main);
+
+	struct timeval start;
+	struct timeval end;
+	unsigned long difff;
+
     if (pfMissingInputs)
         *pfMissingInputs = false;
 
@@ -529,6 +606,8 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
         CAmount nValueIn = 0;
         LockPoints lp;
+		
+
         {
         LOCK(pool.cs);
         CCoinsViewMemPool viewMemPool(pcoinsTip, pool);
@@ -782,6 +861,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
             }
         }
 
+
         unsigned int scriptVerifyFlags = STANDARD_SCRIPT_VERIFY_FLAGS;
         if (!chainparams.RequireStandard()) {
             scriptVerifyFlags = gArgs.GetArg("-promiscuousmempoolflags", scriptVerifyFlags);
@@ -789,6 +869,10 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
+
+
+		gettimeofday(&start, NULL);
+
         PrecomputedTransactionData txdata(tx);
         if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, false, txdata)) {
             // SCRIPT_VERIFY_CLEANSTACK requires SCRIPT_VERIFY_WITNESS, so we
@@ -836,6 +920,10 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
                 }
             }
         }
+
+		gettimeofday(&end, NULL);
+		difff = 1000000 * (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec);
+		LogPrintf("CheckInputsSig time: %ld from peer= -1\n", difff);
 
         // Remove conflicting transactions from the mempool
         for (const CTxMemPool::txiter it : allConflicting)
@@ -1176,35 +1264,6 @@ void static InvalidBlockFound(CBlockIndex *pindex, const CValidationState &state
     }
 }
 
-CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs,
-                                  std::vector<Contract> &nextContract)
-{
-    if (cont.action==0) return CTransactionRef();
-    CMutableTransaction mtx;
-    ContState cs;
-    CAmount balance = 0;
-    inputs.GetContState(cont.address,cs);
-    for (const COutPoint &outpoint : cs.coins)
-    {
-        mtx.vin.push_back(CTxIn(outpoint));
-        balance += inputs.AccessCoin(outpoint).out.nValue;
-    }
-
-    if (!ProcessContract(cont,mtx.vout,cs.state,balance,nextContract)) return CTransactionRef();
-    // update cont state
-    cs.coins.clear();
-    inputs.AddContState(cont.address,std::move(cs));
-    if(mtx.vin.size() == 0) return CTransactionRef();
-    // add the change
-    CAmount amount = 0;
-    for (const CTxOut &txout : mtx.vout)
-        amount += txout.nValue;
-    assert(amount<=balance);
-    if(amount<balance)
-        mtx.vout.push_back(CTxOut(balance-amount, GetScriptForContract(cont.address)));
-    return MakeTransactionRef(mtx);
-}
-
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, CTxUndo &txundo, int nHeight)
 {
     // mark inputs spent
@@ -1512,7 +1571,7 @@ static DisconnectResult DisconnectBlock(const CBlock& block, const CBlockIndex* 
         }
 
         // restore inputs
-        if (i > 0) { // not coinbases
+        if (i > 1) { // not coinbases
             CTxUndo &txundo = blockUndo.vtxundo[i-1];
             if (txundo.vprevout.size() != tx.vin.size()) {
                 error("DisconnectBlock(): transaction and undo data inconsistent");
@@ -1772,10 +1831,9 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
     CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
     std::vector<std::pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vtx.size());
-    blockundo.vtxundo.reserve((block.vtx.size() - 1) * 2);
+    blockundo.vtxundo.reserve(block.vtx.size() - 1);
     std::vector<PrecomputedTransactionData> txdata;
     txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
-    block.vvtx.clear(); // reset
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         const CTransaction &tx = *(block.vtx[i]);
@@ -1829,25 +1887,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
             blockundo.vtxundo.push_back(CTxUndo());
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
-
-        std::queue<Contract> contractQueue;
-        if (tx.contract.action != ACTION_NONE)
-            contractQueue.push(tx.contract);
-        while (!contractQueue.empty()) {
-            Contract cur = std::move(contractQueue.front());
-            contractQueue.pop();
-
-            std::vector<Contract> contractCall;
-            CTransactionRef ptx = ProcessContractTx(cur, view, contractCall);
-            if (ptx) {
-                block.vvtx.push_back(ptx);
-                blockundo.vtxundo.push_back(CTxUndo());
-                UpdateCoins(*ptx, view, blockundo.vtxundo.back(), pindex->nHeight);
-                for (Contract &nextContract: contractCall) {
-                    contractQueue.push(std::move(nextContract));
-                }
-            }
-        }
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -2085,11 +2124,11 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams& chainParams) {
             DoWarning(strWarning);
         }
     }
-    LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)", __func__,
+    /*LogPrintf("%s: new best=%s height=%d version=0x%08x log2_work=%.8g tx=%lu date='%s' progress=%f cache=%.1fMiB(%utxo)", __func__,
       chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nVersion,
       log(chainActive.Tip()->nChainWork.getdouble())/log(2.0), (unsigned long)chainActive.Tip()->nChainTx,
       DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-      GuessVerificationProgress(chainParams.TxData(), chainActive.Tip()), pcoinsTip->DynamicMemoryUsage() * (1.0 / (1<<20)), pcoinsTip->GetCacheSize());
+      GuessVerificationProgress(chainParams.TxData(), chainActive.Tip()), pcoinsTip->DynamicMemoryUsage() * (1.0 / (1<<20)), pcoinsTip->GetCacheSize());*/
     if (!warningMessages.empty())
         LogPrintf(" warning='%s'", boost::algorithm::join(warningMessages, ", "));
     LogPrintf("\n");
@@ -2652,6 +2691,11 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
     // Construct new block index object
     CBlockIndex* pindexNew = new CBlockIndex(block);
     assert(pindexNew);
+    // Get current timestamp. See UpdateTime().
+    pindexNew->nArrivalTime = GetAdjustedTime();
+    if (pindexNew->pprev != nullptr)
+        pindexNew->nArrivalTime = std::max(pindexNew->GetArrivalTime(), pindexNew->pprev->GetMedianTimePast()+1);
+
     // We assign the sequence id to blocks only when the full data is available,
     // to avoid miners withholding blocks but broadcasting headers, to get a
     // competitive advantage.
@@ -2665,6 +2709,7 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
         pindexNew->nHeight = pindexNew->pprev->nHeight + 1;
         pindexNew->BuildSkip();
     }
+
     pindexNew->nTimeMax = (pindexNew->pprev ? std::max(pindexNew->pprev->nTimeMax, pindexNew->nTime) : pindexNew->nTime);
     pindexNew->nChainWork = (pindexNew->pprev ? pindexNew->pprev->nChainWork : 0) + GetBlockProof(*pindexNew);
     pindexNew->RaiseValidity(BLOCK_VALID_TREE);
@@ -2672,6 +2717,7 @@ static CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
         pindexBestHeader = pindexNew;
 
     setDirtyBlockIndex.insert(pindexNew);
+    //LogPrintf("AddToBlockIndex : %s is arrive, arrival=%u, finish=%u\n",pindexNew->GetBlockHash().ToString(),pindexNew->nArrivalTime,pindexNew->nTimeNonce);
 
     return pindexNew;
 }
@@ -2815,17 +2861,29 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
+//b04902091
+if(fCheckPOW){
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+    if (!CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
+    if(!((block.nTimeNonce>=block.nTimeNonce2)&&(block.nTimeNonce2>=block.nTime))){
+        LogPrintf("StartTime %d MaxHashTime %d EndTime %d isn't ordered\n",block.nTime,block.nTimeNonce2,block.nTimeNonce);
+        return false;
+    }
+    if(!CheckEPow(block)){
+        if(block.GetHash() != consensusParams.hashGenesisBlock){
+            return false;
+        }
+    }
+}
+//b04902091
     return true;
 }
 
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     // These are checks that are independent of context.
-
     if (block.fChecked)
         return true;
 
@@ -2861,13 +2919,13 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
-    for (unsigned int i = 1; i < block.vtx.size(); i++)
+    /*for (unsigned int i = 1; i < block.vtx.size(); i++)
         if (block.vtx[i]->IsCoinBase())
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");*/
 
     // Check transactions
     for (const auto& tx : block.vtx)
-        if (!CheckTransaction(*tx, state, true))
+        if (!CheckTransaction(*tx, state, false))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
 
@@ -3215,8 +3273,9 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
+    CBlockIndex *pindex = nullptr;
+
     {
-        CBlockIndex *pindex = nullptr;
         if (fNewBlock) *fNewBlock = false;
         CValidationState state;
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
@@ -3236,12 +3295,42 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         }
     }
 
-    NotifyHeaderTip();
+        NotifyHeaderTip();
+    {
 
-    CValidationState state; // Only used to report errors, not invalidity - ignore it
-    if (!ActivateBestChain(state, chainparams, pblock))
-        return error("%s: ActivateBestChain failed", __func__);
+        LOCK(cs_main);
 
+        if (IsInitialBlockDownload() == true) {
+            CValidationState state;
+            if (!ActivateBestChain(state, chainparams, pblock))
+                return error("%s: ActivateBestChain failed", __func__);
+
+            if (pindex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
+                UpdateRound(pindex);
+        } else if (IsRoundExpired() == false) {
+            if (IsBroadcastDelayedBlock(pindex) == true || IsCurrentRoundBlock(pindex) == false) {
+                CValidationState state;
+                InvalidateBlock(state, Params(), pindex);
+            }
+
+            CValidationState state;
+            if (!ActivateBestChain(state, chainparams, pblock))
+                return error("%s: ActivateBestChain failed", __func__);
+        } else { // IsRoundExpired() == true
+            if (IsBroadcastDelayedBlock(pindex) == true || IsNextRoundBlock(pindex) == false) {
+                CValidationState state;
+                InvalidateBlock(state, Params(), pindex);
+            }
+
+            CValidationState state;
+            if (!ActivateBestChain(state, chainparams, pblock))
+                return error("%s: ActivateBestChain failed", __func__);
+
+            if (pindex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
+                UpdateRound(pindex);
+        }
+
+    }
     return true;
 }
 
@@ -3487,9 +3576,8 @@ CBlockIndex * InsertBlockIndex(uint256 hash)
 
 bool static LoadBlockIndexDB(const CChainParams& chainparams)
 {
-    if (!pblocktree->LoadBlockIndexGuts(chainparams.GetConsensus(), InsertBlockIndex))
+    if (!pblocktree->LoadBlockIndexGuts(chainparams.GetConsensus(), InsertBlockIndex))///
         return false;
-
     boost::this_thread::interruption_point();
 
     // Calculate nChainWork
@@ -3872,6 +3960,7 @@ bool RewindBlockIndex(const CChainParams& params)
                 }
             }
         } else if (pindexIter->IsValid(BLOCK_VALID_TRANSACTIONS) && pindexIter->nChainTx) {
+            LogPrintf("insert block %s\n",pindexIter->GetBlockHash().ToString());
             setBlockIndexCandidates.insert(pindexIter);
         }
     }
@@ -4194,6 +4283,9 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
                 // In this case it must be in mapBlocksUnlinked -- see test below.
             }
         } else { // If this block sorts worse than the current tip or some ancestor's block has never been seen, it cannot be in setBlockIndexCandidates.
+            if(setBlockIndexCandidates.count(pindex) != 0){
+                LogPrintf("pindex=%s, its arrival=%u, its finish=%u, pindex->pprev=%s, its arrival=%u, its finish=%u\n",pindex->GetBlockHash().ToString().c_str(),pindex->nArrivalTime,pindex->nTimeNonce,pindex->pprev->GetBlockHash().ToString().c_str(),pindex->pprev->nArrivalTime,pindex->pprev->nTimeNonce);
+            }
             assert(setBlockIndexCandidates.count(pindex) == 0);
         }
         // Check whether this block is in mapBlocksUnlinked.

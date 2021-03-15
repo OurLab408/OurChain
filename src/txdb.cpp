@@ -20,7 +20,6 @@
 
 static const char DB_COIN = 'C';
 static const char DB_COINS = 'c';
-static const char DB_CONT_STATE = 'S';
 static const char DB_BLOCK_FILES = 'f';
 static const char DB_TXINDEX = 't';
 static const char DB_BLOCK_INDEX = 'b';
@@ -53,24 +52,6 @@ struct CoinEntry {
     }
 };
 
-struct ContStateEntry {
-    uint256* ctid;
-    char key;
-    ContStateEntry(const uint256* ptr) : ctid(const_cast<uint256*>(ptr)), key(DB_CONT_STATE)  {}
-
-    template<typename Stream>
-    void Serialize(Stream &s) const {
-        s << key;
-        s << *ctid;
-    }
-
-    template<typename Stream>
-    void Unserialize(Stream& s) {
-        s >> key;
-        s >> *ctid;
-    }
-};
-
 }
 
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true) 
@@ -79,10 +60,6 @@ CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(Get
 
 bool CCoinsViewDB::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     return db.Read(CoinEntry(&outpoint), coin);
-}
-
-bool CCoinsViewDB::GetContState(const uint256 &ctid, ContState &cs) const {
-    return db.Read(ContStateEntry(&ctid), cs);
 }
 
 bool CCoinsViewDB::HaveCoin(const COutPoint &outpoint) const {
@@ -104,7 +81,7 @@ std::vector<uint256> CCoinsViewDB::GetHeadBlocks() const {
     return vhashHeadBlocks;
 }
 
-bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, const uint256 &hashBlock) {
+bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const uint256 &hashBlock) {
     CDBBatch batch(db);
     size_t count = 0;
     size_t changed = 0;
@@ -155,27 +132,6 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, 
         }
     }
 
-    for (CContStateMap::iterator it = mapContState.begin(); it != mapContState.end();) {
-        ContStateEntry entry(&it->first);
-        batch.Write(entry, it->second.cs);
-        changed++;
-        count++;
-        CContStateMap::iterator itOld = it++;
-        mapContState.erase(itOld);
-        if (batch.SizeEstimate() > batch_size) {
-            LogPrint(BCLog::COINDB, "Writing partial batch of %.2f MiB\n", batch.SizeEstimate() * (1.0 / 1048576.0));
-            db.WriteBatch(batch);
-            batch.Clear();
-            if (crash_simulate) {
-                static FastRandomContext rng;
-                if (rng.randrange(crash_simulate) == 0) {
-                    LogPrintf("Simulating a crash. Goodbye.\n");
-                    _Exit(0);
-                }
-            }
-        }
-    }
-
     // In the last batch, mark the database as consistent with hashBlock again.
     batch.Erase(DB_HEAD_BLOCKS);
     batch.Write(DB_BEST_BLOCK, hashBlock);
@@ -188,7 +144,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, 
 
 size_t CCoinsViewDB::EstimateSize() const
 {
-    return db.EstimateSize(DB_COIN, (char)(DB_COIN+1)) + db.EstimateSize(DB_CONT_STATE, (char)(DB_CONT_STATE+1));
+    return db.EstimateSize(DB_COIN, (char)(DB_COIN+1));
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {
@@ -330,7 +286,14 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nNonce         = diskindex.nNonce;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
-
+                pindexNew->nTimeNonce     = diskindex.nTimeNonce;
+                pindexNew->maxhash        = diskindex.maxhash;
+                pindexNew->nTimeNonce2    = diskindex.nTimeNonce2;
+                pindexNew->maxhash2       = diskindex.maxhash2;
+                pindexNew->hashMerkleRoot2= diskindex.hashMerkleRoot2;
+                pindexNew->nNonce2        = diskindex.nNonce2;
+            
+//b04902091
                 if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
                     return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
 

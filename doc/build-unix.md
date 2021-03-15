@@ -16,16 +16,15 @@ the usage of the absolute path.
 
 To Build
 ---------------------
-This will build bitcoin-qt if the following dependencies are met.
 
 ```bash
 ./autogen.sh
-./configure --disable-tests
+./configure
 make
-sudo make install # optional
-ldconfig
+make install # optional
 ```
 
+This will build bitcoin-qt as well if the dependencies are met.
 
 Dependencies
 ---------------------

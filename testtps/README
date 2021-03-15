@@ -1,0 +1,42 @@
+before you test, you need
+sudo apt install ssh
+sudo apt install sshpass
+StrictHostKeyChecking no in /etc/ssh/ssh_config
+PermitRootLogin yes in /etc/ssh/sshd_config
+===============================================================================================================================
+run ./clean.sh first
+
+./tpstest's input file(the example is input_example_tpstest and input_example_tpstest_remoteserver)
+
+1st line
+this computer's name ( a number )
+
+2nd line
+this computer's ip ( like 192.168.0.5 ) and a blank and this docker's ssh port ( without using docker is 22 )
+
+3rd line
+how many traders you want to create
+
+4th line
+1:create a server which will monitor the chain and write down the tps result in result.txt
+0:there are no servers, in this situation, please write down 5 number A B C D E, which mean the server's ip and port(A.B.C.D:E) on another computer
+1：建立一個負責監視整條chain以及把tps結果寫到result.txt的server
+0：如果此程式沒有server,此時請再輸入五個數字ABCDE,代表別台的server的IP和port(A.B.C.D:E)
+
+if there is the server:
+5th line
+how many computers ( or dockers ) have node
+
+6th line
+how many utxo for each trader node to issue transaction
+
+7th line
+0:use miner.sh, miner, or others method for mining
+positive integer:the server will be mining and this positive integer is the block interval（second)
+0:要使用miner.sh, miner, 或其他方法來挖礦
+正整數:這個server會自動挖礦,此時輸入的正整數為區塊間隔時間（秒）
+
+8th line
+how many seconds you want to test tps
+
+if you finish whole test, run ./clean.sh ( or ./docker_clean.sh ) after test

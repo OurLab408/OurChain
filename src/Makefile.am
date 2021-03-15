@@ -32,7 +32,6 @@ LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
-LIBOURCONTRACT=contract/libourcontract.la
 
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -59,7 +58,7 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_ZMQ)
 
-lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS) $(LIBOURCONTRACT)
+lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
 
 bin_PROGRAMS =
 noinst_PROGRAMS =
@@ -73,13 +72,6 @@ endif
 if BUILD_BITCOIN_UTILS
   bin_PROGRAMS += bitcoin-cli bitcoin-tx
 endif
-
-bin_SCRIPTS =
-dist_bin_SCRIPTS =
-include_HEADERS =
-
-dist_bin_SCRIPTS += contract/ourcontract-mkdll
-bin_PROGRAMS += ourcontract-rt
 
 .PHONY: FORCE check-symbols check-security
 # bitcoin core #
@@ -104,7 +96,6 @@ BITCOIN_CORE_H = \
   compressor.h \
   consensus/consensus.h \
   consensus/tx_verify.h \
-  contract/processing.h \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \
@@ -198,7 +189,6 @@ libbitcoin_server_a_SOURCES = \
   chain.cpp \
   checkpoints.cpp \
   consensus/tx_verify.cpp \
-  contract/processing.cpp \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
@@ -229,6 +219,7 @@ libbitcoin_server_a_SOURCES = \
   validation.cpp \
   validationinterface.cpp \
   versionbits.cpp \
+  EPow.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
@@ -292,7 +283,6 @@ libbitcoin_consensus_a_SOURCES = \
   consensus/merkle.h \
   consensus/params.h \
   consensus/validation.h \
-  contract/contract.h \
   hash.cpp \
   hash.h \
   prevector.h \
@@ -367,16 +357,6 @@ if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
-# ourcontract library
-include_HEADERS += contract/ourcontract.h
-contract_libourcontract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract
-contract_libourcontract_la_CFLAGS = $(AM_CFLAGS) $(PIE_FLAGS)
-contract_libourcontract_la_SOURCES = \
-  contract/libourcontract.c \
-  contract/ourcontract.h
-contract_libourcontract_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-#
-
 # cli: shared between bitcoin-cli and bitcoin-qt
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
@@ -411,7 +391,7 @@ bitcoind_LDADD = \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
 
-bitcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+bitcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) -lgmp
 
 # bitcoin-cli binary #
 bitcoin_cli_SOURCES = bitcoin-cli.cpp
@@ -453,23 +433,9 @@ bitcoin_tx_LDADD = \
 bitcoin_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
-# ourcontract-rt binary #
-ourcontract_rt_SOURCES = \
-  contract/ourcontract-rt.c \
-  contract/ourcontract.h
-ourcontract_rt_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract
-ourcontract_rt_CFLAGS = $(AM_CFLAGS) $(PIE_FLAGS)
-ourcontract_rt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-
-ourcontract_rt_LDADD = \
-  $(LIBOURCONTRACT)
-
-ourcontract_rt_LDADD += -ldl
-#
-
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
-include_HEADERS += script/bitcoinconsensus.h
+include_HEADERS = script/bitcoinconsensus.h
 libbitcoinconsensus_la_SOURCES = $(crypto_libbitcoin_crypto_a_SOURCES) $(libbitcoin_consensus_a_SOURCES)
 
 if GLIBC_BACK_COMPAT

@@ -160,13 +160,6 @@ public:
         }
         return obj;
     }
-
-    UniValue operator()(const CContID &contID) const {
-        UniValue obj(UniValue::VOBJ);
-        obj.push_back(Pair("isscript", false));
-        //TODO: may ctid be treated as address
-        return obj;
-    }
 };
 #endif
 

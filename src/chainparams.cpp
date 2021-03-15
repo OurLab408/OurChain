@@ -13,21 +13,22 @@
 #include <assert.h>
 
 #include "chainparamsseeds.h"
+#include "arith_uint256.h" //b04902091
+
+#include <stdio.h>
+#include <time.h>
+#include "pow.h"
 
 // Mine the genesis block if the structure of the block chain is modified.
-#ifndef FORCE_MINE_GENESIS
 #undef MINE_MAIN_GENESIS
 #undef MINE_TESTNET_GENESIS
 #undef MINE_REGTEST_GENESIS
-#endif
 
-#if defined(MINE_MAIN_GENESIS) || defined(MINE_TESTNET_GENESIS) || defined(MINE_REGTEST_GENESIS)
-  #include <stdio.h>
-  #include <time.h>
-  #include "pow.h"
-#endif
+//#if undef(MINE_MAIN_GENESIS) || undef(MINE_TESTNET_GENESIS) || undef(MINE_REGTEST_GENESIS)
+//#endif
 
-static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward, 
+				uint32_t nTimeNonce, uint32_t nNonce2, uint32_t nTimeNonce2, uint256 maxhash, uint256 maxhash2, uint256 hashMerkleRoot2)
 {
     CMutableTransaction txNew;
     txNew.nVersion = 1;
@@ -38,12 +39,24 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     txNew.vout[0].scriptPubKey = genesisOutputScript;
 
     CBlock genesis;
+/*
+printf("\n\nnTime = %u\nnNonce = %u\nnBits = %u\nnVersion = %d\nnTimeNonce = %u\nnNonce2 = %u\nnTimeNonce2 = %u\nmaxhash = %s\nmaxhash2 = %s\nhashMerkleRoot2 = %s\n\n"
+, nTime, nNonce, nBits, nVersion, nTimeNonce, nNonce2, nTimeNonce2, maxhash.ToString().c_str(), maxhash2.ToString().c_str(), hashMerkleRoot2.ToString().c_str());
+*/
     genesis.nTime    = nTime;
     genesis.nBits    = nBits;
     genesis.nNonce   = nNonce;
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(MakeTransactionRef(std::move(txNew)));
     genesis.hashPrevBlock.SetNull();
+//b04902091
+    genesis.nTimeNonce = nTimeNonce;
+    genesis.maxhash = maxhash;       
+    genesis.nNonce2 = nNonce2;               
+    genesis.nTimeNonce2 = nTimeNonce2;
+    genesis.maxhash2 = maxhash2;
+    genesis.hashMerkleRoot2 = hashMerkleRoot2; 
+//b04902091
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
     return genesis;
 }
@@ -59,11 +72,12 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
  *   vMerkleTree: 4a5e1e
  */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward,
+				uint32_t nTimeNonce, uint32_t nNonce2, uint32_t nTimeNonce2, uint256 maxhash, uint256 maxhash2, uint256 hashMerkleRoot2)
 {
     const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
+    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward, nTimeNonce, nNonce2, nTimeNonce2, maxhash, maxhash2, hashMerkleRoot2);
 }
 
 void CChainParams::UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)
@@ -132,28 +146,45 @@ public:
         nPruneAfterHeight = 100000;
 
 #ifdef MINE_MAIN_GENESIS
-        uint32_t t = time(NULL);
+	uint32_t t = time(NULL);
+	uint256 zero;
+	zero.SetHex("0");
         fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
         for (; ; ++t) {
             for (uint32_t n = 0; ; ++n) {
                 if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
+		    uint32_t tn = time(NULL);
+		    if(n == 0){
+                	genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, n, tn, zero, zero, zero);
+			continue;
+		    }
+		    else{
+			if(UintToArith256(genesis.GetHash()) >= UintToArith256(genesis.maxhash)){
+			    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, genesis.nNonce, genesis.nTimeNonce, genesis.GetHash(), genesis.maxhash, genesis.hashMerkleRoot);
+			}
+			else{
+			    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, genesis.nNonce2, genesis.nTimeNonce2, genesis.maxhash, genesis.maxhash2, genesis.hashMerkleRoot2);
+			}
+		    }
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                            genesis.GetHash().ToString().c_str(),
-                            genesis.hashMerkleRoot.ToString().c_str());
+                            "\rnonce = %u, %u\nnTime= %u\nnTimeNonce= %u\nmaxhash = %s,%s\nnNonce2 = %u\nnTimeNonce2 = %u\nmaxhash2 = %s\nhashMerkleRoot2 = %s\nhashMerkleRoot = %s\nhash = %s\n\n",
+				n, genesis.nNonce, genesis.nTime, genesis.nTimeNonce, genesis.maxhash.ToString().c_str(), genesis.GetHash2().ToString().c_str(), genesis.nNonce2, genesis.nTimeNonce2,
+				genesis.maxhash2.ToString().c_str(),genesis.hashMerkleRoot2.ToString().c_str(),genesis.hashMerkleRoot.ToString().c_str(),genesis.GetHash().ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
             }
         }
 #endif
-
-        genesis = CreateGenesisBlock(1503244170, 32633120, 0x1d7fffff, 1, 50 * COIN);
+	uint256 maxhash, maxhash2, hashMerkleRoot2;
+	maxhash.SetHex("ffffff53d73eb39437bf082b2615ca3d4880ce19d7d902a548a1d86682eac15a");
+	maxhash2.SetHex("ffffff3cbc4bf8760489ea15396fe34c4a1d598ead987e635c21812bf04e647d");
+	hashMerkleRoot2.SetHex("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
+	genesis = CreateGenesisBlock(1517468988, 38456761, 0x1d7fffff, 1, 50 * COIN, 1517469306, 24492671, 1517469190, maxhash, maxhash2, hashMerkleRoot2);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00000012537b0c732a1ac5c336e90605084ae62aff5c9deacbb98d75df520ceb"));
-        assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
+        assert(consensus.hashGenesisBlock == uint256S("0x0000000ade64d8887f9ff95784efd71c2a8b68d8a1fb5c4301bb0a156ef573e3"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
         vSeeds.emplace_back("seed.bitcoin.sipa.be", true); // Pieter Wuille, only supports x1, x5, x9, and xd
@@ -250,28 +281,45 @@ public:
         nPruneAfterHeight = 1000;
 
 #ifdef MINE_TESTNET_GENESIS
-        uint32_t t = time(NULL);
+	uint32_t t = time(NULL);
+	uint256 zero;
+	zero.SetHex("0");
         fprintf(stderr, "Mining testnet genesis block...\n\ntime = %u\n", t);
         for (; ; ++t) {
             for (uint32_t n = 0; ; ++n) {
                 if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
+		    uint32_t tn = time(NULL);
+		    if(n == 0){
+                	genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, n, tn, zero, zero, zero);
+			continue;
+		    }
+		    else{
+			if(UintToArith256(genesis.GetHash()) >= UintToArith256(genesis.maxhash)){
+			    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, genesis.nNonce, genesis.nTimeNonce, genesis.GetHash(), genesis.maxhash, genesis.hashMerkleRoot);
+			}
+			else{
+			    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN, tn, genesis.nNonce2, genesis.nTimeNonce2, genesis.maxhash, genesis.maxhash2, genesis.hashMerkleRoot2);
+			}
+		    }
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                            genesis.GetHash().ToString().c_str(),
-                            genesis.hashMerkleRoot.ToString().c_str());
+                            "\rnonce = %u, %u\nnTime= %u\nnTimeNonce= %u\nmaxhash = %s,%s\nnNonce2 = %u\nnTimeNonce2 = %u\nmaxhash2 = %s\nhashMerkleRoot2 = %s\nhashMerkleRoot = %s\nhash = %s\n\n",
+				n, genesis.nNonce, genesis.nTime, genesis.nTimeNonce, genesis.maxhash.ToString().c_str(), genesis.GetHash2().ToString().c_str(), genesis.nNonce2, genesis.nTimeNonce2,
+				genesis.maxhash2.ToString().c_str(),genesis.hashMerkleRoot2.ToString().c_str(),genesis.hashMerkleRoot.ToString().c_str(),genesis.GetHash().ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
             }
         }
 #endif
-
-        genesis = CreateGenesisBlock(1503245336, 26620602, 0x1d7fffff, 1, 50 * COIN);
+	uint256 maxhash, maxhash2, hashMerkleRoot2;
+	maxhash.SetHex("fffffb6bae138c879aeea4e5f495819a0ab1d6483442a615cf3ada13ad995cdb");
+	maxhash2.SetHex("fffff82b3d81fb15904879a9c354aa0a7ae621b67e2414625472b5f01715cd39");
+	hashMerkleRoot2.SetHex("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
+	genesis = CreateGenesisBlock(1517468520, 5696118, 0x1d7fffff, 1, 50 * COIN, 1517468567, 1984589, 1517468537, maxhash, maxhash2, hashMerkleRoot2);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x00000005e296bf1ed66666379135961d3521f01a96d4f0d6ed40cae1bdc4faa5"));
-        assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
+        assert(consensus.hashGenesisBlock == uint256S("0x0000001280c1287a51453d05235308f0892e9a0a7eac015385a9f746ed4f704b"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -351,31 +399,49 @@ public:
         pchMessageStart[3] = 0xda;
         nDefaultPort = 18444;
         nPruneAfterHeight = 1000;
-
+//b04902091
 #ifdef MINE_REGTEST_GENESIS
         uint32_t t = time(NULL);
+	uint256 zero;
+	zero.SetHex("0");
         fprintf(stderr, "Mining regtest genesis block...\n\ntime = %u\n", t);
         for (; ; ++t) {
             for (uint32_t n = 0; ; ++n) {
                 if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
+		    uint32_t tn = time(NULL);
+		    if(n == 0){
+                	genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN, tn, n, tn, zero, zero, zero);
+			continue;
+		    }
+		    else{
+			if(UintToArith256(genesis.GetHash()) >= UintToArith256(genesis.maxhash)){
+			    genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN, tn, genesis.nNonce, genesis.nTimeNonce, genesis.GetHash(), genesis.maxhash, genesis.hashMerkleRoot);
+			}
+			else{
+			    genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN, tn, genesis.nNonce2, genesis.nTimeNonce2, genesis.maxhash, genesis.maxhash2, genesis.hashMerkleRoot2);
+			}
+		    }
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                            genesis.GetHash().ToString().c_str(),
-                            genesis.hashMerkleRoot.ToString().c_str());
+                            "\rnonce = %u, %u\nnTime= %u\nnTimeNonce= %u\nmaxhash = %s,%s\nnNonce2 = %u\nnTimeNonce2 = %u\nmaxhash2 = %s\nhashMerkleRoot2 = %s\nhashMerkleRoot = %s\nhash = %s\n\n",
+				n, genesis.nNonce, genesis.nTime, genesis.nTimeNonce, genesis.maxhash.ToString().c_str(), genesis.GetHash2().ToString().c_str(), genesis.nNonce2, genesis.nTimeNonce2,
+				genesis.maxhash2.ToString().c_str(),genesis.hashMerkleRoot2.ToString().c_str(),genesis.hashMerkleRoot.ToString().c_str(),genesis.GetHash().ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
             }
         }
 #endif
-
-        genesis = CreateGenesisBlock(1536399020, 0, 0x207fffff, 1, 50 * COIN);
+	uint256 maxhash, maxhash2, hashMerkleRoot2;
+	maxhash.SetHex("eab1638bed1a4e6db72d81ed64603b451ab59333c77dc4210106ed34e0a28b29");
+	maxhash2.SetHex("1fa2e4bb70db625e4f5e8f9a7bb05e2c926552324e7c601c47638d66bf5221cd");
+	hashMerkleRoot2.SetHex("4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b");
+	genesis = CreateGenesisBlock(1517460254, 2, 0x207fffff, 1, 50 * COIN, 1517460254, 1, 1517460254, maxhash, maxhash2, hashMerkleRoot2);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x4756fd8ae5db78e1861081b095861b2c5a218c633ba7dc77fd2f756c55fdb9f1"));
-        assert(genesis.hashMerkleRoot == uint256S("0xd9f2a49b88a6a667ec31635b1148378d656eab79ba1bd4736cfe51516464980f"));
+        assert(consensus.hashGenesisBlock == uint256S("0x2047587cb90e12c6461c475d9bde26b5f64bcd210c1c7c5744f064ddc9b6cf8b"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"));
 
+//b04902091
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 

@@ -271,12 +271,6 @@ public:
         *script << OP_HASH160 << ToByteVector(scriptID) << OP_EQUAL;
         return true;
     }
-
-    bool operator()(const CContID &contID) const {
-        script->clear();
-        *script = GetScriptForContract(contID);
-        return true;
-    }
 };
 } // namespace
 
@@ -325,11 +319,4 @@ CScript GetScriptForWitness(const CScript& redeemscript)
     CSHA256().Write(&redeemscript[0], redeemscript.size()).Finalize(hash.begin());
     ret << OP_0 << ToByteVector(hash);
     return ret;
-}
-
-CScript GetScriptForContract(const uint256& contractaddress)
-{
-    CScript script;
-    script << OP_CONTRACT << ToByteVector(contractaddress);
-    return script;
 }
