@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 # main
 
-RUN cd ~ && mkdir Desktop && cd Desktop && apt update && apt install git -y && git clone https://bitbucket.org/lab408/ourcoin.git && mv ourcoin test && cd test && git checkout tps_finality
+RUN cd ~ && mkdir Desktop && cd Desktop && apt update && apt install git -y && git clone https://bitbucket.org/lab408/ourchain-release.git && mv ourchain-release test && cd test && git checkout tps_finality
 RUN apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-all-dev software-properties-common wget net-tools -y && add-apt-repository ppa:bitcoin/bitcoin -y && apt-get update && apt-get install libdb4.8-dev libdb4.8++-dev -y
 
 
