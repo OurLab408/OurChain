@@ -41,11 +41,11 @@ main(){
         printf("enter the node's IP and port which you want to connect:(XXX.XXX.XXX.XXX XXXXX)");
         scanf("%s %d",ip,&ipport);
         sip.assign(ip);
-        scp[0] = "sshpass -p asdf scp tmp/"+to_string(thiscomputer)+" "+sip+":~/Desktop/test/testtps/tmp/"+to_string(thiscomputer);
+        scp[0] = "sshpass -p asdf scp -P "+to_string(ipport)+"tmp/"+to_string(thiscomputer)+" "+sip+":~/Desktop/test/testtps/tmp/"+to_string(thiscomputer);
     }
 
     for(i=0;i<trader;i++){
-        s = "bitcoind -regtest -daemon -blocksonly -walletbroadcast -checkmempool=0 -rpcpassword=123 -walletrejectlongchains -addnode="+sip+":"+to_string(ipport)+" -port="+to_string(i+2501)+" -rpcport="+to_string(i+12501)+" -datadir=traderdir/"+to_string(i+2501);
+        s = "bitcoind -regtest -daemon -blocksonly -walletbroadcast -checkmempool=0 -rpcpassword=123 -walletrejectlongchains -addnode="+sip+":2500 -port="+to_string(i+2501)+" -rpcport="+to_string(i+12501)+" -datadir=traderdir/"+to_string(i+2501);
         mkdir = "mkdir traderdir/"+to_string(i+2501);
         printf("mkdir: %s\n",mkdir.c_str());
         system(mkdir.c_str());

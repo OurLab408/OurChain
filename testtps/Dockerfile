@@ -16,6 +16,8 @@ RUN apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-de
 RUN apt-get install libqrencode-dev -y
 ## gmp
 RUN apt-get install libgmp-dev libgmp3-dev -y 
+## vim
+RUN apt-get install vim -y 
 ## ssh
 RUN apt-get install ssh -y 
 ## sshpass
@@ -38,6 +40,7 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 
 EXPOSE 22
 CMD ["/usr/sbin/sshd", "-D"]
+EXPOSE 2500
 
 
 # make
