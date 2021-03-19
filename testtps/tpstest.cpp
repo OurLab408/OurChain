@@ -41,7 +41,7 @@ main(){
         printf("enter the node's IP and port which you want to connect:(XXX.XXX.XXX.XXX XXXXX)");
         scanf("%s %d",ip,&ipport);
         sip.assign(ip);
-        scp[0] = "sshpass -p asdf scp -P "+to_string(ipport)+"tmp/"+to_string(thiscomputer)+" "+sip+":~/Desktop/test/testtps/tmp/"+to_string(thiscomputer);
+        scp[0] = "sshpass -p asdf scp -P "+to_string(ipport)+" tmp/"+to_string(thiscomputer)+" "+sip+":~/Desktop/test/testtps/tmp/"+to_string(thiscomputer);
     }
 
     for(i=0;i<trader;i++){
@@ -232,4 +232,3 @@ main(){
          system("./clean.sh");
     }
 */////////////////////////////////////////////////////////////////
-} 
