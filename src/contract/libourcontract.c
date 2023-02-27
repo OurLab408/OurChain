@@ -391,3 +391,36 @@ CAmount amount_from_string(const char *val)
         err_printf("amount_from_string: Amount out of range\n");
     return amount;
 }
+
+/*
+* TODO here we assume paths won't be too long
+* zokrates_path: "path/to/zokrates/" so we will call "path/to/zokrates/zokrates"
+* proof_path: ends with ".json"
+* verification_key_path: ends with ".key"
+* Return value:
+* 0 - PASSED
+* 1 - FAILED
+* negative numbers - some errors
+*/
+int private_zokrates_verify(char *zokrates_path, char *proof_path, char *verification_key_path) {
+    char command[1024];
+    if (zokrates_path[strlen(zokrates_path) - 1] == '/') zokrates_path[strlen(zokrates_path) - 1] = '\0';
+    sprintf(command, "%s/zokrates verify -j %s -v %s", zokrates_path, proof_path, verification_key_path);
+
+    FILE* pipe = popen(command, "r");
+    if (!pipe) {
+        return -2;
+    }
+
+    char buffer[128];
+    char result[6] = "XXXXXX";
+    while (fgets(buffer, 128, pipe) != NULL) {
+        err_printf("debug: %s\n", buffer);
+        strncpy(result, buffer, 6);
+    }
+    pclose(pipe);
+    if (!strcmp(result, "PASSED")) return 0;
+    else if (!strcmp(result, "FAILED")) return 1;
+    else if (!strcmp(result, "XXXXXX")) return -1;
+    else return -3;
+}
