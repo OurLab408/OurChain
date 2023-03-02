@@ -166,6 +166,15 @@ bool ProcessContract(const Contract &contract, std::vector<CTxOut> &vTxOut, std:
         std::ofstream contract_code(new_dir.string() + "/code.c");
         contract_code.write(contract.code.c_str(), contract.code.size());
         contract_code.close();
+        std::ofstream contract_zk(new_dir.string() + "/zk");
+        contract_zk.write(contract.zk.c_str(), contract.zk.size());
+        contract_zk.close();
+        std::ofstream contract_pk(new_dir.string() + "/proving.key");
+        contract_pk.write(contract.pk.c_str(), contract.pk.size());
+        contract_pk.close();
+        std::ofstream contract_vk(new_dir.string() + "/verification.key");
+        contract_vk.write(contract.vk.c_str(), contract.vk.size());
+        contract_vk.close();
 
         if (call_mkdll(contract.address) < 0) {
             /* TODO: clean up files */

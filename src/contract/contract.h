@@ -20,6 +20,9 @@ class Contract
 public:
     uint8_t action;                 //!< ACTION_XXX
     std::string code;               //!< contract code if ACTION_NEW
+    std::string zk;                 //!< zk code if ACTION_NEW
+    std::string pk;                 //!< proving key if ACTION_NEW
+    std::string vk;                 //!< verifying key if ACTION_NEW
     uint256 address;            //!< contract address
     std::vector<std::string> args;  //!< passed arguments
 
@@ -28,7 +31,7 @@ public:
         SetNull();
     }
 
-    Contract(const Contract &contract) : action(contract.action), code(contract.code), address(contract.address), args(contract.args) {}
+    Contract(const Contract &contract) : action(contract.action), code(contract.code), zk(contract.zk), pk(contract.pk), vk(contract.vk), address(contract.address), args(contract.args) {}
 
     ~Contract()
     {
@@ -43,6 +46,9 @@ public:
         READWRITE(code);
         READWRITE(address);
         READWRITE(args);
+        READWRITE(zk);
+        READWRITE(pk);
+        READWRITE(vk);
     }
 
     void SetNull()
@@ -51,6 +57,9 @@ public:
         code.clear();
         address.SetNull();
         args.clear();
+        zk.clear();
+        pk.clear();
+        vk.clear();
     }
 
     bool IsNull() const

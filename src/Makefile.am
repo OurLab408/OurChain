@@ -171,6 +171,7 @@ BITCOIN_CORE_H = \
   wallet/crypter.h \
   wallet/db.h \
   wallet/feebumper.h \
+  wallet/ourutil.h \
   wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/walletdb.h \
@@ -249,6 +250,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/crypter.cpp \
   wallet/db.cpp \
   wallet/feebumper.cpp \
+  wallet/ourutil.cpp \
   wallet/rpcdump.cpp \
   wallet/rpcwallet.cpp \
   wallet/wallet.cpp \
@@ -322,6 +324,7 @@ libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   base58.cpp \
+  chain.cpp \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
@@ -332,6 +335,7 @@ libbitcoin_common_a_SOURCES = \
   netaddress.cpp \
   netbase.cpp \
   policy/feerate.cpp \
+  pow.cpp \
   protocol.cpp \
   scheduler.cpp \
   script/sign.cpp \
@@ -370,11 +374,12 @@ endif
 # ourcontract library
 include_HEADERS += contract/ourcontract.h
 contract_libourcontract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract
-contract_libourcontract_la_CFLAGS = $(AM_CFLAGS) $(PIE_FLAGS)
+#contract_libourcontract_la_CFLAGS = $(AM_CFLAGS) $(PIE_FLAGS)
+contract_libourcontract_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 contract_libourcontract_la_SOURCES = \
   contract/libourcontract.c \
   contract/ourcontract.h
-contract_libourcontract_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+#contract_libourcontract_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 #
 
 # cli: shared between bitcoin-cli and bitcoin-qt

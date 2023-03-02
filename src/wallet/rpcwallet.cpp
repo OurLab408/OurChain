@@ -32,6 +32,7 @@
 #include <fstream>
 
 #include <univalue.h>
+#include "wallet/ourutil.h"
 
 static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
 
@@ -3328,6 +3329,80 @@ UniValue deploycontract(const JSONRPCRequest& request)
     return obj;
 }
 
+UniValue deployzkcontract(const JSONRPCRequest& request)
+{
+    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+        return NullUniValue;
+    }
+
+    if (request.fHelp || request.params.size() < 4) {
+        throw std::runtime_error(
+            "deploycontract \"filename\" ( \"argv[1]\" \"argv[2]\" ... )\n"
+            "\nDeploy a smart contract and call its main function immediately.\n"
+            "\nArguments:\n"
+            "1. \"filename\"    (string) The file containing smart contract code.\n"
+            "2. \"argv[]\"      (string, optional) The arguments to be passed to the main function.\n"
+            "\nResult\n"
+            "\"txid\"           (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("deploycontract", "\"contract.c\"") +
+            HelpExampleCli("deploycontract", "\"contract.c\" \"arg\""));
+    }
+
+    LOCK2(cs_main, pwallet->cs_wallet);
+
+    // Contract fields
+    Contract contract;
+    if (ReadFile(request.params[0].get_str(), contract.code) == false) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "File 1 does not exist.");
+    }
+    if (ReadFile(request.params[1].get_str(), contract.zk) == false) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "File 2 does not exist.");
+    }
+    if (ReadFile(request.params[2].get_str(), contract.pk) == false) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "File 3 does not exist.");
+    }
+    if (ReadFile(request.params[3].get_str(), contract.vk) == false) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "File 4 does not exist.");
+    }
+    contract.action = contract_action::ACTION_NEW;
+    if (request.params.size() > 4) {
+        for (unsigned i = 4; i < request.params.size(); i++)
+            contract.args.push_back(request.params[i].get_str());
+    }
+    contract.address = uint256();
+
+    // getnewaddress
+    if (!pwallet->IsLocked())
+        pwallet->TopUpKeyPool();
+
+    // Generate a new key that is added to wallet
+    CPubKey newKey;
+    if (!pwallet->GetKeyFromPool(newKey))
+        throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+    CKeyID keyID = newKey.GetID();
+
+    std::string strAccount;
+    pwallet->SetAddressBook(keyID, strAccount, "receive");
+
+    // sendtoaddress
+    CBitcoinAddress address(CBitcoinAddress(keyID).ToString());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+
+    EnsureWalletIsUnlocked(pwallet);
+
+    CWalletTx wtx;
+    CCoinControl no_coin_control;
+    SendContractTx(pwallet, &contract, address.Get(), wtx, no_coin_control);
+
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("txid", wtx.GetHash().GetHex()));
+    obj.push_back(Pair("contract address", wtx.tx->contract.address.GetHex()));
+    return obj;  
+}
+
 UniValue callcontract(const JSONRPCRequest& request)
 {
     CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
@@ -3473,8 +3548,11 @@ static const CRPCCommand commands[] =
     { "wallet",             "walletpassphrase",         &walletpassphrase,         true,   {"passphrase","timeout"} },
     { "wallet",             "removeprunedfunds",        &removeprunedfunds,        true,   {"txid"} },
     { "wallet",             "deploycontract",           &deploycontract,           false,  {"filename","initializer"} },
+    { "wallet",             "deployzkcontract",         &deployzkcontract,         false,  {"filename","filename","filename","filename","initializer"} },
     { "wallet",             "callcontract",             &callcontract,             false,  {"txid","function"} },
     { "wallet",             "dumpcontractmessage",      &dumpcontractmessage,      true,   {"txid"} },
+    { "wallet",             "generatezkproof",          &OurUtil::generatezkproof, true,   {"txid", "fields"} },
+    { "wallet",             "ourtest",                  &OurUtil::test,            true,   {} },
 
     { "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },
 };
