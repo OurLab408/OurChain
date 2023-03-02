@@ -4,12 +4,11 @@
 #include <stdio.h>
 
 static struct {
-    int user_count;
-    int users[100];
+    char name[100];
 } state;
 
 static void state_init() {
-    state.user_count = 0;
+    state.name[0] = '\0';
     out_clear();
 }
 
@@ -17,7 +16,7 @@ static int foo(int i) {
     char proof[100];
     sprintf(proof, "ourZK/proof%d.json", i);
     return private_zokrates_verify(
-        "/root/ZoKrates/target/release/",
+        "./ZoKrates/target/release",
         proof,
         "ourZK/verification.key"
     );
