@@ -15,6 +15,11 @@ do
     fi
 done
 
+if [ "$#" = "2" ]
+then
+    args=""
+fi
+
 if [ "$cmd" = "start" ]
 then
     bitcoind --datadir=node/"$node"
@@ -25,5 +30,5 @@ elif [ "$cmd" = "kill" ]
 then
     rm -rf node/"$node"/regtest
 else
-    bitcoin-cli --datadir=node/"$node" "$cmd" "$args"
+    bitcoin-cli --datadir=node/$node $cmd $args
 fi
