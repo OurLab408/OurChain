@@ -15,7 +15,7 @@
 typedef struct token {
     char name[20];
     char owner[40]; //account address
-} Token
+} Token;
 
 typedef struct account {
     char address[40];
@@ -47,15 +47,15 @@ typedef struct state {
 } ContractState;
 
 /* private function */
-static int isOwner(char*, Token*);
+static int isOwner(Account*, Token*);
 static int isAllowance(Account*, Token*);
-static void transfer(Acount*, Token*);
+static void transfer(Account*, Token*);
 
 /* required APIs */ //
 int balanceOf(char*);
 char* ownerOf(char*); 
 int transferFrom(char*, char*, char*);
-int approve(char*, char*);
+int approve(char*, char*, char*);
 int mint(char*, char*);
 
 /* function for token table */
@@ -72,13 +72,13 @@ static void appendToAccountArray(Account);
 
 /* function for allowance table */
 static void initAllowanceArray();
-static Allowance* findAllowance(Account*);
-static Allowance createAllowance(Account*);
+static Allowance* findAllowance(Token*);
+static Allowance createAllowance(Token*);
 static void appendToAllowanceArray(Allowance);
 
 /* function for allowance attribute */
 static AllowanceRecord* findAllowanceRecord(Allowance*, Account*);
-static AllowanceRecord createAllowanceRecord(Account*, int);
+static AllowanceRecord createAllowanceRecord(Account*);
 static void appendToAllowanceRecordArray(Allowance*, AllowanceRecord);
 
 
@@ -128,11 +128,13 @@ int contract_main(int argc, char** argv)
         err_printf("init contract\n");
 
         // contract-related data
+        /*
         strcpy(ourToken.contractOwnerAddress, "0xContractOwnerAddress");
         strcpy(ourToken.name, "OurToken");
         strcpy(ourToken.symbol, "OTK");
         ourToken.decimal = 0;
         ourToken.totalSupply = 1e8;
+        */
 
         // contract-state data
         initTokenArray();
@@ -143,10 +145,6 @@ int contract_main(int argc, char** argv)
         writeState();
     } else {
         readState();
-
-int transferFrom(char*, char*, char*);
-int approve(char*, char*);
-int mint(char*, char*);
 
         if (strcmp(argv[1], "balanceOf") == 0) {
             if (argc < 3) {
@@ -220,7 +218,7 @@ static int isAllowance(Account *account, Token *token)
         return 0;
     }
 
-    AllowanceRecord* record = findAllowanceRecord(token_allowance, spender_account);
+    AllowanceRecord* record = findAllowanceRecord(token_allowance, account);
     if (record == NULL) {
         return 0;
     }
@@ -243,12 +241,13 @@ static void transfer(Account* to_account, Token *token) {
     }
 
     for(int i = ind; i < theContractState.num_allowance - 1; i++) {
-        if (globalAllowanceArray[ind + 1] != NULL) {
+        if ((ind + 1) < theContractState.num_allowance) {
             globalAllowanceArray[ind] = globalAllowanceArray[ind + 1];
         } else {
             break;
         }
     }
+    theContractState.num_allowance--;
     return;
 }
 
@@ -279,7 +278,7 @@ char* ownerOf(char* request_name)
 
 int approve(char* owner_address, char* spender_address, char *token_name)
 {
-    Token* token = findToken(token);
+    Token* token = findToken(token_name);
     if (token == NULL) {
         err_printf("Token is not found\n");
         return -1;
@@ -298,8 +297,8 @@ int approve(char* owner_address, char* spender_address, char *token_name)
 
     Allowance* token_allowance = findAllowance(token);
     if (token_allowance == NULL) {
-        appendToAllowanceArray(createAllowance(&token));
-        token_allowance = findAllowance(&token);
+        appendToAllowanceArray(createAllowance(token));
+        token_allowance = findAllowance(token);
     }
 
 
@@ -397,7 +396,7 @@ static Token createToken(char* name, char* address)
 static void appendToTokenArray(Token token)
 {
     if (theContractState.num_token < theContractState.allocated_token_array_size) {
-        globalAccountArray[theContractState.num_token] = token;
+        globalTokenArray[theContractState.num_token] = token;
         theContractState.num_token++;
     } else {
         // re-allocate a bigger array
@@ -492,7 +491,7 @@ static Allowance createAllowance(Token* token)
 {
     Allowance allowance;
     
-    strcpy(allowance.allownace_token_name, token_name);
+    strcpy(allowance.allownace_token_name, token->name);
     allowance.record_count = 0;
     allowance.records = malloc(sizeof(AllowanceRecord) * INIT_ALLOWANCE_RECORD_ARRAY_SIZE);
     allowance.allocated_array_size = INIT_ALLOWANCE_RECORD_ARRAY_SIZE;
@@ -528,7 +527,7 @@ static AllowanceRecord* findAllowanceRecord(Allowance *target_allowance, Account
 {
     for (int i = 0; i < target_allowance->record_count; i++) {
         /* check token name */
-        if (strcmp(target_allowance->records[i].address, spender_account->account) == 0) {
+        if (strcmp(target_allowance->records[i].address, spender_account->address) == 0) {
             return &target_allowance->records[i];
         }
     }
@@ -540,7 +539,7 @@ static AllowanceRecord createAllowanceRecord(Account* account)
 {
     AllowanceRecord record;
 
-    strcpy(record.spender_address, account->address);
+    strcpy(record.address, account->address);
 
     return record;
 }
@@ -641,6 +640,9 @@ static unsigned int readAllowanceArray(unsigned char* buffer, unsigned int offse
             offset += sizeof(AllowanceRecord) * globalAllowanceArray[i].allocated_array_size;
         }
     }
+
+    return written_bytes;
+}
 
 static unsigned int writeState()
 {
@@ -755,26 +757,13 @@ void print_global_account_array()
     return;
 }
 
-typedef struct allowance_record {
-    char address[40];
-} AllowanceRecord;
-
-typedef struct _allowance {
-    char allownace_token_name[20];
-    int record_count;
-    int allocated_array_size;
-
-    // using pointer to have dynamic size array
-    AllowanceRecord *records;
-} Allowance;
-
 void print_global_allowance_array()
 {
     err_printf("Token Allowance: \n");
     for (int i = 0; i < theContractState.num_allowance; i++) {
         err_printf("Token: %s, records: %d\n{\n", globalAllowanceArray[i].allownace_token_name, globalAllowanceArray[i].record_count);
         for (int j = 0; j < globalAllowanceArray[i].record_count; j++) {
-            err_printf("\t%s\n", globalAllowanceArray[i].records[j].spender_address);
+            err_printf("\t%s\n", globalAllowanceArray[i].records[j].address);
         }
         err_printf("}\n");
     }
