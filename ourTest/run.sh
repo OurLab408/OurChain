@@ -32,13 +32,13 @@ fi
 
 if [ "$cmd" = "start" ]
 then
-    bitcoind --datadir=node/"$node"
+    ../src/bitcoind --datadir=node/"$node"
 elif [ "$cmd" = "test" ]
 then
-    echo "bitcoin-cli --datadir=node/$node $cmd2 $args"
+    echo "../src/bitcoin-cli --datadir=node/$node $cmd2 $args"
 elif [ "$cmd" = "kill" ]
 then
     rm -rf node/"$node"/regtest
 else
-    echo "bitcoin-cli --datadir=node/$node $cmd $args" | bash
+    echo "../src/bitcoin-cli --datadir=node/$node $cmd $args" | bash
 fi
