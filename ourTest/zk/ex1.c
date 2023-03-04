@@ -12,14 +12,9 @@ static void state_init() {
     out_clear();
 }
 
-static int foo(int i) {
-    char proof[100];
-    sprintf(proof, "ourZK/proof%d.json", i);
-    return private_zokrates_verify(
-        "./ZoKrates/target/release",
-        proof,
-        "ourZK/verification.key"
-    );
+static int foo (char *a, char *b1, char *b2, char *c) {
+    char **inputs;
+    return zokrates_verify(a, b1, b2, c, inputs, 0);
 }
 
 /*
@@ -40,17 +35,16 @@ int contract_main(int argc, char **argv) {
         return 0;
     }
 
-    /* subcommand "add" */
-    if (str_cmp(argv[1], "add", 3) == 0) {
-        if (argc != 3) {
-            err_printf("%s: usage: add {number}\n", argv[0]);
+    /* subcommand "foo" */
+    if (str_cmp(argv[1], "foo", 3) == 0) {
+        if (argc != 2 + 5) {
+            err_printf("%s: usage: foo {name} {a} {b1} {b2} {c}\n", argv[0]);
             return 0;
         }
 
         out_clear();
-        int result = foo(atoi(argv[2]));
-        state.user_count += atoi(argv[2]);
-        out_printf("Count: %d. Result: %d.", state.user_count, result);
+        if(!foo(argv[3], argv[4], argv[5], argv[6]))
+            out_printf("Proved by %s.", argv[2]);
 
         state_write(&state, sizeof(state));
         return 0;
