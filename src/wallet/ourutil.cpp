@@ -1,5 +1,5 @@
-
 #include "wallet/ourutil.h"
+#include <linux/limits.h>
 
 UniValue OurUtil::test(const JSONRPCRequest& request)
 {
@@ -7,43 +7,48 @@ UniValue OurUtil::test(const JSONRPCRequest& request)
 }
 
 /** Perform subprocess and return stdout/stderr. */
-std::string subp(std::string command) {
+std::string subp(std::string command)
+{
     // stderr > stdout
     command.append(" 2>&1");
     FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) return "popen failed.";    
-    char buffer[128];
+    if (!pipe) return "popen failed.";
+    char buffer[PATH_MAX];
     std::string result;
-    while (fgets(buffer, 128, pipe) != NULL) {
-        result += buffer; 
-        result += "\n";
+    while (fgets(buffer, PATH_MAX, pipe) != NULL) {
+        result += buffer;
+        if (strlen(buffer) < PATH_MAX) result += "\n";
     }
     pclose(pipe);
     // remove last "\n"
-    // if (!result.empty()) result.pop_back();
+    if (!result.empty()) result.pop_back();
     return result;
 }
 
-UniValue OurUtil::generatezkproof(const JSONRPCRequest& request) {   
-    // TODO 
+UniValue OurUtil::generatezkproof(const JSONRPCRequest& request)
+{
+    // TODO
     if (request.fHelp || request.params.size() != 2) {
         throw std::runtime_error(
-            "generatezkproof \"txid\"\n"
-            "\nDump the zk code of a smart contract.\n"
+            "generatezkproof \"txid\" \"inputs\"\n"
+            "\nGenerate a zk prove of a smart contract.\n"
             "\nArguments:\n"
             "1. \"txid\"        (string) The txid of the deployment transaction\n"
+            "2. \"inputs\"      (string) The inputs to the zk function, seperated by spaces\n"
             "\nResult\n"
-            "message           (string) Content of the message file\n"
+            "message           (string) Content of the proof\n"
             "\nExamples:\n" +
-            HelpExampleCli("generatezkproof", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\""));
+            HelpExampleCli("generatezkproof", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"1 20 907\""));
     }
 
     std::string zokrates_home = "~/ZoKrates";
     if (gArgs.IsArgSet("-zokrateshome")) {
         zokrates_home = gArgs.GetArgs("-zokrateshome")[0];
     }
-    if (zokrates_home.empty()) zokrates_home = "/";
-    else if (zokrates_home.at(zokrates_home.length() - 1) != '/') zokrates_home += "/";
+    if (zokrates_home.empty())
+        zokrates_home = "/";
+    else if (zokrates_home.at(zokrates_home.length() - 1) != '/')
+        zokrates_home += "/";
     std::string zokrates = zokrates_home + "target/release/zokrates";
     std::string zokrates_lib = zokrates_home + "zokrates_stdlib/stdlib";
 
@@ -57,29 +62,29 @@ UniValue OurUtil::generatezkproof(const JSONRPCRequest& request) {
 
     // TODO currently we force using curve=bn128 and sceme=g16
     std::string result;
-    
+
     result = "[compile]\n";
     result += subp(
-        "cd " + filepath + " && " + \
-        "rm -rf " + tmp + " && " + \
-        "mkdir " + tmp + " && " + \
-        "cd " + tmp + " && " + \
-        zokrates + " compile --input " + code + " --stdlib-path " + zokrates_lib
-    );
-    result += "[compute witness]\n";    
+        "cd " + filepath + " && " +
+        "rm -rf " + tmp + " && " +
+        "mkdir " + tmp + " && " +
+        "cd " + tmp + " && " +
+        zokrates + " compile --input " + code + " --stdlib-path " + zokrates_lib);
+    result += "[compute witness]\n";
     result += subp(
-        "cd " + filepath + tmp + " && " + \
-        zokrates + " compute-witness --arguments " + fields
-    );
+        "cd " + filepath + tmp + " && " +
+        zokrates + " compute-witness --arguments " + fields);
     result += "[generate proof]\n";
     result += subp(
-        "cd " + filepath + tmp + " && " + \
-        zokrates + " generate-proof --proving-key-path " + pk
-    );
+        "cd " + filepath + tmp + " && " +
+        zokrates + " generate-proof --proving-key-path " + pk);
     result += "[verify]\n";
     result += subp(
-        "cd " + filepath + tmp + " && " + \
-        zokrates + " verify --verification-key-path " + vk
-    );
+        "cd " + filepath + tmp + " && " +
+        zokrates + " verify --verification-key-path " + vk);
+    result += "[proof]\n";
+    result = subp(
+        "cd " + filepath + tmp + " && " +
+        zokrates + " print-proof");
     return result;
 }

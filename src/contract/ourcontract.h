@@ -64,6 +64,6 @@ int send_money_to_contract(const char *addr, CAmount amount);
 
 CAmount amount_from_string(const char *val);
 
-int private_zokrates_verify(char *zokrates_path, char *proof_path, char *verification_key_path);
+int zokrates_verify(char *a, char *b1, char *b2, char *c, char **inputs, int inputsLen);
 
 #endif // BITCOIN_CONTRACT_OURCONTRACT_H

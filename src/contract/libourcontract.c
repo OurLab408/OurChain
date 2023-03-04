@@ -392,35 +392,91 @@ CAmount amount_from_string(const char *val)
     return amount;
 }
 
-/*
-* TODO here we assume paths won't be too long
-* zokrates_path: "path/to/zokrates/" so we will call "path/to/zokrates/zokrates"
-* proof_path: ends with ".json"
-* verification_key_path: ends with ".key"
-* Return value:
-* 0 - PASSED
-* 1 - FAILED
-* negative numbers - some errors
-*/
-int private_zokrates_verify(char *zokrates_path, char *proof_path, char *verification_key_path) {
+/**
+ * Return value:
+ * 0 - PASSED
+ * 1 - FAILED
+ * negative numbers - some errors
+ */
+int zokrates_verify(char* a, char* b1, char* b2, char* c, char** inputs, int inputsLen)
+{
+    if (strlen(a) != 128) {
+        err_printf("zokrates_verify: invalid input: a=%s\n", a);
+        return -7;
+    }
+    if (strlen(b1) != 128) {
+        err_printf("zokrates_verify: invalid input: b1=%s\n", b1);
+        return -7;
+    }
+    if (strlen(b2) != 128) {
+        err_printf("zokrates_verify: invalid input: b2=%s\n", b2);
+        return -7;
+    }
+    if (strlen(c) != 128) {
+        err_printf("zokrates_verify: invalid input: c=%s\n", c);
+        return -7;
+    }
+    char tmp[] = "deleteme";
+    char proof_path[PATH_MAX];
+    if (snprintf(proof_path, PATH_MAX, "%s/%s/%s/",
+            get_contracts_dir(), curr_frame->name, tmp) >= PATH_MAX - 10) {
+        err_printf("zokrates_verify: path too long\n");
+        return -1;
+    }
+    mkdir(proof_path, S_IRWXU);
+    strcat(proof_path, "proof.json");
+    FILE* fptr = fopen(proof_path, "w");
+    if (fptr == NULL) {
+        err_printf("zokrates_verify: fopen(%s, \"w\") failed\n", proof_path);
+        return -2;
+    }
+    fprintf(fptr, "{ \
+        \"scheme\":\"g16\", \
+        \"curve\":\"bn128\", \
+        \"proof\":{ \
+            \"a\": [\"0x%.*s\", \"0x%.*s\"], \
+            \"b\": [[\"0x%.*s\", \"0x%.*s\"], [\"0x%.*s\", \"0x%.*s\"]], \
+            \"c\": [\"0x%.*s\", \"0x%.*s\"] \
+        }, \
+        \"inputs\":[",
+        64, a, 64, a + 64, 64, b1, 64, b1 + 64, 64, b2, 64, b2 + 64, 64, c, 64, c + 64);
+    for (int i = 0; i < inputsLen; i++) {
+        fprintf(fptr, "[\"0x%.*s\", \"0x%.*s\"]", 64, inputs[i], 64, inputs[i] + 64);
+        if (i < inputsLen - 1) fprintf(fptr, ",");
+    }
+    fprintf(fptr, "]}");
+
+    fclose(fptr);
+
+    char verification_key_path[PATH_MAX];
+    if (snprintf(verification_key_path, PATH_MAX, "%s/%s/verification.key",
+            get_contracts_dir(), curr_frame->name) >= PATH_MAX) {
+        err_printf("zokrates_verify: path too long\n");
+        return -3;
+    }
+
     char command[1024];
-    if (zokrates_path[strlen(zokrates_path) - 1] == '/') zokrates_path[strlen(zokrates_path) - 1] = '\0';
-    sprintf(command, "%s/zokrates verify -j %s -v %s", zokrates_path, proof_path, verification_key_path);
+    sprintf(command, "zokrates verify -j %s -v %s", proof_path, verification_key_path);
 
     FILE* pipe = popen(command, "r");
     if (!pipe) {
-        return -2;
+        err_printf("zokrates_verify: popen failed\n");
+        return -4;
     }
 
     char buffer[128];
     char result[6] = "XXXXXX";
     while (fgets(buffer, 128, pipe) != NULL) {
-        err_printf("debug: %s\n", buffer);
+        // err_printf("debug: %s\n", buffer);
         strncpy(result, buffer, 6);
     }
     pclose(pipe);
-    if (!strcmp(result, "PASSED")) return 0;
-    else if (!strcmp(result, "FAILED")) return 1;
-    else if (!strcmp(result, "XXXXXX")) return -1;
-    else return -3;
+    if (!strncmp(result, "PASSED", 6))
+        return 0;
+    else if (!strncmp(result, "FAILED", 6))
+        return 1;
+    else if (!strncmp(result, "XXXXXX", 6))
+        return -5;
+    else
+        return -6;
 }
