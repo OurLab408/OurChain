@@ -465,17 +465,17 @@ int zokrates_verify(char* a, char* b1, char* b2, char* c, char** inputs, int inp
     }
 
     char buffer[128];
-    char result[6] = "XXXXXX";
+    char result[] = "XXXXXX";
     while (fgets(buffer, 128, pipe) != NULL) {
         // err_printf("debug: %s\n", buffer);
         strncpy(result, buffer, 6);
     }
     pclose(pipe);
-    if (!strncmp(result, "PASSED", 6))
+    if (!strcmp(result, "PASSED"))
         return 0;
-    else if (!strncmp(result, "FAILED", 6))
+    else if (!strcmp(result, "FAILED"))
         return 1;
-    else if (!strncmp(result, "XXXXXX", 6))
+    else if (!strcmp(result, "XXXXXX"))
         return -5;
     else
         return -6;
