@@ -117,3 +117,5 @@ ourTest/zk/*
 !ourTest/zk/Dockerfile
 !ourTest/zk/README.md
 !ourTest/zk/ex1.*
+!ourTest/zk/rust
+ourTest/zk/rust/target
