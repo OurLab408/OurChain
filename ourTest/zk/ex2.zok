@@ -1,0 +1,22 @@
+from "ecc/babyjubjubParams" import BabyJubJubParams;
+import "ecc/babyjubjubParams" as context;
+import "ecc/edwardsOnCurve" as exists;
+import "ecc/edwardsScalarMult" as mul;
+import "ecc/edwardsAdd" as add;
+import "utils/pack/bool/nonStrictUnpack256" as unpack256;
+import "hashes/sha256/512bitPacked" as sha256packed;
+
+def main (field[2] K, field[2] hashedx, field[2] enced, private field[2] coord, private field sk) {
+    // valid x
+    field[2] myHashed = sha256packed([0, 0, 0, coord[0]]);
+    assert(myHashed[0] == hashedx[0]);
+    assert(myHashed[1] == hashedx[1]);
+
+    BabyJubJubParams context = context();
+    // valid y
+    assert(exists(coord, context));
+    // valid secret key
+    field[2] myEnc = add(coord, mul(unpack256(sk), K, context), context);
+    assert(myEnc[0] == enced[0]);
+    assert(myEnc[1] == enced[1]);
+}
