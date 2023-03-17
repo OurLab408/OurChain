@@ -37,9 +37,11 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import *
 
 class WalletBackupTest(BitcoinTestFramework):
-    def set_test_params(self):
-        self.num_nodes = 4
+
+    def __init__(self):
+        super().__init__()
         self.setup_clean_chain = True
+        self.num_nodes = 4
         # nodes 1, 2,3 are spenders, let's give them a keypool=100
         self.extra_args = [["-keypool=100"], ["-keypool=100"], ["-keypool=100"], []]
 
@@ -76,9 +78,9 @@ class WalletBackupTest(BitcoinTestFramework):
 
     # As above, this mirrors the original bash test.
     def start_three(self):
-        self.start_node(0)
-        self.start_node(1)
-        self.start_node(2)
+        self.nodes[0] = self.start_node(0, self.options.tmpdir)
+        self.nodes[1] = self.start_node(1, self.options.tmpdir)
+        self.nodes[2] = self.start_node(2, self.options.tmpdir)
         connect_nodes(self.nodes[0], 3)
         connect_nodes(self.nodes[1], 3)
         connect_nodes(self.nodes[2], 3)
@@ -189,16 +191,6 @@ class WalletBackupTest(BitcoinTestFramework):
         assert_equal(self.nodes[0].getbalance(), balance0)
         assert_equal(self.nodes[1].getbalance(), balance1)
         assert_equal(self.nodes[2].getbalance(), balance2)
-
-        # Backup to source wallet file must fail
-        sourcePaths = [
-            tmpdir + "/node0/regtest/wallet.dat",
-            tmpdir + "/node0/./regtest/wallet.dat",
-            tmpdir + "/node0/regtest/",
-            tmpdir + "/node0/regtest"]
-
-        for sourcePath in sourcePaths:
-            assert_raises_rpc_error(-4, "backup failed", self.nodes[0].backupwallet, sourcePath)
 
 
 if __name__ == '__main__':

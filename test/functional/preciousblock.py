@@ -35,7 +35,8 @@ def node_sync_via_rpc(nodes):
             unidirectional_node_sync_via_rpc(node_src, node_dest)
 
 class PreciousTest(BitcoinTestFramework):
-    def set_test_params(self):
+    def __init__(self):
+        super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 3
 

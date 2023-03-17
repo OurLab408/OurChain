@@ -128,7 +128,7 @@ class TestNode(NodeConnCB):
         expect_headers = headers if headers != None else []
         expect_inv = inv if inv != None else []
         test_function = lambda: self.block_announced
-        wait_until(test_function, timeout=60, lock=mininode_lock)
+        assert(wait_until(test_function, timeout=60))
         with mininode_lock:
             self.block_announced = False
 
@@ -155,12 +155,12 @@ class TestNode(NodeConnCB):
             return
 
         test_function = lambda: "getdata" in self.last_message and [x.hash for x in self.last_message["getdata"].inv] == hash_list
-        wait_until(test_function, timeout=timeout, lock=mininode_lock)
+        assert(wait_until(test_function, timeout=timeout))
         return
 
     def wait_for_block_announcement(self, block_hash, timeout=60):
         test_function = lambda: self.last_blockhash_announced == block_hash
-        wait_until(test_function, timeout=timeout, lock=mininode_lock)
+        assert(wait_until(test_function, timeout=timeout))
         return
 
     def send_header_for_blocks(self, new_blocks):
@@ -174,7 +174,8 @@ class TestNode(NodeConnCB):
         self.send_message(getblocks_message)
 
 class SendHeadersTest(BitcoinTestFramework):
-    def set_test_params(self):
+    def __init__(self):
+        super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 2
 
@@ -224,10 +225,6 @@ class SendHeadersTest(BitcoinTestFramework):
         # Test logic begins here
         inv_node.wait_for_verack()
         test_node.wait_for_verack()
-
-        # Ensure verack's have been processed by our peer
-        inv_node.sync_with_ping()
-        test_node.sync_with_ping()
 
         tip = int(self.nodes[0].getbestblockhash(), 16)
 

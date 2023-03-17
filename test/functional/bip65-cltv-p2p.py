@@ -60,7 +60,9 @@ def create_transaction(node, coinbase, to_address, amount):
     return tx
 
 class BIP65Test(BitcoinTestFramework):
-    def set_test_params(self):
+
+    def __init__(self):
+        super().__init__()
         self.num_nodes = 1
         self.extra_args = [['-promiscuousmempoolflags=1', '-whitelist=127.0.0.1']]
         self.setup_clean_chain = True
@@ -107,7 +109,7 @@ class BIP65Test(BitcoinTestFramework):
         node0.send_and_ping(msg_block(block))
         assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
 
-        wait_until(lambda: "reject" in node0.last_message.keys(), lock=mininode_lock)
+        assert wait_until(lambda: "reject" in node0.last_message.keys())
         with mininode_lock:
             assert_equal(node0.last_message["reject"].code, REJECT_OBSOLETE)
             assert_equal(node0.last_message["reject"].reason, b'bad-version(0x00000003)')
@@ -136,7 +138,7 @@ class BIP65Test(BitcoinTestFramework):
         node0.send_and_ping(msg_block(block))
         assert_equal(int(self.nodes[0].getbestblockhash(), 16), tip)
 
-        wait_until(lambda: "reject" in node0.last_message.keys(), lock=mininode_lock)
+        assert wait_until (lambda: "reject" in node0.last_message.keys())
         with mininode_lock:
             assert node0.last_message["reject"].code in [REJECT_INVALID, REJECT_NONSTANDARD]
             assert_equal(node0.last_message["reject"].data, block.sha256)

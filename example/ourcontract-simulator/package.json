@@ -1,0 +1,19 @@
+{
+	"name": "ourcontract-simulator",
+	"version": "1.0.0",
+	"description": "a CLI program can simulate ourcontract run environment in ourchain",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"test": "yarn test",
+		"compile": "cd cache && gcc ../cpp/sampleContract.c -fPIC -g -c -Wall -o ./code.o && gcc ../cpp/libourcontract.c -fPIC -g -c -Wall -o ./lib.o && gcc -fPIC -shared -Wl,-install_name,./code.so -o ./code.so ./code.o ./lib.o",
+		"rebuild": "cd cpp && gcc ourcontract-rt.c libourcontract.c -o ../cache/env -Wall",
+		"simulate": "cd cache && ./env ourcontract-rt ../cache txid",
+		"runAll": "yarn rebuild && yarn compile && yarn simulate"
+	},
+	"author": "Leon Lin",
+	"license": "ISC",
+	"dependencies": {
+		"prompts": "^2.4.2"
+	}
+}
