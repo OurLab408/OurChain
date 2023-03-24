@@ -1,14 +1,14 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include <primitives/transaction.h>
-#include <serialize.h>
-#include <uint256.h>
+#include "primitives/transaction.h"
+#include "serialize.h"
+#include "uint256.h"
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -24,9 +24,15 @@ public:
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
+    uint256 hashContractState;
     uint32_t nTime;
     uint32_t nBits;
-    uint32_t nNonce;
+    
+    /* For GPoW */
+    uint8_t nGpow_m;
+    uint8_t nNonce_bit_size;
+    nonce_type nNonce[GPOW_M];
+    //uint32_t nNonce;
 
     CBlockHeader()
     {
@@ -40,9 +46,12 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nNonce);
+        READWRITE(nGpow_m);
+        READWRITE(nNonce_bit_size);
+        READWRITE(FLATNONCE(nNonce));
     }
 
     void SetNull()
@@ -50,9 +59,15 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hashContractState.SetNull();
         nTime = 0;
         nBits = 0;
-        nNonce = 0;
+        nGpow_m = GPOW_M;
+        nNonce_bit_size = NONCE_BIT_SIZE;
+
+        for(int i = 0; i < GPOW_M; i++) {
+            nNonce[i].x = 0;
+        }
     }
 
     bool IsNull() const
@@ -76,6 +91,9 @@ public:
     std::vector<CTransactionRef> vtx;
 
     // memory only
+    mutable std::vector<CTransactionRef> vvtx;
+
+    // memory only
     mutable bool fChecked;
 
     CBlock()
@@ -86,14 +104,14 @@ public:
     CBlock(const CBlockHeader &header)
     {
         SetNull();
-        *(static_cast<CBlockHeader*>(this)) = header;
+        *((CBlockHeader*)this) = header;
     }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITEAS(CBlockHeader, *this);
+        READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
     }
 
@@ -107,12 +125,17 @@ public:
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
-        block.nVersion       = nVersion;
-        block.hashPrevBlock  = hashPrevBlock;
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
+        block.nVersion          = nVersion;
+        block.hashPrevBlock     = hashPrevBlock;
+        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashContractState = hashContractState;
+        block.nTime             = nTime;
+        block.nBits             = nBits;
+        block.nGpow_m           = nGpow_m;
+        block.nNonce_bit_size   = nNonce_bit_size;
+        for(int i = 0; i < GPOW_M; i++) {
+            block.nNonce[i].x = nNonce[i].x;
+        }
         return block;
     }
 
@@ -129,7 +152,7 @@ struct CBlockLocator
 
     CBlockLocator() {}
 
-    explicit CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
+    CBlockLocator(const std::vector<uint256>& vHaveIn) : vHave(vHaveIn) {}
 
     ADD_SERIALIZE_METHODS;
 

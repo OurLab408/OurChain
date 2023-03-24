@@ -1,16 +1,17 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef BITCOIN_CHAIN_H
 #define BITCOIN_CHAIN_H
 
-#include <arith_uint256.h>
-#include <consensus/params.h>
-#include <primitives/block.h>
-#include <tinyformat.h>
-#include <uint256.h>
+#include "arith_uint256.h"
+#include "primitives/block.h"
+#include "pow.h"
+#include "serialize.h"
+#include "tinyformat.h"
+#include "uint256.h"
 
 #include <vector>
 
@@ -91,7 +92,7 @@ struct CDiskBlockPos
 
     template <typename Stream, typename Operation>
     inline void SerializationOp(Stream& s, Operation ser_action) {
-        READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));
+        READWRITE(VARINT(nFile));
         READWRITE(VARINT(nPos));
     }
 
@@ -204,19 +205,25 @@ public:
     unsigned int nChainTx;
 
     //! Verification status of this block. See enum BlockStatus
-    uint32_t nStatus;
+    unsigned int nStatus;
 
     //! block header
-    int32_t nVersion;
+    int nVersion;
     uint256 hashMerkleRoot;
-    uint32_t nTime;
-    uint32_t nBits;
-    uint32_t nNonce;
+    uint256 hashContractState;
+    unsigned int nTime;
+    unsigned int nBits;
+    //unsigned int nNonce;
+
+    /* GPoW */
+    uint8_t nGpow_m;
+    uint8_t nNonce_bit_size;
+    nonce_type nNonce[GPOW_M];
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
 
-    //! (memory only) Maximum nTime in the chain up to and including this block.
+    //! (memory only) Maximum nTime in the chain upto and including this block.
     unsigned int nTimeMax;
 
     void SetNull()
@@ -235,11 +242,18 @@ public:
         nSequenceId = 0;
         nTimeMax = 0;
 
-        nVersion       = 0;
-        hashMerkleRoot = uint256();
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
+        nVersion          = 0;
+        hashMerkleRoot    = uint256();
+        hashContractState = uint256();
+        nTime             = 0;
+        nBits             = 0;
+        //nNonce            = 0;
+        /* GPoW */
+        nGpow_m           = GPOW_M;
+        nNonce_bit_size   = NONCE_BIT_SIZE;
+        for(int i = 0; i < GPOW_M; i++) {
+            nNonce[i].x = 0;
+        }
     }
 
     CBlockIndex()
@@ -247,15 +261,20 @@ public:
         SetNull();
     }
 
-    explicit CBlockIndex(const CBlockHeader& block)
+    CBlockIndex(const CBlockHeader& block)
     {
         SetNull();
 
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
+        nVersion          = block.nVersion;
+        hashMerkleRoot    = block.hashMerkleRoot;
+        hashContractState = block.hashContractState;
+        nTime             = block.nTime;
+        nBits             = block.nBits;
+        nGpow_m            = block.nGpow_m;
+        nNonce_bit_size   = block.nNonce_bit_size;
+        for(int i = 0; i < GPOW_M; i++) {
+            nNonce[i].x = block.nNonce[i].x;
+        }
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -282,10 +301,15 @@ public:
         block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
-        block.hashMerkleRoot = hashMerkleRoot;
-        block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
+        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashContractState = hashContractState;
+        block.nTime             = nTime;
+        block.nBits             = nBits;
+        block.nGpow_m           = nGpow_m;
+        block.nNonce_bit_size   = nNonce_bit_size;
+        for(int i = 0; i < GPOW_M; i++) {
+            block.nNonce[i].x = nNonce[i].x;
+        }
         return block;
     }
 
@@ -304,7 +328,7 @@ public:
         return (int64_t)nTimeMax;
     }
 
-    static constexpr int nMedianTimeSpan = 11;
+    enum { nMedianTimeSpan=11 };
 
     int64_t GetMedianTimePast() const
     {
@@ -322,9 +346,10 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
             pprev, nHeight,
             hashMerkleRoot.ToString(),
+            hashContractState.ToString(),
             GetBlockHash().ToString());
     }
 
@@ -386,13 +411,13 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action) {
         int _nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
-            READWRITE(VARINT(_nVersion, VarIntMode::NONNEGATIVE_SIGNED));
+            READWRITE(VARINT(_nVersion));
 
-        READWRITE(VARINT(nHeight, VarIntMode::NONNEGATIVE_SIGNED));
+        READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
-            READWRITE(VARINT(nFile, VarIntMode::NONNEGATIVE_SIGNED));
+            READWRITE(VARINT(nFile));
         if (nStatus & BLOCK_HAVE_DATA)
             READWRITE(VARINT(nDataPos));
         if (nStatus & BLOCK_HAVE_UNDO)
@@ -402,20 +427,28 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nNonce);
+        READWRITE(nGpow_m);
+        READWRITE(nNonce_bit_size);
+        READWRITE(FLATNONCE(nNonce));
     }
 
     uint256 GetBlockHash() const
     {
         CBlockHeader block;
-        block.nVersion        = nVersion;
-        block.hashPrevBlock   = hashPrev;
-        block.hashMerkleRoot  = hashMerkleRoot;
-        block.nTime           = nTime;
-        block.nBits           = nBits;
-        block.nNonce          = nNonce;
+        block.nVersion          = nVersion;
+        block.hashPrevBlock     = hashPrev;
+        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashContractState = hashContractState;
+        block.nTime             = nTime;
+        block.nBits             = nBits;
+        block.nGpow_m           = nGpow_m;
+        block.nNonce_bit_size   = nNonce_bit_size;
+        for(int i = 0; i < GPOW_M; i++) {
+            block.nNonce[i].x = nNonce[i].x;
+        }
         return block.GetHash();
     }
 

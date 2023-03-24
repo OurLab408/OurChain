@@ -1,14 +1,19 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <pow.h>
+#include "pow.h"
 
-#include <arith_uint256.h>
-#include <chain.h>
-#include <primitives/block.h>
-#include <uint256.h>
+#include "arith_uint256.h"
+#include "chain.h"
+#include "primitives/block.h"
+#include "uint256.h"
+
+#include "stdio.h"
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
@@ -78,7 +83,18 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     arith_uint256 bnTarget;
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-
+    
+    int pid, status;
+    pid = fork();
+    if (pid == 0) {
+        FILE * pFile;
+        pFile = fopen("~/check.txt","a");
+        fprintf(pFile, "CheckProofOfWork: %s\n", bnTarget.ToString().c_str());
+        fprintf(pFile, "\n");
+        exit(EXIT_FAILURE);
+    }
+    waitpid(pid, &status, 0);
+    
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
         return false;
