@@ -4,21 +4,11 @@ space=" "
 node=$1
 cmd=$2
 
-if [ "$cmd" = "test" ]
-then
-    cmd2=$3
-    shift 1
-fi
-
-args=$3
-if [ "$#" -le 2 ]
-then
-    args=""
-fi
+args=""
 
 if [ "$#" -ge 3 ]
 then
-    shift 3
+    shift 2
     for i
     do
         if [[ "$i" =~ "$space" ]]
@@ -32,13 +22,12 @@ fi
 
 if [ "$cmd" = "start" ]
 then
-    ../src/bitcoind --datadir=node/"$node"
-elif [ "$cmd" = "test" ]
-then
-    echo "../src/bitcoin-cli --datadir=node/$node $cmd2 $args"
+    command="../src/bitcoind --datadir=node/$node"
 elif [ "$cmd" = "kill" ]
 then
-    rm -rf node/"$node"/regtest
+    command="rm -rf node/$node/regtest"
 else
-    echo "../src/bitcoin-cli --datadir=node/$node $cmd $args" | bash
+    command="../src/bitcoin-cli --datadir=node/$node $cmd$args"
 fi
+echo -e "\033[42m run \033[0m$command"
+echo "$command" | bash
