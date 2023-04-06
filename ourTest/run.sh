@@ -20,7 +20,14 @@ then
     done
 fi
 
-if [ "$cmd" = "start" ]
+
+if [ "$cmd" = "mine" ]
+then
+    while [ 1 ]; do
+        blocks=$(../src/bitcoin-cli --datadir=node/$node generate 1)
+        sleep 2
+    done
+elif [ "$cmd" = "start" ]
 then
     command="../src/bitcoind --datadir=node/$node"
 elif [ "$cmd" = "kill" ]
