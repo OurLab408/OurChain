@@ -1,9 +1,10 @@
 #include "wallet/ourutil.h"
 #include <linux/limits.h>
+#include "rustlib/bindings.h"
 
 UniValue OurUtil::test(const JSONRPCRequest& request)
 {
-    return gArgs.GetArgs("-zokrateshome")[0];
+    return rust_add(5, 8);
 }
 
 /** Perform subprocess and return stdout/stderr. */
@@ -88,3 +89,33 @@ UniValue OurUtil::generatezkproof(const JSONRPCRequest& request)
         zokrates + " print-proof");
     return result;
 }
+
+/*
+UniValue OurUtil::sendtoaddresslsm(const JSONRPCRequest& request)
+{
+    // TODO
+    if (request.fHelp || request.params.size() != 2) {
+        throw std::runtime_error(
+            "callcontract \"txid\" ( \"argv[1]\" \"argv[2]\" ... )\n"
+            "\nCall the main function of a smart contract.\n"
+            "\nArguments:\n"
+            "1. \"txid\"        (string) The txid of the deployment transaction\n"
+            "2. \"argv[]\"      (string, optional) The arguments to be passed to the main function.\n"
+            "\nResult\n"
+            "\"txid\"           (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("callcontract", "\"1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d\" \"arg\""));
+    }
+
+    CBitcoinAddress address(request.params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address");
+
+    // Amount
+    CAmount nAmount = AmountFromValue(request.params[1]);
+    if (nAmount <= 0)
+        throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount for send");
+
+    // TBC
+}
+*/
