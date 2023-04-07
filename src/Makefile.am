@@ -33,6 +33,7 @@ LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 LIBOURCONTRACT=contract/libourcontract.la
+LIBRUSTLIB=rustlib/target/debug/librustlib.a
 
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -141,6 +142,7 @@ BITCOIN_CORE_H = \
   rpc/protocol.h \
   rpc/server.h \
   rpc/register.h \
+  rustlib/bindings.h \
   scheduler.h \
   script/sigcache.h \
   script/sign.h \
@@ -397,6 +399,7 @@ bitcoind_SOURCES = bitcoind.cpp
 bitcoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 bitcoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bitcoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bitcoind_LDFLAGS += -L./rustlib/target/debug
 
 if TARGET_WINDOWS
 bitcoind_SOURCES += bitcoind-res.rc
@@ -417,6 +420,7 @@ bitcoind_LDADD = \
   $(LIBSECP256K1)
 
 bitcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+bitcoind_LDADD += $(LIBRUSTLIB) -lrustlib -ldl
 
 # bitcoin-cli binary #
 bitcoin_cli_SOURCES = bitcoin-cli.cpp
