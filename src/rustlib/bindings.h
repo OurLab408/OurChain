@@ -9,7 +9,9 @@
 
 extern "C" {
 
-int32_t rust_add(int32_t a, int32_t b);
+char *encrypt_bjj(const char *point, const char *scalar);
+
+void free_str(char *s);
 
 } // extern "C"
 

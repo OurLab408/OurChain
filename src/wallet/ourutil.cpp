@@ -2,10 +2,25 @@
 #include <linux/limits.h>
 #include "rustlib/bindings.h"
 
+/** secret is in hex format, point is in compressed format. 
+ * the base point is "8b7d2d877a253c4b7733e1b91f05e0fcedf96bd11c2e572549b2a0f703727925".
+ * use "0" for short.
+ */
+std::string enc(std::string secret, std::string point)
+{
+    char* res = encrypt_bjj(&(point[0]), &(secret[0]));
+    std::string s(res);
+    free_str(res);
+    return s;
+}
+
 UniValue OurUtil::test(const JSONRPCRequest& request)
 {
-    return rust_add(5, 8);
+    std::string secret = request.params[0].get_str();
+    std::string point = request.params[1].get_str();
+    return enc(secret, point);
 }
+
 
 /** Perform subprocess and return stdout/stderr. */
 std::string subp(std::string command)

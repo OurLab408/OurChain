@@ -9,6 +9,13 @@ edition = "2021"
 crate-type = ["staticlib"]
 
 [dependencies]
+num-bigint = "0.4.3"
+num-traits = "0.2.15"
+babyjubjub-rs = { git = "https://github.com/arnaucube/babyjubjub-rs.git" }
+ff = {package="ff_ce" , version= "0.11", features = ["derive"]}
+sha256 = "1.1.2"
+hex = "0.4.3"
+rand = "0.8.5"
 
 [build-dependencies]
 cbindgen = "0.24.3"
