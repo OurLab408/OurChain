@@ -462,6 +462,11 @@ bitcoin_tx_LDADD = \
 bitcoin_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
+# rustlib library #
+$(LIBRUSTLIB): $(wildcard rustlib/src/*.rs)
+	cargo build --manifest-path=$(@D)/../../Cargo.toml
+#
+
 # ourcontract-rt binary #
 ourcontract_rt_SOURCES = \
   contract/ourcontract-rt.c \
