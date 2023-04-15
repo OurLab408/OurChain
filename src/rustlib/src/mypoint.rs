@@ -113,11 +113,13 @@ impl MyPoint {
             s: Zero::zero(),
         }
     }
+    /// hex format. length = 64.
     pub fn compress_public(&self) -> String {
         self.p.compress().encode_hex::<String>()
     }
+    /// hex format. length = 64.
     pub fn compress_secret(&self) -> String {
-        self.s.to_str_radix(16)
+        format!("{:0>64}", self.s.to_str_radix(16))
     }
     pub fn from_public(s: &str) -> Self {
         let mut decoded = [0; 32];

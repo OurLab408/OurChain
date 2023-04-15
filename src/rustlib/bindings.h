@@ -11,6 +11,16 @@ extern "C" {
 
 char *encrypt_bjj(const char *point, const char *scalar);
 
+/// private key (64 * 4bits) + public key (64 * 4bits) in hex
+char *random_bjj();
+
+///
+char *ym_encode_0(uint64_t n);
+
+///
+char *ym_encode_1(uint64_t n);
+
+/// call this to char* returned from rust to free the space.
 void free_str(char *s);
 
 } // extern "C"
