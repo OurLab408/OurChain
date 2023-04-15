@@ -1830,21 +1830,23 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
-        std::queue<Contract> contractQueue;
-        if (tx.contract.action != ACTION_NONE)
-            contractQueue.push(tx.contract);
-        while (!contractQueue.empty()) {
-            Contract cur = std::move(contractQueue.front());
-            contractQueue.pop();
+        if (!fJustCheck) {
+            std::queue<Contract> contractQueue;
+            if (tx.contract.action != ACTION_NONE)
+                contractQueue.push(tx.contract);
+            while (!contractQueue.empty()) {
+                Contract cur = std::move(contractQueue.front());
+                contractQueue.pop();
 
-            std::vector<Contract> contractCall;
-            CTransactionRef ptx = ProcessContractTx(cur, view, contractCall);
-            if (ptx) {
-                block.vvtx.push_back(ptx);
-                blockundo.vtxundo.push_back(CTxUndo());
-                UpdateCoins(*ptx, view, blockundo.vtxundo.back(), pindex->nHeight);
-                for (Contract &nextContract: contractCall) {
-                    contractQueue.push(std::move(nextContract));
+                std::vector<Contract> contractCall;
+                CTransactionRef ptx = ProcessContractTx(cur, view, contractCall);
+                if (ptx) {
+                    block.vvtx.push_back(ptx);
+                    blockundo.vtxundo.push_back(CTxUndo());
+                    UpdateCoins(*ptx, view, blockundo.vtxundo.back(), pindex->nHeight);
+                    for (Contract &nextContract: contractCall) {
+                        contractQueue.push(std::move(nextContract));
+                    }
                 }
             }
         }
