@@ -1,5 +1,5 @@
 pub mod bjj;
-pub mod cmd;
+// pub mod cmd;
 pub mod mypoint;
 pub mod ym;
 use std::{

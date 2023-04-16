@@ -14,6 +14,3 @@ OurContract
 -----------
 
 See [doc/ourcontract.md](doc/ourcontract.md).
-
-## Tests
-- [ZK](/ourTest/zk/README.md)
