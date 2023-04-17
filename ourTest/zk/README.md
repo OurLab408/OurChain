@@ -3,7 +3,7 @@
 \* 以下所有步驟可以 `./fulltest.sh` 代替
 
 ### 1. 簡易撰寫ZK程式碼
-  已準備在 [ex1.zok](/ourTest/zk/ex1.zok) 內
+  已準備在 [ex1/zk](/ourTest/zk/ex1/zk) 內
 ### 2. 編譯與製作proving key & verivication key
 ```bash
 cd ~/OurChain/ourTest/zk
@@ -13,22 +13,20 @@ zokrates compile -i ex1.zok --stdlib-path $ZOKRATES_STDLIB
 zokrates setup
 ```
 ### 3. 簡易撰寫智能合約
-  已準備在 [ex1.c](/ourTest/zk/ex1.c) 內
+  已準備在 [ex1/code.c](/ourTest/zk/ex1/code.c) 內
 ### 4. deploy
 ```bash
 cd ~/OurChain
 ./test.sh A start
 ./test.sh A generate 101
-./test.sh A deployzkcontract ourTest/zk/ex1.c ourTest/zk/ex1.zok ourTest/zk/proving.key ourTest/zk/verification.key
+./test.sh A deployzkcontract ourTest/zk/ex1/code.c ourTest/zk/ex1/zk ourTest/zk/ex1/proving.key ourTest/zk/ex1/verification.key
 ./test.sh A generate 1
 ```
 ### 5. 開另一個 node 測試
 ```bash
 ./test.sh B start
 # 生成證明 範例中的程式可用"2147483647 274876858367"通過
-./test.sh B generatezkproof <contract address> "2147483647 274876858367"
-# 確認證明無誤後 把證明轉成適當的樣子 (4個128長度的字串)
-./test.sh B generatezkproof <contract address> "2147483647 274876858367" | grep -P '0x[\da-f]{64}' -o | sed 'N;s/\n//' | sed 's/0x//g' | tr '\n' ' '
+./test.sh B proofzk <contract address> "2147483647 274876858367"
 # 先挖礦才有錢 call smart contract
 ./test.sh B generate 101
 # 將 proof 當作 function 的參數使用
