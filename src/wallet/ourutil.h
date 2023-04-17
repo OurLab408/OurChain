@@ -34,6 +34,7 @@ class OurUtil
 {
 public:
     static UniValue test(const JSONRPCRequest& request);
+    static UniValue proofzk(const JSONRPCRequest& request);
     static UniValue generatezkproof(const JSONRPCRequest& request);
 private:
     OurUtil() {}

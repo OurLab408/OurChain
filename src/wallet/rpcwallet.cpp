@@ -3552,6 +3552,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "callcontract",             &callcontract,             false,  {"txid","function"} },
     { "wallet",             "dumpcontractmessage",      &dumpcontractmessage,      true,   {"txid"} },
     { "wallet",             "generatezkproof",          &OurUtil::generatezkproof, true,   {"txid", "fields"} },
+    { "wallet",             "proofzk",                  &OurUtil::proofzk,         true,   {"txid", "fields"} },
     { "wallet",             "ourtest",                  &OurUtil::test,            true,   {} },
 
     { "generating",         "generate",                 &generate,                 true,   {"nblocks","maxtries"} },

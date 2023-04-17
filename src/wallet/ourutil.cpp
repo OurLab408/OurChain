@@ -41,6 +41,20 @@ std::string subp(std::string command)
     return result;
 }
 
+/** this outputs [0-9a-f]{128} x4 seperated by a space (valid proof) 
+ *  or "" (invalid proof) 
+ *  TODO: this assumes that PATH is well settled to use zokrates */
+UniValue OurUtil::proofzk(const JSONRPCRequest& request)
+{
+    std::string contractId = request.params[0].get_str();
+    std::string fields = request.params[1].get_str();
+    std::string filepath = GetDataDir().string() + "/contracts/" + contractId;
+    char* res = get_zk_proof(&(filepath[0]), &(fields[0]));
+    std::string s(res);
+    free_str(res);
+    return s;
+}
+
 UniValue OurUtil::generatezkproof(const JSONRPCRequest& request)
 {
     // TODO
