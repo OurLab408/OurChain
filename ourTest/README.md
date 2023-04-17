@@ -58,6 +58,11 @@ git checkout zk
 LogPrintf("debug message");
 // log to /ourTest/<node_name>/regtest/debug.log
 ```
+#### In *.rust: 
+```rust
+log_print("debug message");
+// log to ./debug.log
+```
 
 ## :rocket:執行
 
