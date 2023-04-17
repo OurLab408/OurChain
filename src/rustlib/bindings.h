@@ -9,6 +9,8 @@
 
 extern "C" {
 
+char *get_zk_proof(const char *folder, const char *params);
+
 char *encrypt_bjj(const char *point, const char *scalar);
 
 /// private key (64 * 4bits) + public key (64 * 4bits) in hex

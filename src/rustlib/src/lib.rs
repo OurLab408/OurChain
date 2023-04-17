@@ -1,11 +1,19 @@
 pub mod bjj;
-// pub mod cmd;
+pub mod zk;
+pub mod log;
 pub mod mypoint;
 pub mod ym;
 use std::{
     ffi::{CStr, CString},
     os::raw::c_char,
 };
+
+#[no_mangle]
+pub extern "C" fn get_zk_proof(folder: *const c_char, params: *const c_char) -> *mut c_char {
+    let folder = unsafe { CStr::from_ptr(folder).to_str().unwrap() };
+    let params = unsafe { CStr::from_ptr(params).to_str().unwrap() };
+    zk::zk_proof_tidy(folder, params).into_raw()
+}
 
 #[no_mangle]
 pub extern "C" fn encrypt_bjj(point: *const c_char, scalar: *const c_char) -> *mut c_char {

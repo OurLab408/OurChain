@@ -16,6 +16,8 @@ ff = {package="ff_ce" , version= "0.11", features = ["derive"]}
 sha256 = "1.1.2"
 hex = "0.4.3"
 rand = "0.8.5"
+chrono = "0.4.24"
+regex = "1.7.3"
 
 [build-dependencies]
 cbindgen = "0.24.3"
