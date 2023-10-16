@@ -9,7 +9,6 @@
 #include "hash.h"
 #include "random.h"
 #include "pow.h"
-#include "serialize.h"
 #include "uint256.h"
 #include "util.h"
 #include "ui_interface.h"
@@ -328,9 +327,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
                 pindexNew->nTime          = diskindex.nTime;
                 pindexNew->nBits          = diskindex.nBits;
-                for (int i = 0; i < GPOW_M; i++) {
-                    pindexNew->nNonce[i] = diskindex.nNonce[i];
-                }
+                pindexNew->nNonce         = diskindex.nNonce;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
 

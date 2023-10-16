@@ -24,6 +24,10 @@
 
 #include <stdio.h>
 
+#ifdef ENABLE_GPoW
+    T nMaxTries;
+#endif 
+
 /* Introduction text for doxygen: */
 
 /*! \mainpage Developer documentation
@@ -129,6 +133,7 @@ bool AppInit(int argc, char* argv[])
         // Set this early so that parameter interactions go to console
         InitLogging();
         InitParameterInteraction();
+
         if (!AppInitBasicSetup())
         {
             // InitError will have been called with detailed error, which ends up on console

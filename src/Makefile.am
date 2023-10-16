@@ -31,6 +31,7 @@ LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOINQT=qt/libbitcoinqt.a
+LIBGPOW=OurChain/libgpow.a -lgmp
 LIBSECP256K1=secp256k1/libsecp256k1.la
 LIBOURCONTRACT=contract/libourcontract.la
 
@@ -57,7 +58,8 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
   $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_ZMQ)
+  $(LIBBITCOIN_ZMQ) \
+  $(LIBGPOW)
 
 lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS) $(LIBOURCONTRACT)
 
@@ -79,7 +81,7 @@ dist_bin_SCRIPTS =
 include_HEADERS =
 
 dist_bin_SCRIPTS += contract/ourcontract-mkdll
-bin_PROGRAMS += ourcontract-rt
+bin_PROGRAMS += ourcontract-rt #powertimestamp-test#
 
 .PHONY: FORCE check-symbols check-security
 # bitcoin core #
@@ -322,8 +324,8 @@ libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   base58.cpp \
-  chainparams.cpp \
   chain.cpp \
+  chainparams.cpp \
   coins.cpp \
   compressor.cpp \
   core_read.cpp \
@@ -379,6 +381,13 @@ contract_libourcontract_la_SOURCES = \
 contract_libourcontract_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 #
 
+# GPoW library
+OurChain_libgpow_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+OurChain_libgpow_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+OurChain_libgpow_a_SOURCES = \
+  gpow.cpp \
+  gpow.h
+
 # cli: shared between bitcoin-cli and bitcoin-qt
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
@@ -402,12 +411,13 @@ endif
 bitcoind_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
-  $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_ZMQ) \
+  $(LIBGPOW) \
   $(LIBBITCOIN_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBUNIVALUE) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
@@ -425,10 +435,12 @@ if TARGET_WINDOWS
 bitcoin_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
+# GPOW: Add LIBBITCOIN_SERVER for validation.h
 bitcoin_cli_LDADD = \
+  $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_CLI) \
-  $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
+  $(LIBUNIVALUE) \
   $(LIBBITCOIN_CRYPTO)
 
 bitcoin_cli_LDADD += $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
@@ -445,11 +457,12 @@ bitcoin_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
 bitcoin_tx_LDADD = \
-  $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
+  $(LIBGPOW) \
   $(LIBBITCOIN_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBUNIVALUE) \
   $(LIBSECP256K1)
 
 bitcoin_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
@@ -469,6 +482,41 @@ ourcontract_rt_LDADD = \
 ourcontract_rt_LDADD += -ldl
 #
 
+# GPoW binary #
+#test_gpow_SOURCES= \
+#  OurChain/gpow_test.cpp
+#test_gpow_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+#test_gpow_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+#test_gpow_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+#test_gpow_LDADD = \
+#  $(LIBBITCOIN_UTIL) \
+#  $(LIBBITCOIN_CONSENSUS) \
+#  $(LIBGPOW) \
+#  $(LIBUNIVALUE) \
+#  $(LIBBITCOIN_CRYPTO)
+
+#test_gpow_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
+#
+
+# test powertimestamp
+#powertimestamp_test_SOURCES = \
+#  GNonces.h \
+#  OurChain/powertimestamp.cpp \
+#  OurChain/powertimestamp.h \
+#  OurChain/powertimestamp_test.cpp
+#powertimestamp_test_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+#powertimestamp_test_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+#powertimestamp_test_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+#powertimestamp_test_LDADD = \
+#  $(LIBBITCOIN_UTIL) \
+#  $(LIBGPOW) \
+#  $(LIBBITCOIN_CONSENSUS) \
+#  $(LIBBITCOIN_CRYPTO) \
+#  $(LIBUNIVALUE) 
+
+#powertimestamp_test_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)  
+#
+
 # bitcoinconsensus library #
 if BUILD_BITCOIN_LIBS
 include_HEADERS += script/bitcoinconsensus.h
@@ -480,7 +528,7 @@ endif
 
 libbitcoinconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 libbitcoinconsensus_la_LIBADD = $(LIBSECP256K1)
-libbitcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+libbitcoinconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -I$(srcdir)/univalue/include -DBUILD_BITCOIN_INTERNAL
 libbitcoinconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 endif

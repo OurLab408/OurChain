@@ -26,6 +26,11 @@
 
 #include <boost/algorithm/string.hpp>
 
+#ifdef ENABLE_GPoW
+    #include "gpow.h"
+    T nMaxTries;
+#endif
+
 static bool fCreateBlank;
 static std::map<std::string,UniValue> registers;
 static const int CONTINUE_EXECUTION=-1;

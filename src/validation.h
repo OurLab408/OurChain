@@ -149,6 +149,22 @@ static const bool DEFAULT_PEERBLOOMFILTERS = true;
 /** Default for -stopatheight */
 static const int DEFAULT_STOPATHEIGHT = 0;
 
+#ifdef ENABLE_GPoW
+/* OurChain Finality implementation*/
+static const int ROUND_INTERVAL = 2;
+static const int ROUND_HALF_INTERVAL = ROUND_INTERVAL / 2;
+
+extern uint256 round_parent;
+extern int64_t preround_finish_time;
+
+/* For testing stop mining */
+#include "threadinterrupt.h"
+extern CThreadInterrupt interruptMining;
+
+bool IsFirstHalfRound(uint32_t block_time);
+void UpdateRound();
+#endif
+
 struct BlockHasher
 {
     size_t operator()(const uint256& hash) const { return hash.GetCheapHash(); }

@@ -28,8 +28,6 @@ public:
         SetNull();
     }
 
-    Contract(const Contract &contract) : action(contract.action), code(contract.code), address(contract.address), args(contract.args) {}
-
     ~Contract()
     {
         SetNull();

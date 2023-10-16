@@ -37,6 +37,16 @@ int64_t GetAdjustedTime()
     return GetTime() + GetTimeOffset();
 }
 
+#ifdef ENABLE_GPoW 
+/** Ourcoin finality implementation. */
+int64_t round_start_time = 1696293235; // same time as genesis block
+
+void InitRoundTime(){
+    round_start_time = GetAdjustedTime();
+    LogPrintf("Round start time: %ld\n", round_start_time);
+}
+#endif // ENABLE_GPoW
+
 static int64_t abs64(int64_t n)
 {
     return (n >= 0 ? n : -n);

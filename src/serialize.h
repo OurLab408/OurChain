@@ -23,20 +23,6 @@
 
 #include "prevector.h"
 
-#include "stdio.h"
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-
-#define GPOW_M 8
-#define NONCE_BIT_SIZE 2
-typedef struct _nonce_type {
-    unsigned x : NONCE_BIT_SIZE;
-
-     _nonce_type(): x(0) {}
-} nonce_type;
-
 static const unsigned int MAX_SIZE = 0x02000000;
 
 /**
@@ -366,7 +352,6 @@ I ReadVarInt(Stream& is)
 }
 
 #define FLATDATA(obj) REF(CFlatData((char*)&(obj), (char*)&(obj) + sizeof(obj)))
-#define FLATNONCE(obj) REF(CFlatNonce((char*)&(obj)))
 #define VARINT(obj) REF(WrapVarInt(REF(obj)))
 #define COMPACTSIZE(obj) REF(CCompactSize(REF(obj)))
 #define LIMITED_STRING(obj,n) REF(LimitedString< n >(REF(obj)))
@@ -408,59 +393,6 @@ public:
     void Unserialize(Stream& s)
     {
         s.read(pbegin, pend - pbegin);
-    }
-};
-
-/**
- * Wrapper for serializing nonce array.
- */
-class CFlatNonce
-{
-protected:
-    nonce_type* pbegin;
-public:
-    CFlatNonce(void* pbeginIn) : pbegin((nonce_type*)pbeginIn) { }
-    template<typename Stream>
-    void Serialize(Stream& s) const
-    {
-        for (int i = 0; i < (GPOW_M * NONCE_BIT_SIZE) / 8; i++) {
-            uint8_t tmp = ((uint8_t)pbegin[4 * i].x << 6) + ((uint8_t)pbegin[4 * i + 1].x << 4) + ((uint8_t)pbegin[4 * i + 2].x << 2) + ((uint8_t)pbegin[4 * i + 3].x);
-            /*
-            int pid, status;
-            pid = fork();
-            if (pid == 0) {
-                FILE * pFile;
-                pFile = fopen("/home/lab408/check.txt","a");
-                fprintf(pFile, "Check: %d\n", tmp);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[0].x << 6);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[1].x << 4);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[2].x << 2);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[3].x);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[4].x << 6);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[5].x << 4);
-                fprintf(pFile, "%d ", (uint8_t)pbegin[6].x << 2);
-                fprintf(pFile, "%d\n", (uint8_t)pbegin[7].x);
-                
-                exit(EXIT_FAILURE);
-            }
-            waitpid(pid, &status, 0);
-            */
-            s.write((char*) &tmp, 1);
-        }
-        //s.write((char*) &pbegin, sizeof(pbegin));
-    }
-
-    template<typename Stream>
-    void Unserialize(Stream& s)
-    {
-        uint8_t tmp;
-        for (int i = 0; i < (GPOW_M * NONCE_BIT_SIZE) / 8; i++) {
-            s.read((char*) &tmp, 1);
-            pbegin[4 * i].x = (tmp & 0b11000000) >> 6;
-            pbegin[4 * i + 1].x = (tmp & 0b00110000) >> 4;
-            pbegin[4 * i + 2].x = (tmp & 0b00001100) >> 2;
-            pbegin[4 * i + 3].x = (tmp & 0b00000011);
-        }
     }
 };
 
@@ -596,11 +528,6 @@ template<typename Stream, typename T> void Serialize(Stream& os, const std::uniq
 template<typename Stream, typename T> void Unserialize(Stream& os, std::unique_ptr<const T>& p);
 
 
-/*
- * nonce_type
- */
-template<typename Stream> void Serialize(Stream& os, const nonce_type& p);
-template<typename Stream> void Unserialize(Stream& os, nonce_type& p);
 
 /**
  * If none of the specialized versions above matched, default to calling member function.
@@ -882,23 +809,6 @@ template<typename Stream, typename T>
 void Unserialize(Stream& is, std::shared_ptr<const T>& p)
 {
     p = std::make_shared<const T>(deserialize, is);
-}
-
-
-
-/*
- * nonce_type
- */
-template<typename Stream> void
-Serialize(Stream& os, const nonce_type& p)
-{
-    Serialize(os, p);
-}
-
-template<typename Stream> void
-Unserialize(Stream& os, nonce_type& p)
-{
-    p.x = 0; 
 }
 
 

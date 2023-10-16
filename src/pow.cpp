@@ -10,11 +10,6 @@
 #include "primitives/block.h"
 #include "uint256.h"
 
-#include "stdio.h"
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {
     assert(pindexLast != nullptr);
@@ -83,18 +78,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
     arith_uint256 bnTarget;
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-    
-    int pid, status;
-    pid = fork();
-    if (pid == 0) {
-        FILE * pFile;
-        pFile = fopen("~/check.txt","a");
-        fprintf(pFile, "CheckProofOfWork: %s\n", bnTarget.ToString().c_str());
-        fprintf(pFile, "\n");
-        exit(EXIT_FAILURE);
-    }
-    waitpid(pid, &status, 0);
-    
+
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
         return false;

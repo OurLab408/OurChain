@@ -9,11 +9,11 @@
 #include "arith_uint256.h"
 #include "primitives/block.h"
 #include "pow.h"
-#include "serialize.h"
 #include "tinyformat.h"
 #include "uint256.h"
 
 #include <vector>
+
 
 /**
  * Maximum amount of time that a block timestamp is allowed to exceed the
@@ -213,12 +213,10 @@ public:
     uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
-    //unsigned int nNonce;
-
-    /* GPoW */
-    uint8_t nGpow_m;
-    uint8_t nNonce_bit_size;
-    nonce_type nNonce[GPOW_M];
+    GNonces nNonce;
+#ifdef ENABLE_GPoW
+    uint256 gpow;
+#endif
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -247,13 +245,10 @@ public:
         hashContractState = uint256();
         nTime             = 0;
         nBits             = 0;
-        //nNonce            = 0;
-        /* GPoW */
-        nGpow_m           = GPOW_M;
-        nNonce_bit_size   = NONCE_BIT_SIZE;
-        for(int i = 0; i < GPOW_M; i++) {
-            nNonce[i].x = 0;
-        }
+        nNonce            = 0;
+#ifdef ENABLE_GPoW
+        gpow              = uint256();
+#endif
     }
 
     CBlockIndex()
@@ -270,11 +265,10 @@ public:
         hashContractState = block.hashContractState;
         nTime             = block.nTime;
         nBits             = block.nBits;
-        nGpow_m            = block.nGpow_m;
-        nNonce_bit_size   = block.nNonce_bit_size;
-        for(int i = 0; i < GPOW_M; i++) {
-            nNonce[i].x = block.nNonce[i].x;
-        }
+        nNonce            = block.nNonce;
+#ifdef ENABLE_GPoW
+        gpow              = block.gpow;
+#endif
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -305,11 +299,10 @@ public:
         block.hashContractState = hashContractState;
         block.nTime             = nTime;
         block.nBits             = nBits;
-        block.nGpow_m           = nGpow_m;
-        block.nNonce_bit_size   = nNonce_bit_size;
-        for(int i = 0; i < GPOW_M; i++) {
-            block.nNonce[i].x = nNonce[i].x;
-        }
+        block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.gpow              = gpow;
+#endif
         return block;
     }
 
@@ -430,9 +423,10 @@ public:
         READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nGpow_m);
-        READWRITE(nNonce_bit_size);
-        READWRITE(FLATNONCE(nNonce));
+        READWRITE(nNonce);
+#ifdef ENABLE_GPoW
+        READWRITE(gpow);
+#endif
     }
 
     uint256 GetBlockHash() const
@@ -444,11 +438,10 @@ public:
         block.hashContractState = hashContractState;
         block.nTime             = nTime;
         block.nBits             = nBits;
-        block.nGpow_m           = nGpow_m;
-        block.nNonce_bit_size   = nNonce_bit_size;
-        for(int i = 0; i < GPOW_M; i++) {
-            block.nNonce[i].x = nNonce[i].x;
-        }
+        block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.gpow              = gpow;
+#endif
         return block.GetHash();
     }
 

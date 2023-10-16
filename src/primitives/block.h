@@ -6,6 +6,7 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
+#include "gpow.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
@@ -27,12 +28,10 @@ public:
     uint256 hashContractState;
     uint32_t nTime;
     uint32_t nBits;
-    
-    /* For GPoW */
-    uint8_t nGpow_m;
-    uint8_t nNonce_bit_size;
-    nonce_type nNonce[GPOW_M];
-    //uint32_t nNonce;
+    GNonces nNonce;
+#ifdef ENABLE_GPoW
+    uint256 gpow;
+#endif
 
     CBlockHeader()
     {
@@ -49,9 +48,10 @@ public:
         READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
-        READWRITE(nGpow_m);
-        READWRITE(nNonce_bit_size);
-        READWRITE(FLATNONCE(nNonce));
+        READWRITE(nNonce);
+#ifdef ENABLE_GPoW
+        READWRITE(gpow);
+#endif
     }
 
     void SetNull()
@@ -62,12 +62,10 @@ public:
         hashContractState.SetNull();
         nTime = 0;
         nBits = 0;
-        nGpow_m = GPOW_M;
-        nNonce_bit_size = NONCE_BIT_SIZE;
-
-        for(int i = 0; i < GPOW_M; i++) {
-            nNonce[i].x = 0;
-        }
+        nNonce = 0;
+#ifdef ENABLE_GPoW
+        gpow.SetNull();
+#endif
     }
 
     bool IsNull() const
@@ -131,11 +129,10 @@ public:
         block.hashContractState = hashContractState;
         block.nTime             = nTime;
         block.nBits             = nBits;
-        block.nGpow_m           = nGpow_m;
-        block.nNonce_bit_size   = nNonce_bit_size;
-        for(int i = 0; i < GPOW_M; i++) {
-            block.nNonce[i].x = nNonce[i].x;
-        }
+        block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.gpow              = gpow;
+#endif
         return block;
     }
 

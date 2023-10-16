@@ -29,6 +29,7 @@
 #include <queue>
 
 #include <boost/signals2/signal.hpp>
+using namespace boost::placeholders;
 
 // Application startup time (used for uptime calculation)
 int64_t GetStartupTime();

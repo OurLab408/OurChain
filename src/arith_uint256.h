@@ -47,7 +47,7 @@ public:
 
     base_uint& operator=(const base_uint& b)
     {
-        for (int i = 0; i < WIDTH; i++)
+        for (int i = 0; i < b.WIDTH; i++)
             pn[i] = b.pn[i];
         return *this;
     }
@@ -188,6 +188,7 @@ public:
     const base_uint operator++(int)
     {
         // postfix operator
+      
         const base_uint ret = *this;
         ++(*this);
         return ret;
@@ -231,11 +232,23 @@ public:
     friend inline bool operator<=(const base_uint& a, const base_uint& b) { return a.CompareTo(b) <= 0; }
     friend inline bool operator==(const base_uint& a, uint64_t b) { return a.EqualTo(b); }
     friend inline bool operator!=(const base_uint& a, uint64_t b) { return !a.EqualTo(b); }
+    friend uint256 Arith288ToUint256(base_uint<288>&);
+    friend void Arith288To320(base_uint<288>&, base_uint<320> &);
 
     std::string GetHex() const;
     void SetHex(const char* psz);
     void SetHex(const std::string& str);
     std::string ToString() const;
+    
+    inline const unsigned char* begin() const
+    {
+        return (unsigned char*)&pn[0];
+    }
+
+    inline const unsigned char* end() const
+    {
+        return (unsigned char*)&pn[WIDTH];
+    }
 
     unsigned int size() const
     {
@@ -290,7 +303,18 @@ public:
     friend arith_uint256 UintToArith256(const uint256 &);
 };
 
+class arith_uint288 : public base_uint<288> {
+public:
+    arith_uint288& operator+=(uint256& b);
+    arith_uint288& operator/=(uint32_t b);
+    arith_uint288& operator/=(uint64_t b);
+    uint256& ToUint256(uint256& b);                            // for average, assume bit 256-319 = 0;
+    double getdouble() const;
+};
+
 uint256 ArithToUint256(const arith_uint256 &);
 arith_uint256 UintToArith256(const uint256 &);
+uint256 Arith288ToUint256(base_uint<288> &);
+void Arith288To320(base_uint<288>&, base_uint<320> &);
 
 #endif // BITCOIN_ARITH_UINT256_H

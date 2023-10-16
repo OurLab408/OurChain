@@ -30,7 +30,6 @@
 #include "script/script.h"
 #include "script/sigcache.h"
 #include "script/standard.h"
-#include "serialize.h"
 #include "timedata.h"
 #include "tinyformat.h"
 #include "txdb.h"
@@ -51,14 +50,13 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/thread.hpp>
 
-#include "stdio.h"
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-
 #if defined(NDEBUG)
 # error "Bitcoin cannot be compiled without assertions."
+#endif
+
+#ifdef ENABLE_GPoW
+    #include "gpow.h"
+    #include "GNonces.h"
 #endif
 
 /**
@@ -102,12 +100,74 @@ CScript COINBASE_FLAGS;
 
 const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
+#ifdef ENABLE_GPoW 
+/** OurChain finality implementation. */
+int64_t preround_finish_time = 1696293235; // based on chainparam.cpp
+uint256 round_parent = uint256S("0x153054c90bb34cf152a479db472865a591251c195ad3b7cbe9fe070e8469527f"); // based on chainparam.cpp
+
+CThreadInterrupt interruptMining;
+
+void UpdateRound() {
+    int64_t now_time = GetAdjustedTime();
+    while (now_time > round_start_time) {
+        round_start_time += ROUND_INTERVAL;
+        now_time = GetAdjustedTime();
+    }
+    LogPrintf("Update round time: %ld, now time: %ld\n", round_start_time, GetAdjustedTime());
+}
+
+bool IsFirstHalfRound(uint32_t block_time) {
+    int64_t now_time = (int64_t) block_time;
+    if ((round_start_time <= now_time) && (now_time - round_start_time) < ROUND_HALF_INTERVAL) return true;
+
+    UpdateRound();
+    return false;
+}
+
+#endif // ENABLE_GPoW
+
 // Internal stuff
 namespace {
+
+#ifdef ENABLE_GPoW
+    bool AbsoluteTimeComparator(const CBlockIndex *pa, const CBlockIndex *pb) {
+        // First sort by earliest time mined (needs finish_time implemented), ...
+        if (pa->GetBlockTime() < pb->GetBlockTime()) return false;
+        if (pa->GetBlockTime() > pb->GetBlockTime()) return true;
+
+        // ... Compare GPoW ...
+        CBlockHeader ba, bb;
+        ba = pa->GetBlockHeader();
+        bb = pb->GetBlockHeader();
+        //LogPrintf("Comparison ba gpow: %s, bb gpow: %s\n", ba.gpow.ToString().c_str(), bb.gpow.ToString().c_str());
+        if (UintToArith256(ba.gpow) > UintToArith256(bb.gpow)) return false;
+        if (UintToArith256(ba.gpow) < UintToArith256(bb.gpow)) return true;
+
+        //LogPrintf("pa: %p, pa.hash: %s\tpb:%p, pb.hash: %s\n", pa, ba.GetHash().ToString().c_str(), pb, bb.GetHash().ToString().c_str());
+        //LogPrintf("ba.nNonce: %s\n", ba.nNonce.ToString().c_str());
+        // Use pointer address as tie breaker (should only happen with blocks
+        // loaded from disk, as those all have id 0).
+        if (pa < pb) return false;
+        if (pa > pb) return true;
+
+        // Identical blocks.
+        return false;
+    }
+#endif //GPoW
 
     struct CBlockIndexWorkComparator
     {
         bool operator()(const CBlockIndex *pa, const CBlockIndex *pb) const {
+#ifdef ENABLE_GPoW
+            // In the same round
+            if (pa->pprev != nullptr && pb->pprev != nullptr &&
+                pa->pprev->GetBlockHash() == pb->pprev->GetBlockHash())
+                return AbsoluteTimeComparator(pa, pb);
+
+            // First sort by most total work, ...
+            if (pa->nChainWork > pb->nChainWork) return false;
+            if (pa->nChainWork < pb->nChainWork) return true;
+#else
             // First sort by most total work, ...
             if (pa->nChainWork > pb->nChainWork) return false;
             if (pa->nChainWork < pb->nChainWork) return true;
@@ -120,7 +180,7 @@ namespace {
             // loaded from disk, as those all have id 0).
             if (pa < pb) return false;
             if (pa > pb) return true;
-
+#endif //ENABLE_GPoW
             // Identical blocks.
             return false;
         }
@@ -542,7 +602,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         view.SetBackend(viewMemPool);
 
         // do all inputs exist?
-        for (const CTxIn txin : tx.vin) {
+        for (const CTxIn &txin : tx.vin) {
             if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
                 coins_to_uncache.push_back(txin.prevout);
             }
@@ -2823,34 +2883,29 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW) {
-        for (int m = GPOW_M - 1; m >= 0; m--) {
-            CBlockHeader tmp = block;
-            if (!CheckProofOfWork(tmp.GetHash(), block.nBits, consensusParams)) {
-                return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
-            }
-            tmp.nNonce[m].x = 0;
-        }
-    }
+#ifdef ENABLE_GPoW
+    if (fCheckPOW && !CheckProofOfWork(block.gpow, block.nBits, consensusParams))
+#else
+    if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+#endif
+        return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
+    
     return true;
 }
 
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
 {
     // These are checks that are independent of context.
-
     if (block.fChecked)
         return true;
 
     // Check that the header is valid (particularly PoW).  This is mostly
     // redundant with the call in AcceptBlockHeader.
-    if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW)) {
+    if (!CheckBlockHeader(block, state, consensusParams, fCheckPOW))
         return false;
-    }
 
     // Check the merkle root.
     if (fCheckMerkleRoot) {
-        LogPrintf("2222\n");
         bool mutated;
         uint256 hashMerkleRoot2 = BlockMerkleRoot(block, &mutated);
         if (block.hashMerkleRoot != hashMerkleRoot2)
@@ -3093,6 +3148,7 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
     BlockMap::iterator miSelf = mapBlockIndex.find(hash);
     CBlockIndex *pindex = nullptr;
     if (hash != chainparams.GetConsensus().hashGenesisBlock) {
+
         if (miSelf != mapBlockIndex.end()) {
             // Block header is already known.
             pindex = miSelf->second;
@@ -3229,8 +3285,8 @@ static bool AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CValidation
 
 bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<const CBlock> pblock, bool fForceProcessing, bool *fNewBlock)
 {
+    CBlockIndex *pindex = nullptr;
     {
-        CBlockIndex *pindex = nullptr;
         if (fNewBlock) *fNewBlock = false;
         CValidationState state;
         // Ensure that CheckBlock() passes before calling AcceptBlock, as
@@ -3243,10 +3299,8 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
             // Store to disk
             ret = AcceptBlock(pblock, state, chainparams, &pindex, fForceProcessing, nullptr, fNewBlock);
         }
-        LogPrintf("1234\n");
         CheckBlockIndex(chainparams.GetConsensus());
         if (!ret) {
-            LogPrintf("1111\n");
             GetMainSignals().BlockChecked(*pblock, state);
             return error("%s: AcceptBlock FAILED", __func__);
         }
@@ -3258,6 +3312,22 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
     if (!ActivateBestChain(state, chainparams, pblock))
         return error("%s: ActivateBestChain failed", __func__);
 
+#ifdef ENABLE_GPoW
+    //LogPrintf("Mining -- Block hash: %s, Round parent: %s\n", pindex->GetBlockHash().ToString().c_str(), round_parent.ToString().c_str()); 
+    /*
+    if (pindex->GetBlockHash() == chainActive.Tip()->GetBlockHash()) {
+        UpdateRound();
+        round_parent = pindex->pprev->GetBlockHash();
+        //LogPrintf("Mining -- Block hash: %s, Round parent: %s\n", pindex->GetBlockHash().ToString().c_str(), round_parent.ToString().c_str()); 
+    }
+    */
+
+    if (pindex->GetBlockTime() < round_start_time + ROUND_HALF_INTERVAL) {
+        round_parent = pindex->GetBlockHash();
+        preround_finish_time = pindex->GetBlockTime();
+    }
+#endif
+    
     return true;
 }
 
@@ -3511,7 +3581,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex*> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
+    for (const std::pair<uint256, CBlockIndex*> item : mapBlockIndex)
     {
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
@@ -3566,7 +3636,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex)
+    for (const std::pair<uint256, CBlockIndex*> item : mapBlockIndex)
     {
         CBlockIndex* pindex = item.second;
         if (pindex->nStatus & BLOCK_HAVE_DATA) {

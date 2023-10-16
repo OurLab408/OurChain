@@ -20,7 +20,6 @@
 #include "rpc/blockchain.h"
 #include "rpc/mining.h"
 #include "rpc/server.h"
-#include "serialize.h"
 #include "txmempool.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -31,6 +30,10 @@
 #include <stdint.h>
 
 #include <univalue.h>
+
+#ifdef ENABLE_GPoW
+    extern void SetArith(int n);
+#endif
 
 unsigned int ParseConfirmTarget(const UniValue& value)
 {
@@ -106,9 +109,11 @@ UniValue getnetworkhashps(const JSONRPCRequest& request)
     return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript)
+UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript, bool conservative)
 {
+#ifndef ENABLE_GPoW
     static const int nInnerLoopCount = 0x10000;
+#endif    
     int nHeightEnd = 0;
     int nHeight = 0;
 
@@ -121,80 +126,85 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd)
     {
-        // GPoW mining
-        CBlock *pblock;
-        while (nMaxTries > 0) {
-            uint8_t failed = 0;
+        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
+        if (!pblocktemplate.get())
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
+        CBlock *pblock = &pblocktemplate->block;
+        {
+            LOCK(cs_main);
+            IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
+        }
+
+#ifdef ENABLE_GPoW
+        /* Do not mine null block */
+        if (pblock->vtx.size() == 1 && nHeight > 2) {
+            if (!interruptMining.sleep_for(std::chrono::milliseconds(1000)))
+                LogPrintf("Interrupt falied\n");
+            continue;
+        }
+
+
+        if (IsFirstHalfRound(pblock->nTime)) {
+            if (preround_finish_time < round_start_time) {
+                T m = GPOW_M, N = GPOW_N;
+                int cons = conservative;//GetConservativeDefault(), 
+                int comp = GetCompressedDefault();
+                nInnerLoopCount = INNER_LOOP_COUNT;
+                MaxTries = GPOW_MaxTries;
+
+                InitGPoW(m, N, cons, comp, pblock->nBits);
+                SetArith(1);
+                GNonces nNonce;
+                nNonce.setn(0);
+                pblock->nNonce = nNonce;
+                NextGPoW(*pblock);
+
+                if (!pblock->nNonce.ismDone()) {
+                    continue;
+                }
+            } else {
+                LogPrintf("Invalid Mining Process .......\n");
+                //int randsleep = GetRandInt(500);
+                //if (!interruptMining.sleep_for(std::chrono::milliseconds(500)))
+                //    LogPrintf("Interrupt falied\n");
+                continue;
+            }
+            //}
+            //continue;
+        } else {
+            /* TODO: Merging task or other tasks (The second half of round) */
+            //int randsleep = GetRandInt(1000);
+            //if (!interruptMining.sleep_for(std::chrono::milliseconds(randsleep)))
+            //    LogPrintf("Interrupt falied\n");
+            continue;
+        } 
+#else
+        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+            ++pblock->nNonce;
             --nMaxTries;
-            std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
-            if (!pblocktemplate.get())
-                throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
-            pblock = &pblocktemplate->block;
-            {
-                LOCK(cs_main);
-                IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
-            }
-
-            for (int m = 0; m < GPOW_M; m++) {
-                uint8_t nInnerMaxTries = 2^NONCE_BIT_SIZE - 1;
-                pblock->nNonce[m].x = 1; // nonce start from 1
-                while (nInnerMaxTries >= 0 && pblock->nNonce[m].x < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
-                    if (nInnerMaxTries == 0){
-                        failed = 1;
-                        break;
-                    }
-                    ++pblock->nNonce[m].x;
-                    --nInnerMaxTries;
-                }
-                LogPrintf("Check: %d %d\n", nInnerMaxTries >= 0, CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()));
-                if (failed == 1) {
-                    break;
-                }
-                for (int i = 0; i < GPOW_M; i++) {
-                    LogPrintf("%d ", pblock->nNonce[i].x);
-                }
-                LogPrintf("%s\n", pblock->GetHash().ToString().c_str());
-            }
-            if (failed == 0) {
-                break;
-            }
         }
-
-        for (int i = 0; i < GPOW_M; i++) {
-            LogPrintf("%d ", pblock->nNonce[i].x);
-        }
-        LogPrintf("%s\n", pblock->GetHash().ToString().c_str());
-
         if (nMaxTries == 0) {
             break;
         }
-        /*
         if (pblock->nNonce == nInnerLoopCount) {
             continue;
         }
-        */
-        LogPrintf("MINING CHECK: %b\n", CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()));
-        for (int i = 0; i < GPOW_M; i++) {
-            LogPrintf("%d ", pblock->nNonce[i].x);
-        }
-        LogPrintf("%s\n", pblock->GetHash().ToString().c_str());
+#endif
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
         ++nHeight;
-        blockHashes.push_back(pblock->GetHash().GetHex());
 
+#ifdef ENABLE_GPoW
+        blockHashes.push_back(pblock->gpow.GetHex());
+#else
+        blockHashes.push_back(pblock->GetHash().GetHex());
+#endif
         //mark script as important because it was used at least for one coinbase output if the script came from the wallet
         if (keepScript)
         {
             coinbaseScript->KeepScript();
         }
-
-        LogPrintf("MINING\n");
-        for (int i = 0; i < GPOW_M; i++) {
-            LogPrintf("%d ", pblock->nNonce[i].x);
-        }
-        LogPrintf("\n");
     }
     return blockHashes;
 }
@@ -579,11 +589,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
 
     // Update nTime
     UpdateTime(pblock, consensusParams, pindexPrev);
-    //pblock->nNonce = 0;
-    // GPoW
-    for (int i = 0; i < GPOW_M; i++) {
-        pblock->nNonce[i].x = 0;
-    }
+    pblock->nNonce = 0;
 
     // NOTE: If at some point we support pre-segwit miners post-segwit-activation, this needs to take segwit support into consideration
     const bool fPreSegWit = (THRESHOLD_ACTIVE != VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache));

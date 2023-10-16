@@ -17,7 +17,6 @@
 #include "policy/policy.h"
 #include "primitives/transaction.h"
 #include "rpc/server.h"
-#include "serialize.h"
 #include "streams.h"
 #include "sync.h"
 #include "txdb.h"
@@ -92,7 +91,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     result.push_back(Pair("contractstate", blockindex->hashContractState.GetHex()));
     result.push_back(Pair("time", (int64_t)blockindex->nTime));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-    //result.push_back(Pair("nonce_size", (uint64_t)blockindex->nNonce));
+    //result.push_back(Pair("nonce", blockindex->nNonce.getNonce()));
     result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
@@ -137,14 +136,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-    /* GPoW need to fix
-    UniValue nonces(UniValue::VARR);
-    for(int i = 0; i < GPOW_M; i++)
-    {
-        nonces.push_back(block.nNonce[i]);
-    }
-    */
-    //result.push_back(Pair("nonce", (uint64_t)block.nNonce));
+    //result.push_back(Pair("nonce", block.nNonce.getNonce()));
     result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
@@ -806,7 +798,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
     ss << hash;
     ss << VARINT(outputs.begin()->second.nHeight * 2 + outputs.begin()->second.fCoinBase);
     stats.nTransactions++;
-    for (const auto output : outputs) {
+    for (const auto &output : outputs) {
         ss << VARINT(output.first + 1);
         ss << output.second.out.scriptPubKey;
         ss << VARINT(output.second.out.nValue);

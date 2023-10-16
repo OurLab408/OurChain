@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <vector>
 
+#include "uint256.h"
+
 static const int64_t DEFAULT_MAX_TIME_ADJUSTMENT = 70 * 60;
 
 class CNetAddr;
@@ -74,5 +76,15 @@ public:
 int64_t GetTimeOffset();
 int64_t GetAdjustedTime();
 void AddTimeData(const CNetAddr& ip, int64_t nTime);
+
+#ifdef ENABLE_GPoW
+/* OurChain Finality implementation*/
+extern int64_t round_start_time;
+void InitRoundTime();
+#endif
+
+#ifdef ENABLE_GPoW
+
+#endif // ENABLE_GPoW
 
 #endif // BITCOIN_TIMEDATA_H

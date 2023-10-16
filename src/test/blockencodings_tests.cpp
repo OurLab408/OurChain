@@ -6,7 +6,6 @@
 #include "consensus/merkle.h"
 #include "chainparams.h"
 #include "random.h"
-#include "serialize.h"
 
 #include "test/test_bitcoin.h"
 
@@ -48,13 +47,7 @@ static CBlock BuildBlockTestCase() {
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
-    for (int i = 0; i < GPOW_M; i++) {
-        uint8_t max = 3;
-        while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus()) && max > 0){
-            ++block.nNonce[i].x;
-            --max;
-        }
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
     return block;
 }
 
@@ -296,13 +289,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     bool mutated;
     block.hashMerkleRoot = BlockMerkleRoot(block, &mutated);
     assert(!mutated);
-    for (int i = 0; i < GPOW_M; i++) {
-        uint8_t max = 3;
-        while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus()) && max > 0){
-            ++block.nNonce[i].x;
-            --max;
-        }
-    }
+    while (!CheckProofOfWork(block.GetHash(), block.nBits, Params().GetConsensus())) ++block.nNonce;
 
     // Test simple header round-trip with only coinbase
     {

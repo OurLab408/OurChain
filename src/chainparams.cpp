@@ -5,8 +5,6 @@
 
 #include "chainparams.h"
 #include "consensus/merkle.h"
-
-#include "serialize.h"
 #include "tinyformat.h"
 #include "util.h"
 #include "utilstrencodings.h"
@@ -22,7 +20,7 @@
 #undef MINE_REGTEST_GENESIS
 #endif
 
-#define MINE_REGTEST_GENESIS
+//#define MINE_REGTEST_GENESIS
 
 #if defined(MINE_MAIN_GENESIS) || defined(MINE_TESTNET_GENESIS) || defined(MINE_REGTEST_GENESIS)
   #include <stdio.h>
@@ -30,7 +28,12 @@
   #include "pow.h"
 #endif
 
-static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, nonce_type* nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+#ifdef ENABLE_GPoW
+    #include "validation.h"
+    extern void SetArith(int n);
+#endif
+
+static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     CMutableTransaction txNew;
     txNew.nVersion = 1;
@@ -43,13 +46,14 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     CBlock genesis;
     genesis.nTime    = nTime;
     genesis.nBits    = nBits;
-    for (int i = 0; i < GPOW_M; i++) {
-        genesis.nNonce[i]   = nNonce[i];
-    }
+    genesis.nNonce   = nNonce;
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(MakeTransactionRef(std::move(txNew)));
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
+#ifdef ENABLE_GPoW
+    genesis.gpow.SetNull();
+#endif
     return genesis;
 }
 
@@ -64,7 +68,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
  *   vMerkleTree: 4a5e1e
  */
-static CBlock CreateGenesisBlock(uint32_t nTime, nonce_type* nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
     const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
@@ -138,35 +142,57 @@ public:
 
 #ifdef MINE_MAIN_GENESIS
         uint32_t t = time(NULL);
-        nonce_type n[GPOW_M];
         fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
+#ifdef ENABLE_GPoW
+        uint32_t nBits = 0x1d7fffff;
+        T m = GPOW_M, N = GPOW_N;
+        int cons = GetConservativeDefault(), comp = GetCompressedDefault();
+        nInnerLoopCount = INNER_LOOP_COUNT;
+        MaxTries = GPOW_MaxTries;
+
+        InitGPoW(m, N, cons, comp, nBits);
+        SetArith(1);
+        GNonces nNonce;
+        nNonce.setn(0);
+        genesis = CreateGenesisBlock(t, nNonce, 0x1d7fffff, 1, 50 * COIN);
+        NextGPoW(genesis);
+        fprintf(stderr, "hash: %s\n", genesis.GetHash().ToString().c_str());
+        fprintf(stderr, "MerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        fprintf(stderr, "GPoW: %s\n", genesis.gpow.ToString().c_str());
+        fprintf(stderr, "GNonces: %s\n", genesis.nNonce.ToString().c_str());
+#else
         for (; ; ++t) {
-            for (int m = 0; m < GPOW_M; m++) {
-                int i = 3;
-                n[m].x = 0;
-                while (i > 0) {
-                    //if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                    ++n[m].x;
-                    --i;
-                    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
-                    if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
-                        if (m == GPOW_M - 1) {
-                            fprintf(stderr,
-                                    "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                                    genesis.GetHash().ToString().c_str(),
-                                    genesis.hashMerkleRoot.ToString().c_str());
-                            assert(false);
-                        } else {
-                            break;
-                        }
-                    }
+            GNonces n = 0;
+            uint32_t tries = 0;
+            bool done = 0;
+            genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
+            while (1) {
+                if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
+                    done = 1;
+                    break;
                 }
+                if (tries == 4294967295) break;
+
+                ++n;
+                ++tries;
+                genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
+
             }
+
+            if (done == 1) {
+                fprintf(stderr,
+                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                    n.ToString().c_str(),
+                    genesis.GetHash().ToString().c_str(),
+                    genesis.hashMerkleRoot.ToString().c_str());
+                break;
+            }
+
         }
+#endif // ENABLE_GPoW
 #endif
 
-        nonce_type nonces[GPOW_M];
-        genesis = CreateGenesisBlock(1503244170, nonces, 0x1d7fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1503244170, 32633120, 0x1d7fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x00000012537b0c732a1ac5c336e90605084ae62aff5c9deacbb98d75df520ceb"));
         assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
@@ -267,35 +293,24 @@ public:
 
 #ifdef MINE_TESTNET_GENESIS
         uint32_t t = time(NULL);
-        nonce_type n[GPOW_M];
-        fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
+        fprintf(stderr, "Mining testnet genesis block...\n\ntime = %u\n", t);
         for (; ; ++t) {
-            for (int m = 0; m < GPOW_M; m++) {
-                int i = 3;
-                n[m].x = 0;
-                while (i > 0) {
-                    //if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                    ++n[m].x;
-                    --i;
-                    genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
-                    if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
-                        if (m == GPOW_M - 1) {
-                            fprintf(stderr,
-                                    "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                                    genesis.GetHash().ToString().c_str(),
-                                    genesis.hashMerkleRoot.ToString().c_str());
-                            assert(false);
-                        } else {
-                            break;
-                        }
-                    }
+            for (uint32_t n = 0; ; ++n) {
+                if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
+                genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
+                if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
+                    fprintf(stderr,
+                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
+                            genesis.GetHash().ToString().c_str(),
+                            genesis.hashMerkleRoot.ToString().c_str());
+                    assert(false);
                 }
+                if (n == 4294967295) break;
             }
         }
 #endif
 
-        nonce_type nonces[GPOW_M];
-        genesis = CreateGenesisBlock(1503245336, nonces, 0x1d7fffff, 1, 50 * COIN);
+        genesis = CreateGenesisBlock(1503245336, 26620602, 0x1d7fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x00000005e296bf1ed66666379135961d3521f01a96d4f0d6ed40cae1bdc4faa5"));
         assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
@@ -382,71 +397,65 @@ public:
 #ifdef MINE_REGTEST_GENESIS
         uint32_t t = time(NULL);
         fprintf(stderr, "Mining regtest genesis block...\n\ntime = %u\n", t);
-        for (; ; ++t) {
-            nonce_type n[GPOW_M];
-            for (int m = 0; m < GPOW_M; m++) {
-                fprintf(stderr, "START\n");
-                for (int i = 0; i < GPOW_M; i++) {
-                    fprintf(stderr, "%d ", n[i].x);
-                }
-                fprintf(stderr, "\n");
-                int max = 3, failed = 0;
-                //n[m].x = 0;
-                while (max > 0) {
-                    //if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
-                    ++n[m].x;
-                    --max;
-                    genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
-                    fprintf(stderr,"%s\n", genesis.GetHash().ToString().c_str());
-                    if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
-                        if (m == GPOW_M - 1) {
-                            fprintf(stderr,"Nonces: ");
-                            for (int i = 0; i < GPOW_M; i++) {
-                                fprintf(stderr, "%d ", n[i].x);
-                            }
-                            fprintf(stderr,
-                                    "\nhash = %s\nhashMerkleRoot = %s\ncheck: %d\n",
-                                    genesis.GetHash().ToString().c_str(),
-                                    genesis.hashMerkleRoot.ToString().c_str(),
-                                    CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus));
-                            assert(false);
-                        } else {
-                            break;
-                        }
-                    }
-                    if (max == 0) {
-                        failed = 1;
-                    }
-                }
+#ifdef ENABLE_GPoW
+        uint32_t nBits = 0x207fffff;
+        T m = GPOW_M, N = GPOW_N;
+        int cons = GetConservativeDefault(), comp = GetCompressedDefault();
+        nInnerLoopCount = INNER_LOOP_COUNT;
+        MaxTries = GPOW_MaxTries;
 
-                fprintf(stderr, "END\n");
-                for (int i = 0; i < GPOW_M; i++) {
-                    fprintf(stderr, "%d ", n[i].x);
-                }
-                fprintf(stderr, "\n");
-                if (failed == 1) {
+        InitGPoW(m, N, cons, comp, nBits);
+        SetArith(1);
+        GNonces nNonce;
+        nNonce.setn(0);
+        genesis = CreateGenesisBlock(t, nNonce, 0x207fffff, 1, 50 * COIN);
+        NextGPoW(genesis);
+        fprintf(stderr, "hash: %s\n", genesis.GetHash().ToString().c_str());
+        fprintf(stderr, "MerkleRoot: %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        fprintf(stderr, "GPoW: %s\n", genesis.gpow.ToString().c_str());
+        fprintf(stderr, "GNonces: %s\n", genesis.nNonce.ToString().c_str());
+#else
+        for (; ; ++t) {
+            GNonces n = 0;
+            uint32_t tries = 0;
+            bool done = 0;
+            genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
+            while (1) {
+                if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
+                    done = 1;
                     break;
                 }
-            }
-        }
-#endif
-        nonce_type nonces[GPOW_M];
-        nonces[0].x = 1;
-        nonces[1].x = 1;
-        nonces[2].x = 1;
-        nonces[3].x = 2;
-        nonces[4].x = 1;
-        nonces[5].x = 1;
-        nonces[6].x = 1;
-        nonces[7].x = 1;
+                if (tries == 4294967295) break;
 
-        genesis = CreateGenesisBlock(1679621273, nonces, 0x207fffff, 1, 50 * COIN);
+                ++n;
+                ++tries;
+                genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
+
+            }
+
+            if (done == 1) {
+                fprintf(stderr,
+                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                    n.ToString().c_str(),
+                    genesis.GetHash().ToString().c_str(),
+                    genesis.hashMerkleRoot.ToString().c_str());
+                break;
+            }
+
+        }
+#endif // ENABLE_GPoW
+#endif // MINE_REGTEST_GENESIS
+
+#ifdef ENABLE_GPoW
+        GNonces n = 0;
+        n.setNonce(15);
+        genesis = CreateGenesisBlock(1696294758, n, 0x207fffff, 1, 50 * COIN);
+#else
+        genesis = CreateGenesisBlock(1536399020, 0, 0x207fffff, 1, 50 * COIN);
+#endif
+
         consensus.hashGenesisBlock = genesis.GetHash();
-        printf("1. %s\n", genesis.GetHash().ToString().c_str());
-        printf("1. %s\n", genesis.hashMerkleRoot.ToString().c_str());
-        genesis = CreateGenesisBlock(1679621273, nonces, 0x207fffff, 1, 50 * COIN);
-        printf("2. %s\n", genesis.GetHash().ToString().c_str());
-        assert(consensus.hashGenesisBlock == uint256S("0x05ac4276ad5376a64cdd67816662ed94b6388d664234e33d852c63d84e961721"));
+        assert(consensus.hashGenesisBlock == uint256S("0x153054c90bb34cf152a479db472865a591251c195ad3b7cbe9fe070e8469527f"));
         assert(genesis.hashMerkleRoot == uint256S("0xd9f2a49b88a6a667ec31635b1148378d656eab79ba1bd4736cfe51516464980f"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
@@ -457,9 +466,11 @@ public:
         fMineBlocksOnDemand = true;
 
         checkpointData = (CCheckpointData) {
+            /*
             {
                 {0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")},
             }
+            */
         };
 
         chainTxData = ChainTxData{

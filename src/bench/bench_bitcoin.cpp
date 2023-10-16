@@ -10,6 +10,11 @@
 #include "util.h"
 #include "random.h"
 
+#ifdef ENABLE_GPoW
+    #include "gpow.h"
+    T nMaxTries;
+#endif
+
 int
 main(int argc, char** argv)
 {

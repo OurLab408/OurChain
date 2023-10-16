@@ -413,7 +413,7 @@ void ArgsManager::ParseParameters(int argc, const char* const argv[])
         if (str.length() > 1 && str[1] == '-')
             str = str.substr(1);
         InterpretNegativeSetting(str, strValue);
-
+        
         mapArgs[str] = strValue;
         mapMultiArgs[str].push_back(strValue);
     }
@@ -436,7 +436,7 @@ bool ArgsManager::IsArgSet(const std::string& strArg)
 std::string ArgsManager::GetArg(const std::string& strArg, const std::string& strDefault)
 {
     LOCK(cs_args);
-    if (mapArgs.count(strArg))
+    if (mapArgs.count(strArg)) 
         return mapArgs[strArg];
     return strDefault;
 }
@@ -444,8 +444,9 @@ std::string ArgsManager::GetArg(const std::string& strArg, const std::string& st
 int64_t ArgsManager::GetArg(const std::string& strArg, int64_t nDefault)
 {
     LOCK(cs_args);
-    if (mapArgs.count(strArg))
+    if (mapArgs.count(strArg)) 
         return atoi64(mapArgs[strArg]);
+    
     return nDefault;
 }
 
