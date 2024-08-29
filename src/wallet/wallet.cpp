@@ -6,9 +6,8 @@
 #include "wallet/wallet.h"
 
 #include "base58.h"
-#include "checkpoints.h"
 #include "chain.h"
-#include "wallet/coincontrol.h"
+#include "checkpoints.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "contract/contract.h"
@@ -16,21 +15,22 @@
 #include "init.h"
 #include "key.h"
 #include "keystore.h"
-#include "validation.h"
 #include "net.h"
 #include "policy/fees.h"
 #include "policy/policy.h"
 #include "policy/rbf.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
+#include "scheduler.h"
 #include "script/script.h"
 #include "script/sign.h"
-#include "scheduler.h"
 #include "timedata.h"
 #include "txmempool.h"
-#include "util.h"
 #include "ui_interface.h"
+#include "util.h"
 #include "utilmoneystr.h"
+#include "validation.h"
+#include "wallet/coincontrol.h"
 
 #include <assert.h>
 
@@ -113,7 +113,7 @@ public:
 
     void operator()(const CNoDestination &none) {}
 
-    void operator()(const CContID &contID) {}
+    void operator()(const CContID& contID) {}
 };
 
 const CWalletTx* CWallet::GetWalletTx(const uint256& hash) const
@@ -2616,9 +2616,7 @@ static CFeeRate GetDiscardRate(const CBlockPolicyEstimator& estimator)
     return discard_rate;
 }
 
-bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet,
-                                int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, const Contract *contract,
-                                bool allowDust)
+bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletTx& wtxNew, CReserveKey& reservekey, CAmount& nFeeRet, int& nChangePosInOut, std::string& strFailReason, const CCoinControl& coin_control, bool sign, const Contract* contract, bool allowDust)
 {
     CAmount nValue = 0;
     int nChangePosRequest = nChangePosInOut;
@@ -2753,16 +2751,13 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
                         }
                     }
 
-                    if (!allowDust && IsDust(txout, ::dustRelayFee))
-                    {
-                        if (recipient.fSubtractFeeFromAmount && nFeeRet > 0)
-                        {
+                    if (!allowDust && IsDust(txout, ::dustRelayFee)) {
+                        if (recipient.fSubtractFeeFromAmount && nFeeRet > 0) {
                             if (txout.nValue < 0)
                                 strFailReason = _("The transaction amount is too small to pay the fee");
                             else
                                 strFailReason = _("The transaction amount is too small to send after the fee has been deducted");
-                        }
-                        else
+                        } else
                             strFailReason = _("Transaction amount too small");
                         return false;
                     }
@@ -2941,13 +2936,12 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CWalletT
         }
 
         // Embed the constructed transaction data in wtxNew.
-        if( txNew.contract.action == 1 )
+        if (txNew.contract.action == 1)
             txNew.contract.address = txNew.GetHash();
         wtxNew.SetTx(MakeTransactionRef(std::move(txNew)));
 
         // Limit size
-        if (GetTransactionWeight(wtxNew) >= MAX_STANDARD_TX_WEIGHT)
-        {
+        if (GetTransactionWeight(wtxNew) >= MAX_STANDARD_TX_WEIGHT) {
             strFailReason = _("Transaction too large");
             return false;
         }
@@ -3219,8 +3213,7 @@ bool CWallet::DelAddressBook(const CTxDestination& address)
 
         // Delete destdata tuples associated with address
         std::string strAddress = CBitcoinAddress(address).ToString();
-        for (const std::pair<std::string, std::string> item : mapAddressBook[address].destdata)
-        {
+        for (const std::pair<std::string, std::string> item : mapAddressBook[address].destdata) {
             CWalletDB(*dbw).EraseDestData(strAddress, item.first);
         }
         mapAddressBook.erase(address);
@@ -3612,8 +3605,7 @@ std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAcco
 {
     LOCK(cs_wallet);
     std::set<CTxDestination> result;
-    for (const std::pair<CTxDestination, CAddressBookData> item : mapAddressBook)
-    {
+    for (const std::pair<CTxDestination, CAddressBookData> item : mapAddressBook) {
         const CTxDestination& address = item.first;
         const std::string& strName = item.second.name;
         if (strName == strAccount)

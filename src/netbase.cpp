@@ -251,15 +251,24 @@ struct ProxyCredentials
 std::string Socks5ErrorString(int err)
 {
     switch(err) {
-        case 0x01: return "general failure";
-        case 0x02: return "connection not allowed";
-        case 0x03: return "network unreachable";
-        case 0x04: return "host unreachable";
-        case 0x05: return "connection refused";
-        case 0x06: return "TTL expired";
-        case 0x07: return "protocol error";
-        case 0x08: return "address type not supported";
-        default:   return "unknown";
+    case 0x01:
+        return "general failure";
+    case 0x02:
+        return "connection not allowed";
+    case 0x03:
+        return "network unreachable";
+    case 0x04:
+        return "host unreachable";
+    case 0x05:
+        return "connection refused";
+    case 0x06:
+        return "TTL expired";
+    case 0x07:
+        return "protocol error";
+    case 0x08:
+        return "address type not supported";
+    default:
+        return "unknown";
     }
 }
 
@@ -330,10 +339,10 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         return error("Proxy requested wrong authentication method %02x", pchRet1[1]);
     }
     std::vector<uint8_t> vSocks5;
-    vSocks5.push_back(0x05); // VER protocol version
-    vSocks5.push_back(0x01); // CMD CONNECT
-    vSocks5.push_back(0x00); // RSV Reserved
-    vSocks5.push_back(0x03); // ATYP DOMAINNAME
+    vSocks5.push_back(0x05);           // VER protocol version
+    vSocks5.push_back(0x01);           // CMD CONNECT
+    vSocks5.push_back(0x00);           // RSV Reserved
+    vSocks5.push_back(0x03);           // ATYP DOMAINNAME
     vSocks5.push_back(strDest.size()); // Length<=255 is checked at beginning of function
     vSocks5.insert(vSocks5.end(), strDest.begin(), strDest.end());
     vSocks5.push_back((port >> 8) & 0xFF);
@@ -372,19 +381,22 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
     char pchRet3[256];
     switch (pchRet2[3])
     {
-        case 0x01: recvr = InterruptibleRecv(pchRet3, 4, SOCKS5_RECV_TIMEOUT, hSocket); break;
-        case 0x04: recvr = InterruptibleRecv(pchRet3, 16, SOCKS5_RECV_TIMEOUT, hSocket); break;
-        case 0x03:
-        {
-            recvr = InterruptibleRecv(pchRet3, 1, SOCKS5_RECV_TIMEOUT, hSocket);
-            if (recvr != IntrRecvError::OK) {
-                CloseSocket(hSocket);
-                return error("Error reading from proxy");
-            }
-            int nRecv = pchRet3[0];
-            recvr = InterruptibleRecv(pchRet3, nRecv, SOCKS5_RECV_TIMEOUT, hSocket);
-            break;
+    case 0x01:
+        recvr = InterruptibleRecv(pchRet3, 4, SOCKS5_RECV_TIMEOUT, hSocket);
+        break;
+    case 0x04:
+        recvr = InterruptibleRecv(pchRet3, 16, SOCKS5_RECV_TIMEOUT, hSocket);
+        break;
+    case 0x03: {
+        recvr = InterruptibleRecv(pchRet3, 1, SOCKS5_RECV_TIMEOUT, hSocket);
+        if (recvr != IntrRecvError::OK) {
+            CloseSocket(hSocket);
+            return error("Error reading from proxy");
         }
+        int nRecv = pchRet3[0];
+        recvr = InterruptibleRecv(pchRet3, nRecv, SOCKS5_RECV_TIMEOUT, hSocket);
+        break;
+    }
         default: CloseSocket(hSocket); return error("Error: malformed proxy response");
     }
     if (recvr != IntrRecvError::OK) {

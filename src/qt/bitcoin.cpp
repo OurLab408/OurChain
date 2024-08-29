@@ -75,8 +75,8 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 
 #ifdef ENABLE_GPoW
-    T nMaxTries;
-#endif 
+T nMaxTries;
+#endif
 
 #if QT_VERSION < 0x050000
 #include <QTextCodec>

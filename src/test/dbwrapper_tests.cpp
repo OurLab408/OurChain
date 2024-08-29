@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering)
     std::unique_ptr<CDBIterator> it(const_cast<CDBWrapper&>(dbw).NewIterator());
     for (int seek_start : {0x00, 0x80}) {
         it->Seek((uint8_t)seek_start);
-        for (int x=seek_start; x<256; ++x) {
+        for (int x = seek_start; x < 256; ++x) {
             uint8_t key;
             uint32_t value;
             BOOST_CHECK(it->Valid());

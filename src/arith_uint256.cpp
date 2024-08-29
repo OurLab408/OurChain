@@ -262,28 +262,27 @@ arith_uint256 UintToArith256(const uint256 &a)
 }
 
 // For OurChain
-uint8_t  const  LMBMapTbl[256] = {
-    0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 
-    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,   
-    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,  6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
-};
+uint8_t const LMBMapTbl[256] = {
+    0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+    7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7};
 
 template <typename T>
 int bits(T& a)
 {
     int WIDTH = a.size() >> 2;
     for (int pos = WIDTH - 1; pos >= 0; pos--) {
-        if (uint32_t tmp=*(uint32_t*) (a.begin() + (pos<<2))) {     // add begin&end method in base_unit
+        if (uint32_t tmp = *(uint32_t*)(a.begin() + (pos << 2))) { // add begin&end method in base_unit
             for (int nbyts = 3; nbyts > 0; nbyts--) {
-                if (uint8_t B = *((uint8_t*) &tmp + nbyts))
-                    return (pos<<5) + (nbyts<<3) + LMBMapTbl[B] + 1;
+                if (uint8_t B = *((uint8_t*)&tmp + nbyts))
+                    return (pos << 5) + (nbyts << 3) + LMBMapTbl[B] + 1;
             }
-            return (pos<<5) + 1;
+            return (pos << 5) + 1;
         }
     }
     return 0;
@@ -292,7 +291,7 @@ int bits(T& a)
 uint256 Arith288ToUint256(base_uint<288>& a)
 {
     uint256 b;
-    for (int x = 0; x < a.WIDTH-1; ++x)
+    for (int x = 0; x < a.WIDTH - 1; ++x)
         WriteLE32(b.begin() + x * 4, a.pn[x]);
     return b;
 }
@@ -300,23 +299,23 @@ uint256 Arith288ToUint256(base_uint<288>& a)
 void Arith288To320(base_uint<288>& a, base_uint<320>& b)
 {
     for (int i = 0; i < a.WIDTH; i++)
-            b.pn[i] = a.pn[i];
+        b.pn[i] = a.pn[i];
 }
 
 arith_uint288& arith_uint288::operator/=(uint32_t b)
 {
- //   return ((*this)/=(uint64_t)b); slow for many folds
+    //   return ((*this)/=(uint64_t)b); slow for many folds
     base_uint<320> num;
 
-    Arith288To320(*this, num); 
-    *(base_uint<288>*)this = 0;         
-    
-    uint32_t* tmp = (uint32_t*)(num.begin() + (WIDTH<<2) - 4);
+    Arith288To320(*this, num);
+    *(base_uint<288>*)this = 0;
+
+    uint32_t* tmp = (uint32_t*)(num.begin() + (WIDTH << 2) - 4);
 
     for (int pos = WIDTH - 1; pos >= 0; pos--) {
-        pn[pos] = (*(uint64_t*) tmp) / b; 
-        (*(uint64_t*) tmp) %= b;
-        tmp --;
+        pn[pos] = (*(uint64_t*)tmp) / b;
+        (*(uint64_t*)tmp) %= b;
+        tmp--;
     }
     // num now contains the remainder of the division.
     return *this;
@@ -326,17 +325,17 @@ arith_uint288& arith_uint288::operator/=(uint64_t b)
 {
     base_uint<288> div = b;     // make a copy, so we can shift.
     base_uint<288> num = *this; // make a copy, so we can subtract.
-    *(base_uint<288>*)this = 0;                   // the quotient.
-    int num_bits = ::bits(num);   
-    int div_bits = ::bits(div);   
+    *(base_uint<288>*)this = 0; // the quotient.
+    int num_bits = ::bits(num);
+    int div_bits = ::bits(div);
     if (div_bits == 0)
         throw uint_error("Division by zero");
     if (div_bits > num_bits) // the result is certainly 0.
         return *this;
     unsigned int tmp = num_bits - div_bits;
     int shift = tmp;
-    div <<= tmp; // shift so that div and num align.
-    while (shift >= 0) {                    // ?? speed up by 32 bits
+    div <<= tmp;         // shift so that div and num align.
+    while (shift >= 0) { // ?? speed up by 32 bits
         if (num >= div) {
             num -= div;
             pn[shift >> 5] |= (1 << (shift & 31)); // set a bit of the result.
@@ -348,7 +347,7 @@ arith_uint288& arith_uint288::operator/=(uint64_t b)
     return *this;
 }
 
-#include <cmath>  /// for ldexp
+#include <cmath> /// for ldexp
 
 double arith_uint288::getdouble() const
 {
@@ -360,7 +359,7 @@ double arith_uint288::getdouble() const
     }
     for (int i = 0; i <= pos; i++) {
         ret += fact * pn[i];
-        fact = ldexp(fact,32);
+        fact = ldexp(fact, 32);
     }
     return ret;
 }
@@ -370,9 +369,9 @@ uint32_t GPoWGetCompact(uint256& bnTarget)
     int nSize = (bits(bnTarget) + 7) / 8;
     uint32_t nCompact = 0;
     if (nSize <= 3) {
-        nCompact = (*(uint32_t*) bnTarget.begin()) << 8 * (3 - nSize);
+        nCompact = (*(uint32_t*)bnTarget.begin()) << 8 * (3 - nSize);
     } else {
-        nCompact = *(uint32_t *)(bnTarget.begin()+nSize-4);
+        nCompact = *(uint32_t*)(bnTarget.begin() + nSize - 4);
         nCompact >>= 8;
     }
     // assert(nSize < 30);

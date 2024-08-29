@@ -196,8 +196,7 @@ bool CDB::Recover(const std::string& filename, void *callbackDataIn, bool (*reco
                             DB_BTREE,           // Database type
                             DB_CREATE,          // Flags
                             0);
-    if (ret > 0)
-    {
+    if (ret > 0) {
         LogPrintf("Cannot create database file %s\n", filename);
         return false;
     }
@@ -392,12 +391,12 @@ CDB::CDB(CWalletDBWrapper& dbw, const char* pszMode, bool fFlushOnCloseIn) : pdb
                     throw std::runtime_error(strprintf("CDB: Failed to configure for no temp file backing for database %s", strFile));
             }
 
-            ret = pdb->open(nullptr,                               // Txn pointer
-                            fMockDb ? nullptr : strFile.c_str(),   // Filename
-                            fMockDb ? strFile.c_str() : "main", // Logical db name
-                            DB_BTREE,                           // Database type
-                            nFlags,                             // Flags
-                            0);
+            ret = pdb->open(nullptr,                 // Txn pointer
+                fMockDb ? nullptr : strFile.c_str(), // Filename
+                fMockDb ? strFile.c_str() : "main",  // Logical db name
+                DB_BTREE,                            // Database type
+                nFlags,                              // Flags
+                0);
 
             if (ret != 0) {
                 delete pdb;

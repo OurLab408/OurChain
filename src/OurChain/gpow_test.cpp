@@ -40,16 +40,16 @@ static CBlock CreateGenesisBlock(uint32_t nTime, GNonces nNonce, uint32_t nBits,
 /*
 uint256 GetNonceMean(CBlock block)
 {
-    // Copy block nNonce 
+    // Copy block nNonce
     GNonces nNonce_copy;
     for (int i = 0; i < GetGPoWM(); i++) {
         nNonce_copy = block.nNonce;
         block.nNonce= 0;
     }
 
-    // Paste nNonce one by one 
+    // Paste nNonce one by one
     uint256 mean;
-    mean.SetNull();    
+    mean.SetNull();
     mpz_t res; // for integer
     mpz_inits(res, NULL);
     mpq_t in1, in2, div; // for fraction
@@ -75,7 +75,7 @@ uint256 GetNonceMean(CBlock block)
 
 void PrintNormalizedMeanNonce(uint256 hash, int decimals) {
     mpq_t in1, div, max, one;
-	mpq_inits(in1, div, max, one, NULL);
+        mpq_inits(in1, div, max, one, NULL);
     gmp_sscanf(hash.GetHex().c_str(),"%Qx",in1);
     mpq_set_str(max, "115792089237316195423570985008687907853269984665640564039457584007913129639936", 10);
     mpq_set_ui(one, 1, 1);
@@ -85,91 +85,90 @@ void PrintNormalizedMeanNonce(uint256 hash, int decimals) {
     fp = fopen("record.txt","w+");
     for (double i = 0; i < 50; i++)
         fprintf(fp, "%lf\t%.*lf\n", i, decimals, mpq_get_d(in1));
-    
+
     printf("Normalized nonces mean: %.*lf\n", decimals, mpq_get_d(in1));
 }
 */
 //#define MINE
 //#define TEST_RANDOM
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-/*
-    gArgs.ParseParameters(argc, argv);
-    InitGPoWParameter();
-    
-    printf("m: %d\n", GetGPoWM());
-    printf("Nonce_bits: %d\n", GetNonceBitSize());
-    printf("difficulty: %d\n", GetNBits());
+    /*
+        gArgs.ParseParameters(argc, argv);
+        InitGPoWParameter();
 
-#ifdef MINE
-    // Mining
-    CBlock genesis;
-    uint32_t t = time(NULL);
-    uint8_t done = 0;
-    fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
-    for (; ; ++t) {
-        for (uint32_t n = 0; ; ++n) {
-            if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u\n", n);
-            genesis = CreateGenesisBlock(t, n, GetNBits(), 1, 50 * COIN);
-            if (CheckGeneralProofOfWork(genesis.GetHash(), genesis.nBits)) {
-                done = 1;
+        printf("m: %d\n", GetGPoWM());
+        printf("Nonce_bits: %d\n", GetNonceBitSize());
+        printf("difficulty: %d\n", GetNBits());
+
+    #ifdef MINE
+        // Mining
+        CBlock genesis;
+        uint32_t t = time(NULL);
+        uint8_t done = 0;
+        fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
+        for (; ; ++t) {
+            for (uint32_t n = 0; ; ++n) {
+                if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u\n", n);
+                genesis = CreateGenesisBlock(t, n, GetNBits(), 1, 50 * COIN);
+                if (CheckGeneralProofOfWork(genesis.GetHash(), genesis.nBits)) {
+                    done = 1;
+                    break;
+                }
+                if (n == 4294967295) break;
+            }
+
+            if (done == 1) {
                 break;
             }
+        }
+        uint256 mean = GetNonceMean(genesis);
+        printf("Avg: %s\n", mean.GetHex().c_str());
+        printf("Ori: %s\n", genesis.GetHash().GetHex().c_str());
+        PrintNormalizedMeanNonce(mean, 30);
+
+    #elif defined(TEST_RANDOM)
+        // Test SHA256 is random
+        uint32_t test_num = gArgs.GetArg("-num", 100);
+
+        CBlock genesis;
+        FILE *fp = NULL;
+        char filename[40] = {'\0'};
+        mpq_t max, one, div, hash;
+        mpq_inits(max, one, div, hash, NULL);
+        mpq_set_str(max, "115792089237316195423570985008687907853269984665640564039457584007913129639936", 10);
+        mpq_set_ui(one, 1, 1);
+        mpq_div(div, one, max);
+        mpq_clears(one, max, NULL);
+
+        uint32_t t = time(NULL);
+        uint16_t count = 0;
+        sprintf(filename, "record/record_%u.txt", count);
+        fp = fopen(filename, "w+");
+        for (uint32_t n = 0; ; ++n) {
+            if ((n % 1000000 == 0) && (n != 0)) {
+                printf("1\n");
+                fclose(fp);
+                count++;
+                sprintf(filename, "record/record_%d.txt", count);
+                fp = fopen(filename, "w+");
+            }
+            genesis = CreateGenesisBlock(t, n, GetNBits(), 1, 50 * COIN);
+            gmp_sscanf(genesis.GetHash().GetHex().c_str(), "%Qx", hash);
+            mpq_mul(hash, hash, div);
+            fprintf(fp, "%d\t%.*lf\n", n, 30, mpq_get_d(hash));
+            mpq_inits(hash, NULL);
+
             if (n == 4294967295) break;
+            if (n == test_num) {
+                fclose(fp);
+                break;
+            }
         }
-        
-        if (done == 1) {
-            break;
-        }
-    }
-    uint256 mean = GetNonceMean(genesis);
-    printf("Avg: %s\n", mean.GetHex().c_str());
-    printf("Ori: %s\n", genesis.GetHash().GetHex().c_str());
-    PrintNormalizedMeanNonce(mean, 30);
 
-#elif defined(TEST_RANDOM)
-    // Test SHA256 is random
-    uint32_t test_num = gArgs.GetArg("-num", 100);
-
-    CBlock genesis;
-    FILE *fp = NULL;
-    char filename[40] = {'\0'};
-    mpq_t max, one, div, hash;
-    mpq_inits(max, one, div, hash, NULL);
-    mpq_set_str(max, "115792089237316195423570985008687907853269984665640564039457584007913129639936", 10);
-    mpq_set_ui(one, 1, 1);
-    mpq_div(div, one, max);
-    mpq_clears(one, max, NULL);
-
-    uint32_t t = time(NULL);
-    uint16_t count = 0;
-    sprintf(filename, "record/record_%u.txt", count);
-    fp = fopen(filename, "w+");
-    for (uint32_t n = 0; ; ++n) {
-        if ((n % 1000000 == 0) && (n != 0)) {
-            printf("1\n");
-            fclose(fp);
-            count++;
-            sprintf(filename, "record/record_%d.txt", count);
-            fp = fopen(filename, "w+");
-        }
-        genesis = CreateGenesisBlock(t, n, GetNBits(), 1, 50 * COIN);
-        gmp_sscanf(genesis.GetHash().GetHex().c_str(), "%Qx", hash);
-        mpq_mul(hash, hash, div);
-        fprintf(fp, "%d\t%.*lf\n", n, 30, mpq_get_d(hash));
-        mpq_inits(hash, NULL);
-        
-        if (n == 4294967295) break;
-        if (n == test_num) {
-            fclose(fp);
-            break;
-        }
-    }
-
-    mpq_clears(hash, div, NULL);
-#endif
-*/
+        mpq_clears(hash, div, NULL);
+    #endif
+    */
     return 0;
 }
-

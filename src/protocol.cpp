@@ -87,7 +87,8 @@ CMessageHeader::CMessageHeader(const MessageStartChars& pchMessageStartIn, const
     memcpy(pchMessageStart, pchMessageStartIn, MESSAGE_START_SIZE);
     memset(pchCommand, 0, sizeof(pchCommand));
     size_t i = 0;
-    for (; i < COMMAND_SIZE && pszCommand[i] != 0; ++i) pchCommand[i] = pszCommand[i];
+    for (; i < COMMAND_SIZE && pszCommand[i] != 0; ++i)
+        pchCommand[i] = pszCommand[i];
     assert(pszCommand[i] == 0); // Assert that the command name passed in is not longer than COMMAND_SIZE
     nMessageSize = nMessageSizeIn;
     memset(pchChecksum, 0, CHECKSUM_SIZE);

@@ -56,21 +56,22 @@ struct CoinEntry {
 struct ContStateEntry {
     uint256* ctid;
     char key;
-    ContStateEntry(const uint256* ptr) : ctid(const_cast<uint256*>(ptr)), key(DB_CONT_STATE)  {}
+    ContStateEntry(const uint256* ptr) : ctid(const_cast<uint256*>(ptr)), key(DB_CONT_STATE) {}
 
-    template<typename Stream>
-    void Serialize(Stream &s) const {
+    template <typename Stream>
+    void Serialize(Stream& s) const
+    {
         s << key;
         s << *ctid;
     }
 
-    template<typename Stream>
-    void Unserialize(Stream& s) {
+    template <typename Stream>
+    void Unserialize(Stream& s)
+    {
         s >> key;
         s >> *ctid;
     }
 };
-
 }
 
 CCoinsViewDB::CCoinsViewDB(size_t nCacheSize, bool fMemory, bool fWipe) : db(GetDataDir() / "chainstate", nCacheSize, fMemory, fWipe, true) 
@@ -81,7 +82,8 @@ bool CCoinsViewDB::GetCoin(const COutPoint &outpoint, Coin &coin) const {
     return db.Read(CoinEntry(&outpoint), coin);
 }
 
-bool CCoinsViewDB::GetContState(const uint256 &ctid, ContState &cs) const {
+bool CCoinsViewDB::GetContState(const uint256& ctid, ContState& cs) const
+{
     return db.Read(ContStateEntry(&ctid), cs);
 }
 
@@ -104,7 +106,8 @@ std::vector<uint256> CCoinsViewDB::GetHeadBlocks() const {
     return vhashHeadBlocks;
 }
 
-bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, const uint256 &hashBlock) {
+bool CCoinsViewDB::BatchWrite(CCoinsMap& mapCoins, CContStateMap& mapContState, const uint256& hashBlock)
+{
     CDBBatch batch(db);
     size_t count = 0;
     size_t changed = 0;
@@ -188,7 +191,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, CContStateMap &mapContState, 
 
 size_t CCoinsViewDB::EstimateSize() const
 {
-    return db.EstimateSize(DB_COIN, (char)(DB_COIN+1)) + db.EstimateSize(DB_CONT_STATE, (char)(DB_CONT_STATE+1));
+    return db.EstimateSize(DB_COIN, (char)(DB_COIN + 1)) + db.EstimateSize(DB_CONT_STATE, (char)(DB_CONT_STATE + 1));
 }
 
 CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) : CDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {

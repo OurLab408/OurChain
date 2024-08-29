@@ -68,7 +68,7 @@ public:
         nNonce = 0;
 #ifdef ENABLE_GPoW
         nPrecisionTime = 0;
-        hashGPoW.SetNull();     
+        hashGPoW.SetNull();
 #endif
     }
 
@@ -134,16 +134,16 @@ public:
     CBlockHeader GetBlockHeader() const
     {
         CBlockHeader block;
-        block.nVersion          = nVersion;
-        block.hashPrevBlock     = hashPrevBlock;
-        block.hashMerkleRoot    = hashMerkleRoot;
+        block.nVersion = nVersion;
+        block.hashPrevBlock = hashPrevBlock;
+        block.hashMerkleRoot = hashMerkleRoot;
         block.hashContractState = hashContractState;
-        block.nTime             = nTime;
-        block.nBits             = nBits;
-        block.nNonce            = nNonce;
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
 #ifdef ENABLE_GPoW
-        block.nPrecisionTime    = nPrecisionTime;
-        block.hashGPoW          = hashGPoW;
+        block.nPrecisionTime = nPrecisionTime;
+        block.hashGPoW = hashGPoW;
 #endif
         return block;
     }

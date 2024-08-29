@@ -87,7 +87,7 @@ public:
     {
         return (exp_addrType == "script");
     }
-    bool operator()(const CContID &id) const
+    bool operator()(const CContID& id) const
     {
         return (exp_addrType == "none");
     }

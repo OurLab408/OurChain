@@ -15,9 +15,9 @@
 #include "chainparamsseeds.h"
 
 #ifdef ENABLE_GPoW
-    #include "OurChain/gpowserver.h"
-    #include "utiltime.h"
-    extern void SetArith(int n);
+#include "OurChain/gpowserver.h"
+#include "utiltime.h"
+extern void SetArith(int n);
 #endif
 
 // Mine the genesis block if the structure of the block chain is modified.
@@ -28,9 +28,9 @@
 #endif
 
 #if defined(MINE_MAIN_GENESIS) || defined(MINE_TESTNET_GENESIS) || defined(MINE_REGTEST_GENESIS)
-  #include <stdio.h>
-  #include <time.h>
-  #include "pow.h"
+#include "pow.h"
+#include <stdio.h>
+#include <time.h>
 #endif
 
 #ifdef ENABLE_GPoW
@@ -174,7 +174,7 @@ public:
         fprintf(stderr, "GPoW: %s\n", genesis.hashGPoW.ToString().c_str());
         fprintf(stderr, "GNonces: %s\n", genesis.nNonce.ToString().c_str());
 #else
-        for (; ; ++t) {
+        for (;; ++t) {
             GNonces n = 0;
             uint32_t tries = 0;
             bool done = 0;
@@ -190,7 +190,6 @@ public:
                 ++n;
                 ++tries;
                 genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
-
             }
 
             if (done == 1) {
@@ -209,7 +208,7 @@ public:
         genesis = CreateGenesisBlock(1503244170, 0, 32633120, 0x1d7fffff, 1, 50 * COIN); // Just for compile
 #else
         genesis = CreateGenesisBlock(1503244170, 32633120, 0x1d7fffff, 1, 50 * COIN);
-#endif 
+#endif
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x00000012537b0c732a1ac5c336e90605084ae62aff5c9deacbb98d75df520ceb"));
         assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
@@ -311,15 +310,15 @@ public:
 #ifdef MINE_TESTNET_GENESIS
         uint32_t t = time(NULL);
         fprintf(stderr, "Mining testnet genesis block...\n\ntime = %u\n", t);
-        for (; ; ++t) {
-            for (uint32_t n = 0; ; ++n) {
+        for (;; ++t) {
+            for (uint32_t n = 0;; ++n) {
                 if ((n & 0xfffff) == 0) fprintf(stderr, "\rnonce = %u", n);
                 genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                            genesis.GetHash().ToString().c_str(),
-                            genesis.hashMerkleRoot.ToString().c_str());
+                        "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
+                        genesis.GetHash().ToString().c_str(),
+                        genesis.hashMerkleRoot.ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
@@ -331,7 +330,7 @@ public:
         genesis = CreateGenesisBlock(1503245336, 0, 26620602, 0x1d7fffff, 1, 50 * COIN); // Just for compile
 #else
         genesis = CreateGenesisBlock(1503245336, 26620602, 0x1d7fffff, 1, 50 * COIN);
-#endif 
+#endif
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock == uint256S("0x00000005e296bf1ed66666379135961d3521f01a96d4f0d6ed40cae1bdc4faa5"));
         assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
@@ -441,7 +440,7 @@ public:
         fprintf(stderr, "GNonces: %s\n", genesis.nNonce.ToString().c_str());
 #else
         fprintf(stderr, "Mining regtest genesis block...\n\ntime = %u\n", t);
-        for (; ; ++t) {
+        for (;; ++t) {
             GNonces n = 0;
             uint32_t tries = 0;
             bool done = 0;
@@ -456,7 +455,6 @@ public:
                 ++n;
                 ++tries;
                 genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
-
             }
 
             if (done == 1) {
@@ -467,7 +465,6 @@ public:
                     genesis.hashMerkleRoot.ToString().c_str());
                 break;
             }
-
         }
 #endif // ENABLE_GPoW
 #endif // MINE_REGTEST_GENESIS

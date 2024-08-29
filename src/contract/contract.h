@@ -8,20 +8,19 @@
 #include <string>
 #include <vector>
 
-enum contract_action
-{
-    ACTION_NONE     = 0,
-    ACTION_NEW      = 1,
-    ACTION_CALL     = 2,
+enum contract_action {
+    ACTION_NONE = 0,
+    ACTION_NEW = 1,
+    ACTION_CALL = 2,
 };
 
 class Contract
 {
 public:
-    uint8_t action;                 //!< ACTION_XXX
-    std::string code;               //!< contract code if ACTION_NEW
-    uint256 address;            //!< contract address
-    std::vector<std::string> args;  //!< passed arguments
+    uint8_t action;                //!< ACTION_XXX
+    std::string code;              //!< contract code if ACTION_NEW
+    uint256 address;               //!< contract address
+    std::vector<std::string> args; //!< passed arguments
 
     Contract()
     {
@@ -36,7 +35,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(this->action);
         READWRITE(code);
         READWRITE(address);

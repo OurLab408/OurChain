@@ -214,7 +214,7 @@ public:
     unsigned int nBits;
     GNonces nNonce;
 #ifdef ENABLE_GPoW
-    uint32_t nPrecisionTime; 
+    uint32_t nPrecisionTime;
     uint256 hashGPoW;
 #endif
 
@@ -240,15 +240,15 @@ public:
         nSequenceId = 0;
         nTimeMax = 0;
 
-        nVersion          = 0;
-        hashMerkleRoot    = uint256();
+        nVersion = 0;
+        hashMerkleRoot = uint256();
         hashContractState = uint256();
-        nTime             = 0;
-        nBits             = 0;
-        nNonce            = 0;
+        nTime = 0;
+        nBits = 0;
+        nNonce = 0;
 #ifdef ENABLE_GPoW
-        nPrecisionTime    = 0;
-        hashGPoW              = uint256();
+        nPrecisionTime = 0;
+        hashGPoW = uint256();
 #endif
     }
 
@@ -261,15 +261,15 @@ public:
     {
         SetNull();
 
-        nVersion          = block.nVersion;
-        hashMerkleRoot    = block.hashMerkleRoot;
+        nVersion = block.nVersion;
+        hashMerkleRoot = block.hashMerkleRoot;
         hashContractState = block.hashContractState;
-        nTime             = block.nTime;
-        nBits             = block.nBits;
-        nNonce            = block.nNonce;
+        nTime = block.nTime;
+        nBits = block.nBits;
+        nNonce = block.nNonce;
 #ifdef ENABLE_GPoW
-        nPrecisionTime    = block.nPrecisionTime;
-        hashGPoW          = block.hashGPoW;
+        nPrecisionTime = block.nPrecisionTime;
+        hashGPoW = block.hashGPoW;
 #endif
     }
 
@@ -297,14 +297,14 @@ public:
         block.nVersion       = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
-        block.hashMerkleRoot    = hashMerkleRoot;
+        block.hashMerkleRoot = hashMerkleRoot;
         block.hashContractState = hashContractState;
-        block.nTime             = nTime;
-        block.nBits             = nBits;
-        block.nNonce            = nNonce;
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
 #ifdef ENABLE_GPoW
-        block.nPrecisionTime    = nPrecisionTime;
-        block.hashGPoW          = hashGPoW;
+        block.nPrecisionTime = nPrecisionTime;
+        block.hashGPoW = hashGPoW;
 #endif
         return block;
     }
@@ -443,16 +443,16 @@ public:
     uint256 GetBlockHash() const
     {
         CBlockHeader block;
-        block.nVersion          = nVersion;
-        block.hashPrevBlock     = hashPrev;
-        block.hashMerkleRoot    = hashMerkleRoot;
+        block.nVersion = nVersion;
+        block.hashPrevBlock = hashPrev;
+        block.hashMerkleRoot = hashMerkleRoot;
         block.hashContractState = hashContractState;
-        block.nTime             = nTime;
-        block.nBits             = nBits;
-        block.nNonce            = nNonce;
+        block.nTime = nTime;
+        block.nBits = nBits;
+        block.nNonce = nNonce;
 #ifdef ENABLE_GPoW
-        block.nPrecisionTime        = nPrecisionTime;
-        block.hashGPoW          = hashGPoW;
+        block.nPrecisionTime = nPrecisionTime;
+        block.hashGPoW = hashGPoW;
 #endif
         return block.GetHash();
     }

@@ -27,8 +27,8 @@
 #include <vector>
 
 #ifdef ENABLE_GPoW
-    #include "gpow.h"
-    T nMaxTries;
+#include "gpow.h"
+T nMaxTries;
 #endif
 
 enum TEST_ID {

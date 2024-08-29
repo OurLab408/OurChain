@@ -600,7 +600,7 @@ void HTTPRequest::WriteReply(int nStatus, const std::string& strReply)
     assert(evb);
     evbuffer_add(evb, strReply.data(), strReply.size());
     HTTPEvent* ev = new HTTPEvent(eventBase, true,
-        std::bind(evhttp_send_reply, req, nStatus, (const char*)nullptr, (struct evbuffer *)nullptr));
+        std::bind(evhttp_send_reply, req, nStatus, (const char*)nullptr, (struct evbuffer*)nullptr));
     ev->trigger(0);
     replySent = true;
     req = 0; // transferred back to main thread

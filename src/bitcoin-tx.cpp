@@ -27,8 +27,8 @@
 #include <boost/algorithm/string.hpp>
 
 #ifdef ENABLE_GPoW
-    #include "gpow.h"
-    T nMaxTries;
+#include "gpow.h"
+T nMaxTries;
 #endif
 
 static bool fCreateBlank;

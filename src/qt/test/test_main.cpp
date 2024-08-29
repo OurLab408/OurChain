@@ -45,8 +45,8 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 
 #ifdef ENABLE_GPoW
-    T nMaxTries;
-#endif 
+T nMaxTries;
+#endif
 
 extern void noui_connect();
 

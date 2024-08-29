@@ -1,5 +1,5 @@
-#include "gpow.h"
 #include "OurChain/gpowserver.h"
+#include "gpow.h"
 #include "timedata.h"
 #include "util.h"
 
@@ -18,9 +18,13 @@ struct event* eventGPoW = 0;
 struct event* eventStopMining = 0;
 
 // Half round duration
-struct timeval tv{ROUND_INTERVAL, 0};
-//struct timeval mining_tv{1, 800000}; // Valid mining duration
-struct timeval mining_tv{1, 0}; // Valid mining duration
+struct timeval tv {
+    ROUND_INTERVAL, 0
+};
+// struct timeval mining_tv{1, 800000}; // Valid mining duration
+struct timeval mining_tv {
+    1, 0
+}; // Valid mining duration
 struct timeval now;
 
 std::mutex cs_roundchange;
@@ -28,11 +32,11 @@ std::condition_variable cond_roundchange;
 int64_t THIS_ROUND_START;
 
 /** libevent event log callback */
-static void libevent_log_cb(int severity, const char *msg)
+static void libevent_log_cb(int severity, const char* msg)
 {
 #ifndef EVENT_LOG_WARN
 // EVENT_LOG_WARN was added in 2.0.19; but before then _EVENT_LOG_WARN existed.
-# define EVENT_LOG_WARN _EVENT_LOG_WARN
+#define EVENT_LOG_WARN _EVENT_LOG_WARN
 #endif
     if (severity >= EVENT_LOG_WARN) // Log warn messages and higher without debug category
         LogPrintf("libevent: %s\n", msg);
@@ -50,10 +54,10 @@ void TuneRoundStartTime()
 {
     InterruptMining();
     std::unique_lock<std::mutex> lock(cs_roundchange);
-    while(1) {
+    while (1) {
         if ((GetAdjustedTime() - GENESIS_BLOCK_TIME) % ROUND_INTERVAL == ROUND_HALF_INTERVAL) {
-            while(1) {
-                cond_roundchange.wait_for(lock, std::chrono::milliseconds(5), []{ return ((GetAdjustedTime() - GENESIS_BLOCK_TIME) % ROUND_INTERVAL == 0);});
+            while (1) {
+                cond_roundchange.wait_for(lock, std::chrono::milliseconds(5), [] { return ((GetAdjustedTime() - GENESIS_BLOCK_TIME) % ROUND_INTERVAL == 0); });
                 if ((GetAdjustedTime() - GENESIS_BLOCK_TIME) % ROUND_INTERVAL == 0)
                     break;
             }
@@ -93,19 +97,19 @@ bool InitGPoWServer()
 }
 
 static void NoMiningCallback(evutil_socket_t fd, short event, void* arg)
-{   
-    //gettimeofday(&now, NULL);
+{
+    // gettimeofday(&now, NULL);
     {
         std::lock_guard<std::mutex> lock(cs_roundchange);
         fAllowedMining = false;
     }
     cond_roundchange.notify_all();
-    //LogPrintf("No Mining %ld.%06ld\n", now.tv_sec, now.tv_usec);
+    // LogPrintf("No Mining %ld.%06ld\n", now.tv_sec, now.tv_usec);
 }
 
 static void timeoutCallback(evutil_socket_t fd, short event, void* arg)
 {
-    //gettimeofday(&now, NULL);
+    // gettimeofday(&now, NULL);
     event_add(eventStopMining, &mining_tv);
     {
         std::lock_guard<std::mutex> lock(cs_roundchange);
@@ -113,18 +117,18 @@ static void timeoutCallback(evutil_socket_t fd, short event, void* arg)
         fAllowedMining = true;
     }
     cond_roundchange.notify_all();
-    //LogPrintf("DEBUG %ld.%06ld\n", now.tv_sec, now.tv_usec);
+    // LogPrintf("DEBUG %ld.%06ld\n", now.tv_sec, now.tv_usec);
 }
 
 
-std::thread *threadGPoW;
+std::thread* threadGPoW;
 
 bool StartGPoWServer()
 {
     LogPrintf("GPoW Server Start\n");
 
-    event_assign(eventGPoW, eventBase, -1, EV_PERSIST, timeoutCallback, (void*) eventGPoW);
-    event_assign(eventStopMining, eventBase, -1, EV_TIMEOUT, NoMiningCallback, (void*) eventStopMining);
+    event_assign(eventGPoW, eventBase, -1, EV_PERSIST, timeoutCallback, (void*)eventGPoW);
+    event_assign(eventStopMining, eventBase, -1, EV_TIMEOUT, NoMiningCallback, (void*)eventStopMining);
 
     // Tune start time
     TuneRoundStartTime();
@@ -133,9 +137,9 @@ bool StartGPoWServer()
 
     event_add(eventGPoW, &tv);
     threadGPoW = new std::thread([&]() {
-                    event_base_dispatch(eventBase);
-                });
-    
+        event_base_dispatch(eventBase);
+    });
+
     return true;
 }
 

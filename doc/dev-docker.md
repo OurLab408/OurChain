@@ -107,6 +107,16 @@ docker start [CONTAINER ID]
 "intelliSenseMode": "clang-arm64"
 ```
 
+## bitcoin 標準格式化
+
+使用指令
+
+```
+git diff -U0 HEAD~1.. | ./contrib/devtools/clang-format-diff.py -p1 -i -v
+```
+
+可以格式化前一個 commit 內的格式
+
 ## 參考用開發配置(bitcoin.conf)
 
 若是需要客製化配置可以在 `.bitcoin` 下的設置檔自行修改配置，以下為預設配置

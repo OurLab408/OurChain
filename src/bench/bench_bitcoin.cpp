@@ -11,8 +11,8 @@
 #include "random.h"
 
 #ifdef ENABLE_GPoW
-    #include "gpow.h"
-    T nMaxTries;
+#include "gpow.h"
+T nMaxTries;
 #endif
 
 int

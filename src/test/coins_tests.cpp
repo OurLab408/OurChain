@@ -35,10 +35,11 @@ class CCoinsViewTest : public CCoinsView
     uint256 hashBestBlock_;
     std::map<COutPoint, Coin> coinMap_;
     std::map<uint256, ContState> contMap_;
+
 public:
     bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
     {
-	std::map<COutPoint, Coin>::const_iterator it = coinMap_.find(outpoint);
+        std::map<COutPoint, Coin>::const_iterator it = coinMap_.find(outpoint);
         if (it == coinMap_.end()) {
             return false;
         }
@@ -65,7 +66,7 @@ public:
             }
             mapCoins.erase(it++);
         }
-	for (CContStateMap::iterator it = mapContState.begin(); it != mapContState.end(); ) {
+        for (CContStateMap::iterator it = mapContState.begin(); it != mapContState.end();) {
             contMap_[it->first] = it->second.cs;
             mapContState.erase(it++);
         }

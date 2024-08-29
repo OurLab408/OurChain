@@ -143,12 +143,20 @@ def main():
       command.append('-sort-includes')
     command.extend(lines)
     command.extend(['-style=file', '-fallback-style=none'])
-    p = subprocess.Popen(command, stdout=subprocess.PIPE,
-                         stderr=None, stdin=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-      sys.exit(p.returncode)
-
+    
+    try:
+      p = subprocess.Popen(command, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+      stdout, stderr = p.communicate()
+      if p.returncode != 0:
+        if b"error: unknown file type" in stderr or b"Configuration file(s) do(es) not support" in stderr:
+          print 'Skip Format', filename
+          continue
+        else:
+          sys.exit(p.returncode)
+    except Exception as e:
+        continue
+    
     if not args.i:
       with open(filename) as f:
         code = f.readlines()

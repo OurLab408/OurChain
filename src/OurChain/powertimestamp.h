@@ -15,7 +15,7 @@ public:
     uint32_t nBits;
     uint8_t timeError; // M ns, same in different instances for now
     uint256 gpow;
-    
+
     CPowerTimestamp()
     {
         timeError = TimeError >> ERR_SHIFT;
@@ -24,7 +24,7 @@ public:
         NextGPoW(*this);
     }
 
-    CPowerTimestamp(T n) 
+    CPowerTimestamp(T n)
     {
         timeError = TimeError >> ERR_SHIFT;
         nBits = GetNBits();
@@ -37,7 +37,7 @@ public:
     {
         int64_t t = nTime - b.nTime;
 
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         if (labs(t) > TimeError) return t < 0;
         return CompareTo(gpow, b.gpow) < 0;
     }
@@ -46,32 +46,32 @@ public:
     {
         int64_t t = nTime - b.nTime;
 
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         if (labs(t) > TimeError) return t > 0;
         return CompareTo(gpow, b.gpow) > 0;
     }
 
     inline bool operator==(const CPowerTimestamp b)
     {
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         return nTime == b.nTime && gpow == b.gpow;
     }
 
     inline bool operator!=(const CPowerTimestamp b)
     {
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         return !(*this == b);
     }
 
     inline bool operator<=(const CPowerTimestamp b)
     {
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         return !(*this > b);
     }
 
-    inline bool operator>=( CPowerTimestamp b)
+    inline bool operator>=(CPowerTimestamp b)
     {
- //       assert(timeError==b.timeError);
+        //       assert(timeError==b.timeError);
         return !(*this < b);
     }
 
@@ -106,7 +106,6 @@ public:
     }
 
     std::string ToString() const;
-  
 };
 
 // CPowerTimestamp CreatePowerTimestamp(uint64_t nTime, GNonces nNonce, uint32_t nBits);
