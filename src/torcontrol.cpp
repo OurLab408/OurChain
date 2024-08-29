@@ -4,11 +4,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "torcontrol.h"
-#include "utilstrencodings.h"
-#include "netbase.h"
-#include "net.h"
-#include "util.h"
 #include "crypto/hmac_sha256.h"
+#include "net.h"
+#include "netbase.h"
+#include "util.h"
+#include "utilstrencodings.h"
 
 #include <vector>
 #include <deque>
@@ -76,7 +76,7 @@ public:
 
     /** Create a new TorControlConnection.
      */
-    TorControlConnection(struct event_base *base);
+    TorControlConnection(struct event_base* base);
     ~TorControlConnection();
 
     /**
@@ -120,8 +120,7 @@ private:
     static void eventcb(struct bufferevent *bev, short what, void *ctx);
 };
 
-TorControlConnection::TorControlConnection(struct event_base *_base):
-    base(_base), b_conn(0)
+TorControlConnection::TorControlConnection(struct event_base* _base) : base(_base), b_conn(0)
 {
 }
 
@@ -133,7 +132,7 @@ TorControlConnection::~TorControlConnection()
 
 void TorControlConnection::readcb(struct bufferevent *bev, void *ctx)
 {
-    TorControlConnection *self = (TorControlConnection*)ctx;
+    TorControlConnection* self = (TorControlConnection*)ctx;
     struct evbuffer *input = bufferevent_get_input(bev);
     size_t n_read_out = 0;
     char *line;
@@ -178,7 +177,7 @@ void TorControlConnection::readcb(struct bufferevent *bev, void *ctx)
 
 void TorControlConnection::eventcb(struct bufferevent *bev, short what, void *ctx)
 {
-    TorControlConnection *self = (TorControlConnection*)ctx;
+    TorControlConnection* self = (TorControlConnection*)ctx;
     if (what & BEV_EVENT_CONNECTED) {
         LogPrint(BCLog::TOR, "tor: Successfully connected!\n");
         self->connected(*self);
@@ -251,7 +250,7 @@ bool TorControlConnection::Command(const std::string &cmd, const ReplyHandlerCB&
  * Grammar is implicitly defined in https://spec.torproject.org/control-spec by
  * the server reply formats for PROTOCOLINFO (S3.21) and AUTHCHALLENGE (S3.24).
  */
-static std::pair<std::string,std::string> SplitTorReplyLine(const std::string &s)
+static std::pair<std::string, std::string> SplitTorReplyLine(const std::string& s)
 {
     size_t ptr=0;
     std::string type;
@@ -270,7 +269,7 @@ static std::pair<std::string,std::string> SplitTorReplyLine(const std::string &s
  * the server reply formats for PROTOCOLINFO (S3.21), AUTHCHALLENGE (S3.24),
  * and ADD_ONION (S3.27). See also sections 2.1 and 2.3.
  */
-static std::map<std::string,std::string> ParseTorReplyMapping(const std::string &s)
+static std::map<std::string, std::string> ParseTorReplyMapping(const std::string& s)
 {
     std::map<std::string,std::string> mapping;
     size_t ptr=0;
@@ -725,7 +724,7 @@ fs::path TorController::GetPrivateKeyFile()
 
 void TorController::reconnect_cb(evutil_socket_t fd, short what, void *arg)
 {
-    TorController *self = (TorController*)arg;
+    TorController* self = (TorController*)arg;
     self->Reconnect();
 }
 
@@ -773,4 +772,3 @@ void StopTorControl()
         gBase = 0;
     }
 }
-

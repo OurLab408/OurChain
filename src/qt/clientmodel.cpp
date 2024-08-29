@@ -13,11 +13,11 @@
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "clientversion.h"
-#include "validation.h"
 #include "net.h"
 #include "txmempool.h"
 #include "ui_interface.h"
 #include "util.h"
+#include "validation.h"
 #include "warnings.h"
 
 #include <stdint.h>
@@ -30,12 +30,11 @@ class CBlockIndex;
 static int64_t nLastHeaderTipUpdateNotification = 0;
 static int64_t nLastBlockTipUpdateNotification = 0;
 
-ClientModel::ClientModel(OptionsModel *_optionsModel, QObject *parent) :
-    QObject(parent),
-    optionsModel(_optionsModel),
-    peerTableModel(0),
-    banTableModel(0),
-    pollTimer(0)
+ClientModel::ClientModel(OptionsModel* _optionsModel, QObject* parent) : QObject(parent),
+                                                                         optionsModel(_optionsModel),
+                                                                         peerTableModel(0),
+                                                                         banTableModel(0),
+                                                                         pollTimer(0)
 {
     cachedBestHeaderHeight = -1;
     cachedBestHeaderTime = -1;
@@ -64,8 +63,8 @@ int ClientModel::getNumConnections(unsigned int flags) const
     else if (flags == CONNECTIONS_ALL)
         connections = CConnman::CONNECTIONS_ALL;
 
-    if(g_connman)
-         return g_connman->GetNodeCount(connections);
+    if (g_connman)
+        return g_connman->GetNodeCount(connections);
     return 0;
 }
 
@@ -103,14 +102,14 @@ int64_t ClientModel::getHeaderTipTime() const
 
 quint64 ClientModel::getTotalBytesRecv() const
 {
-    if(!g_connman)
+    if (!g_connman)
         return 0;
     return g_connman->GetTotalBytesRecv();
 }
 
 quint64 ClientModel::getTotalBytesSent() const
 {
-    if(!g_connman)
+    if (!g_connman)
         return 0;
     return g_connman->GetTotalBytesSent();
 }
@@ -135,11 +134,10 @@ size_t ClientModel::getMempoolDynamicUsage() const
     return mempool.DynamicMemoryUsage();
 }
 
-double ClientModel::getVerificationProgress(const CBlockIndex *tipIn) const
+double ClientModel::getVerificationProgress(const CBlockIndex* tipIn) const
 {
-    CBlockIndex *tip = const_cast<CBlockIndex *>(tipIn);
-    if (!tip)
-    {
+    CBlockIndex* tip = const_cast<CBlockIndex*>(tipIn);
+    if (!tip) {
         LOCK(cs_main);
         tip = chainActive.Tip();
     }
@@ -189,7 +187,7 @@ enum BlockSource ClientModel::getBlockSource() const
 void ClientModel::setNetworkActive(bool active)
 {
     if (g_connman) {
-         g_connman->SetNetworkActive(active);
+        g_connman->SetNetworkActive(active);
     }
 }
 
@@ -285,7 +283,7 @@ static void BannedListChanged(ClientModel *clientmodel)
     QMetaObject::invokeMethod(clientmodel, "updateBanlist", Qt::QueuedConnection);
 }
 
-static void BlockTipChanged(ClientModel *clientmodel, bool initialSync, const CBlockIndex *pIndex, bool fHeader)
+static void BlockTipChanged(ClientModel* clientmodel, bool initialSync, const CBlockIndex* pIndex, bool fHeader)
 {
     // lock free async UI updates in case we have a new block tip
     // during initial sync, only update the UI if the last update

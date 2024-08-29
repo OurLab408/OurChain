@@ -5,8 +5,8 @@
 
 #include "merkleblock.h"
 
-#include "hash.h"
 #include "consensus/consensus.h"
+#include "hash.h"
 #include "utilstrencodings.h"
 
 CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter)
@@ -22,12 +22,10 @@ CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter& filter)
     for (unsigned int i = 0; i < block.vtx.size(); i++)
     {
         const uint256& hash = block.vtx[i]->GetHash();
-        if (filter.IsRelevantAndUpdate(*block.vtx[i]))
-        {
+        if (filter.IsRelevantAndUpdate(*block.vtx[i])) {
             vMatch.push_back(true);
             vMatchedTxn.push_back(std::make_pair(i, hash));
-        }
-        else
+        } else
             vMatch.push_back(false);
         vHashes.push_back(hash);
     }
@@ -45,8 +43,7 @@ CMerkleBlock::CMerkleBlock(const CBlock& block, const std::set<uint256>& txids)
     vMatch.reserve(block.vtx.size());
     vHashes.reserve(block.vtx.size());
 
-    for (unsigned int i = 0; i < block.vtx.size(); i++)
-    {
+    for (unsigned int i = 0; i < block.vtx.size(); i++) {
         const uint256& hash = block.vtx[i]->GetHash();
         if (txids.count(hash))
             vMatch.push_back(true);

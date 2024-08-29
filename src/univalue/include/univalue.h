@@ -69,7 +69,7 @@ public:
     size_t size() const { return values.size(); }
 
     bool getBool() const { return isTrue(); }
-    bool checkObject(const std::map<std::string,UniValue::VType>& memberTypes);
+    bool checkObject(const std::map<std::string, UniValue::VType>& memberTypes);
     const UniValue& operator[](const std::string& key) const;
     const UniValue& operator[](unsigned int index) const;
     bool exists(const std::string& key) const { return (findKey(key) >= 0); }
@@ -124,7 +124,7 @@ public:
     std::string write(unsigned int prettyIndent = 0,
                       unsigned int indentLevel = 0) const;
 
-    bool read(const char *raw);
+    bool read(const char* raw);
     bool read(const std::string& rawStr) {
         return read(rawStr.c_str());
     }
@@ -240,7 +240,7 @@ enum jtokentype {
 };
 
 extern enum jtokentype getJsonToken(std::string& tokenVal,
-                                    unsigned int& consumed, const char *raw);
+                                    unsigned int& consumed, const char* raw);
 extern const char *uvTypeName(UniValue::VType t);
 
 static inline bool jsonTokenIsValue(enum jtokentype jtt)

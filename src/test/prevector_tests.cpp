@@ -2,8 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <vector>
 #include "prevector.h"
+#include <vector>
 
 #include "reverse_iterator.h"
 #include "serialize.h"
@@ -36,9 +36,9 @@ class prevector_tester {
         {
             local_check(a == b);
         }
-    void local_check(bool b) 
-    {
-        passed &= b;
+        void local_check(bool b)
+        {
+            passed &= b;
     }
     void test() {
         const pretype& const_pre_vector = pre_vector;
@@ -152,11 +152,13 @@ public:
         pre_vector.assign(n, value);
     }
 
-    Size size() {
+    Size size()
+    {
         return real_vector.size();
     }
 
-    Size capacity() {
+    Size capacity()
+    {
         return pre_vector.capacity();
     }
 

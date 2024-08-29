@@ -124,12 +124,12 @@ BOOST_AUTO_TEST_CASE(sighash_test)
     #if defined(PRINT_SIGHASH_JSON)
     std::cout << "[\n";
     std::cout << "\t[\"raw_transaction, script, input_index, hashType, signature_hash (result)\"],\n";
-    #endif
+#endif
     int nRandomTests = 50000;
 
-    #if defined(PRINT_SIGHASH_JSON)
+#if defined(PRINT_SIGHASH_JSON)
     nRandomTests = 500;
-    #endif
+#endif
     for (int i=0; i<nRandomTests; i++) {
         int nHashType = InsecureRand32();
         CMutableTransaction txTo;
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(sighash_test)
         uint256 sh, sho;
         sho = SignatureHashOld(scriptCode, txTo, nIn, nHashType);
         sh = SignatureHash(scriptCode, txTo, nIn, nHashType, 0, SIGVERSION_BASE);
-        #if defined(PRINT_SIGHASH_JSON)
+#if defined(PRINT_SIGHASH_JSON)
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         ss << txTo;
 

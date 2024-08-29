@@ -12,8 +12,8 @@
 
 #include "clientversion.h"
 #include "init.h"
-#include "util.h"
 #include "ui_interface.h"
+#include "util.h"
 #include "version.h"
 
 #ifdef ENABLE_WALLET
@@ -26,8 +26,7 @@
 #include <QPainter>
 #include <QRadialGradient>
 
-SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle *networkStyle) :
-    QWidget(0, f), curAlignment(0)
+SplashScreen::SplashScreen(Qt::WindowFlags f, const NetworkStyle* networkStyle) : QWidget(0, f), curAlignment(0)
 {
     // set reference point, paddings
     int paddingRight            = 50;
@@ -142,7 +141,7 @@ SplashScreen::~SplashScreen()
 bool SplashScreen::eventFilter(QObject * obj, QEvent * ev) {
     if (ev->type() == QEvent::KeyPress) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent *>(ev);
-        if(keyEvent->text()[0] == 'q' && breakAction != nullptr) {
+        if (keyEvent->text()[0] == 'q' && breakAction != nullptr) {
             breakAction();
         }
     }
@@ -170,21 +169,21 @@ static void InitMessage(SplashScreen *splash, const std::string &message)
         Q_ARG(QColor, QColor(55,55,55)));
 }
 
-static void ShowProgress(SplashScreen *splash, const std::string &title, int nProgress)
+static void ShowProgress(SplashScreen* splash, const std::string& title, int nProgress)
 {
     InitMessage(splash, title + strprintf("%d", nProgress) + "%");
 }
 
-void SplashScreen::setBreakAction(const std::function<void(void)> &action)
+void SplashScreen::setBreakAction(const std::function<void(void)>& action)
 {
     breakAction = action;
 }
 
-static void SetProgressBreakAction(SplashScreen *splash, const std::function<void(void)> &action)
+static void SetProgressBreakAction(SplashScreen* splash, const std::function<void(void)>& action)
 {
     QMetaObject::invokeMethod(splash, "setBreakAction",
-        Qt::QueuedConnection,
-        Q_ARG(std::function<void(void)>, action));
+                              Qt::QueuedConnection,
+                              Q_ARG(std::function<void(void)>, action));
 }
 
 #ifdef ENABLE_WALLET
@@ -212,7 +211,7 @@ void SplashScreen::unsubscribeFromCoreSignals()
     uiInterface.InitMessage.disconnect(boost::bind(InitMessage, this, _1));
     uiInterface.ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
 #ifdef ENABLE_WALLET
-    for (CWallet* const & pwallet : connectedWallets) {
+    for (CWallet* const& pwallet : connectedWallets) {
         pwallet->ShowProgress.disconnect(boost::bind(ShowProgress, this, _1, _2));
     }
 #endif

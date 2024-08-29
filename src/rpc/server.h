@@ -25,7 +25,7 @@ namespace RPCServer
 {
     void OnStarted(std::function<void ()> slot);
     void OnStopped(std::function<void ()> slot);
-    void OnPreCommand(std::function<void (const CRPCCommand&)> slot);
+    void OnPreCommand(std::function<void(const CRPCCommand&)> slot);
 }
 
 /** Wrapper for UniValue::VType, which includes typeAny:
@@ -70,7 +70,7 @@ bool RPCIsInWarmup(std::string *outStatus);
  * the right number of arguments are passed, just that any passed are the correct type.
  */
 void RPCTypeCheck(const UniValue& params,
-                  const std::list<UniValue::VType>& typesExpected, bool fAllowNull=false);
+                  const std::list<UniValue::VType>& typesExpected, bool fAllowNull = false);
 
 /**
  * Type-check one argument; throws JSONRPCError if wrong type given.

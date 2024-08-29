@@ -28,15 +28,16 @@ namespace
 void ConfirmMessage(QString* text = nullptr)
 {
     QTimer::singleShot(0, makeCallback([text](Callback* callback) {
-        for (QWidget* widget : QApplication::topLevelWidgets()) {
-            if (widget->inherits("QMessageBox")) {
-                QMessageBox* messageBox = qobject_cast<QMessageBox*>(widget);
-                if (text) *text = messageBox->text();
-                messageBox->defaultButton()->click();
-            }
-        }
-        delete callback;
-    }), SLOT(call()));
+                           for (QWidget* widget : QApplication::topLevelWidgets()) {
+                               if (widget->inherits("QMessageBox")) {
+                                   QMessageBox* messageBox = qobject_cast<QMessageBox*>(widget);
+                                   if (text) *text = messageBox->text();
+                                   messageBox->defaultButton()->click();
+                               }
+                           }
+                           delete callback;
+                       }),
+                       SLOT(call()));
 }
 
 //! Press "Yes" or "Cancel" buttons in modal send confirmation dialog.
@@ -188,7 +189,7 @@ void TestSendCoins()
     bitdb.Reset();
 }
 
-}
+} // namespace
 
 void WalletTests::walletTests()
 {

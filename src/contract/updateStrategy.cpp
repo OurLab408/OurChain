@@ -82,15 +82,15 @@ static bool processContracts(std::stack<CBlockIndex*> realBlock, ContractStateCa
                     pid = fork();
                     if (pid == 0) {
                         int fd = open((GetContractsDir().string() + "/err").c_str(),
-                            O_WRONLY | O_APPEND | O_CREAT,
-                            0664);
+                                      O_WRONLY | O_APPEND | O_CREAT,
+                                      0664);
                         dup2(fd, STDERR_FILENO);
                         close(fd);
                         execlp("ourcontract-mkdll",
-                            "ourcontract-mkdll",
-                            GetContractsDir().string().c_str(),
-                            contract.address.GetHex().c_str(),
-                            NULL);
+                               "ourcontract-mkdll",
+                               GetContractsDir().string().c_str(),
+                               contract.address.GetHex().c_str(),
+                               NULL);
                         exit(EXIT_FAILURE);
                     }
                     waitpid(pid, &status, 0);

@@ -10,17 +10,17 @@
 
 #if defined(BUILD_BITCOIN_INTERNAL) && defined(HAVE_CONFIG_H)
 #include "config/bitcoin-config.h"
-  #if defined(_WIN32)
-    #if defined(DLL_EXPORT)
-      #if defined(HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
-        #define EXPORT_SYMBOL __declspec(dllexport)
-      #else
-        #define EXPORT_SYMBOL
-      #endif
-    #endif
-  #elif defined(HAVE_FUNC_ATTRIBUTE_VISIBILITY)
-    #define EXPORT_SYMBOL __attribute__ ((visibility ("default")))
-  #endif
+#if defined(_WIN32)
+#if defined(DLL_EXPORT)
+#if defined(HAVE_FUNC_ATTRIBUTE_DLLEXPORT)
+#define EXPORT_SYMBOL __declspec(dllexport)
+#else
+#define EXPORT_SYMBOL
+#endif
+#endif
+#elif defined(HAVE_FUNC_ATTRIBUTE_VISIBILITY)
+#define EXPORT_SYMBOL __attribute__((visibility("default")))
+#endif
 #elif defined(MSC_VER) && !defined(STATIC_LIBBITCOINCONSENSUS)
   #define EXPORT_SYMBOL __declspec(dllimport)
 #endif

@@ -16,7 +16,7 @@ bool CCoinsView::GetContState(const uint256& ctid, ContState& cs) const { return
 uint256 CCoinsView::GetBestBlock() const { return uint256(); }
 std::vector<uint256> CCoinsView::GetHeadBlocks() const { return std::vector<uint256>(); }
 bool CCoinsView::BatchWrite(CCoinsMap& mapCoins, CContStateMap& mapContState, const uint256& hashBlock) { return false; }
-CCoinsViewCursor *CCoinsView::Cursor() const { return 0; }
+CCoinsViewCursor* CCoinsView::Cursor() const { return 0; }
 
 bool CCoinsView::HaveCoin(const COutPoint &outpoint) const
 {

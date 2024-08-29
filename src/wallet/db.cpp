@@ -158,7 +158,7 @@ CDBEnv::VerifyResult CDBEnv::Verify(const std::string& strFile, recoverFunc_type
     return (fRecovered ? RECOVER_OK : RECOVER_FAIL);
 }
 
-bool CDB::Recover(const std::string& filename, void *callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream ssKey, CDataStream ssValue), std::string& newFilename)
+bool CDB::Recover(const std::string& filename, void* callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream ssKey, CDataStream ssValue), std::string& newFilename)
 {
     // Recovery procedure:
     // move wallet file to walletfilename.timestamp.bak
@@ -202,8 +202,7 @@ bool CDB::Recover(const std::string& filename, void *callbackDataIn, bool (*reco
     }
 
     DbTxn* ptxn = bitdb.TxnBegin();
-    for (CDBEnv::KeyValPair& row : salvagedData)
-    {
+    for (CDBEnv::KeyValPair& row : salvagedData) {
         if (recoverKVcallback)
         {
             CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
@@ -235,8 +234,7 @@ bool CDB::VerifyEnvironment(const std::string& walletFile, const fs::path& dataD
         return false;
     }
 
-    if (!bitdb.Open(dataDir))
-    {
+    if (!bitdb.Open(dataDir)) {
         // try moving the database env out of the way
         fs::path pathDatabase = dataDir / "database";
         fs::path pathDatabaseBak = dataDir / strprintf("database.%d.bak", GetTime());
@@ -259,20 +257,17 @@ bool CDB::VerifyEnvironment(const std::string& walletFile, const fs::path& dataD
 
 bool CDB::VerifyDatabaseFile(const std::string& walletFile, const fs::path& dataDir, std::string& warningStr, std::string& errorStr, CDBEnv::recoverFunc_type recoverFunc)
 {
-    if (fs::exists(dataDir / walletFile))
-    {
+    if (fs::exists(dataDir / walletFile)) {
         std::string backup_filename;
         CDBEnv::VerifyResult r = bitdb.Verify(walletFile, recoverFunc, backup_filename);
-        if (r == CDBEnv::RECOVER_OK)
-        {
+        if (r == CDBEnv::RECOVER_OK) {
             warningStr = strprintf(_("Warning: Wallet file corrupt, data salvaged!"
                                      " Original %s saved as %s in %s; if"
                                      " your balance or transactions are incorrect you should"
                                      " restore from a backup."),
                                    walletFile, backup_filename, dataDir);
         }
-        if (r == CDBEnv::RECOVER_FAIL)
-        {
+        if (r == CDBEnv::RECOVER_FAIL) {
             errorStr = strprintf(_("%s corrupt, salvage failed"), walletFile);
             return false;
         }
@@ -364,7 +359,7 @@ CDB::CDB(CWalletDBWrapper& dbw, const char* pszMode, bool fFlushOnCloseIn) : pdb
     if (dbw.IsDummy()) {
         return;
     }
-    const std::string &strFilename = dbw.strFile;
+    const std::string& strFilename = dbw.strFile;
 
     bool fCreate = strchr(pszMode, 'c') != nullptr;
     unsigned int nFlags = DB_THREAD;
@@ -391,12 +386,12 @@ CDB::CDB(CWalletDBWrapper& dbw, const char* pszMode, bool fFlushOnCloseIn) : pdb
                     throw std::runtime_error(strprintf("CDB: Failed to configure for no temp file backing for database %s", strFile));
             }
 
-            ret = pdb->open(nullptr,                 // Txn pointer
-                fMockDb ? nullptr : strFile.c_str(), // Filename
-                fMockDb ? strFile.c_str() : "main",  // Logical db name
-                DB_BTREE,                            // Database type
-                nFlags,                              // Flags
-                0);
+            ret = pdb->open(nullptr,                             // Txn pointer
+                            fMockDb ? nullptr : strFile.c_str(), // Filename
+                            fMockDb ? strFile.c_str() : "main",  // Logical db name
+                            DB_BTREE,                            // Database type
+                            nFlags,                              // Flags
+                            0);
 
             if (ret != 0) {
                 delete pdb;
@@ -473,7 +468,7 @@ bool CDB::Rewrite(CWalletDBWrapper& dbw, const char* pszSkip)
     if (dbw.IsDummy()) {
         return true;
     }
-    CDBEnv *env = dbw.env;
+    CDBEnv* env = dbw.env;
     const std::string& strFile = dbw.strFile;
     while (true) {
         {
@@ -603,9 +598,9 @@ bool CDB::PeriodicFlush(CWalletDBWrapper& dbw)
         return true;
     }
     bool ret = false;
-    CDBEnv *env = dbw.env;
+    CDBEnv* env = dbw.env;
     const std::string& strFile = dbw.strFile;
-    TRY_LOCK(bitdb.cs_db,lockDb);
+    TRY_LOCK(bitdb.cs_db, lockDb);
     if (lockDb)
     {
         // Don't do this if any databases are in use

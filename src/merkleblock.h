@@ -6,10 +6,10 @@
 #ifndef BITCOIN_MERKLEBLOCK_H
 #define BITCOIN_MERKLEBLOCK_H
 
+#include "bloom.h"
+#include "primitives/block.h"
 #include "serialize.h"
 #include "uint256.h"
-#include "primitives/block.h"
-#include "bloom.h"
 
 #include <vector>
 
@@ -63,7 +63,8 @@ protected:
     bool fBad;
 
     /** helper function to efficiently calculate the number of nodes at given height in the merkle tree */
-    unsigned int CalcTreeWidth(int height) {
+    unsigned int CalcTreeWidth(int height)
+    {
         return (nTransactions+(1 << height)-1) >> height;
     }
 

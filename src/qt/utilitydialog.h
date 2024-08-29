@@ -20,7 +20,7 @@ class HelpMessageDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HelpMessageDialog(QWidget *parent, bool about);
+    explicit HelpMessageDialog(QWidget* parent, bool about);
     ~HelpMessageDialog();
 
     void printToConsole();
@@ -41,7 +41,7 @@ class ShutdownWindow : public QWidget
     Q_OBJECT
 
 public:
-    ShutdownWindow(QWidget *parent=0, Qt::WindowFlags f=0);
+    ShutdownWindow(QWidget* parent = 0, Qt::WindowFlags f = 0);
     static QWidget *showShutdownWindow(BitcoinGUI *window);
 
 protected:

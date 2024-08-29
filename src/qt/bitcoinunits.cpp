@@ -62,10 +62,10 @@ qint64 BitcoinUnits::factor(int unit)
 {
     switch(unit)
     {
-    case BTC:  return 100000000;
+    case BTC: return 100000000;
     case mBTC: return 100000;
     case uBTC: return 100;
-    default:   return 100000000;
+    default: return 100000000;
     }
 }
 
@@ -176,7 +176,7 @@ QString BitcoinUnits::getAmountColumnTitle(int unit)
     QString amountTitle = QObject::tr("Amount");
     if (BitcoinUnits::valid(unit))
     {
-        amountTitle += " ("+BitcoinUnits::name(unit) + ")";
+        amountTitle += " (" + BitcoinUnits::name(unit) + ")";
     }
     return amountTitle;
 }

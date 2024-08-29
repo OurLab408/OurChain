@@ -118,8 +118,7 @@ void AddressBookPage::setModel(AddressTableModel *_model)
     proxyModel->setDynamicSortFilter(true);
     proxyModel->setSortCaseSensitivity(Qt::CaseInsensitive);
     proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-    switch(tab)
-    {
+    switch (tab) {
     case ReceivingTab:
         // Receive filter
         proxyModel->setFilterRole(AddressTableModel::TypeRole);
@@ -190,8 +189,9 @@ void AddressBookPage::on_newAddress_clicked()
 
     EditAddressDialog dlg(
         tab == SendingTab ?
-        EditAddressDialog::NewSendingAddress :
-        EditAddressDialog::NewReceivingAddress, this);
+            EditAddressDialog::NewSendingAddress :
+            EditAddressDialog::NewReceivingAddress,
+        this);
     dlg.setModel(model);
     if(dlg.exec())
     {

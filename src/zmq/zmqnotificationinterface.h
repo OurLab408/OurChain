@@ -6,9 +6,9 @@
 #define BITCOIN_ZMQ_ZMQNOTIFICATIONINTERFACE_H
 
 #include "validationinterface.h"
-#include <string>
-#include <map>
 #include <list>
+#include <map>
+#include <string>
 
 class CBlockIndex;
 class CZMQAbstractNotifier;

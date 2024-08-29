@@ -7,7 +7,6 @@
 #include "chainparams.h"
 #include "clientversion.h"
 #include "core_io.h"
-#include "validation.h"
 #include "net.h"
 #include "net_processing.h"
 #include "netbase.h"
@@ -18,6 +17,7 @@
 #include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "validation.h"
 #include "version.h"
 #include "warnings.h"
 
@@ -113,10 +113,8 @@ UniValue getpeerinfo(const JSONRPCRequest& request)
             "  }\n"
             "  ,...\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getpeerinfo", "")
-            + HelpExampleRpc("getpeerinfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getpeerinfo", "") + HelpExampleRpc("getpeerinfo", ""));
 
     if(!g_connman)
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
@@ -146,7 +144,7 @@ UniValue getpeerinfo(const JSONRPCRequest& request)
         obj.push_back(Pair("timeoffset", stats.nTimeOffset));
         if (stats.dPingTime > 0.0)
             obj.push_back(Pair("pingtime", stats.dPingTime));
-        if (stats.dMinPing < std::numeric_limits<int64_t>::max()/1e6)
+        if (stats.dMinPing < std::numeric_limits<int64_t>::max() / 1e6)
             obj.push_back(Pair("minping", stats.dMinPing));
         if (stats.dPingWait > 0.0)
             obj.push_back(Pair("pingwait", stats.dPingWait));
@@ -258,7 +256,7 @@ UniValue disconnectnode(const JSONRPCRequest& request)
 
     bool success;
     const UniValue &address_arg = request.params[0];
-    const UniValue &id_arg = request.params.size() < 2 ? NullUniValue : request.params[1];
+    const UniValue& id_arg = request.params.size() < 2 ? NullUniValue : request.params[1];
 
     if (!address_arg.isNull() && id_arg.isNull()) {
         /* handle disconnect-by-address */
@@ -437,38 +435,38 @@ UniValue getnetworkinfo(const JSONRPCRequest& request)
             "  }\n"
             "  ,...\n"
             "  ],\n"
-            "  \"relayfee\": x.xxxxxxxx,                (numeric) minimum relay fee for transactions in " + CURRENCY_UNIT + "/kB\n"
-            "  \"incrementalfee\": x.xxxxxxxx,          (numeric) minimum fee increment for mempool limiting or BIP 125 replacement in " + CURRENCY_UNIT + "/kB\n"
-            "  \"localaddresses\": [                    (array) list of local addresses\n"
-            "  {\n"
-            "    \"address\": \"xxxx\",                 (string) network address\n"
-            "    \"port\": xxx,                         (numeric) network port\n"
-            "    \"score\": xxx                         (numeric) relative score\n"
-            "  }\n"
-            "  ,...\n"
-            "  ]\n"
-            "  \"warnings\": \"...\"                    (string) any network warnings\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getnetworkinfo", "")
-            + HelpExampleRpc("getnetworkinfo", "")
-        );
+            "  \"relayfee\": x.xxxxxxxx,                (numeric) minimum relay fee for transactions in " +
+            CURRENCY_UNIT + "/kB\n"
+                            "  \"incrementalfee\": x.xxxxxxxx,          (numeric) minimum fee increment for mempool limiting or BIP 125 replacement in " +
+            CURRENCY_UNIT + "/kB\n"
+                            "  \"localaddresses\": [                    (array) list of local addresses\n"
+                            "  {\n"
+                            "    \"address\": \"xxxx\",                 (string) network address\n"
+                            "    \"port\": xxx,                         (numeric) network port\n"
+                            "    \"score\": xxx                         (numeric) relative score\n"
+                            "  }\n"
+                            "  ,...\n"
+                            "  ]\n"
+                            "  \"warnings\": \"...\"                    (string) any network warnings\n"
+                            "}\n"
+                            "\nExamples:\n" +
+            HelpExampleCli("getnetworkinfo", "") + HelpExampleRpc("getnetworkinfo", ""));
 
     LOCK(cs_main);
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("version",       CLIENT_VERSION));
-    obj.push_back(Pair("subversion",    strSubVersion));
-    obj.push_back(Pair("protocolversion",PROTOCOL_VERSION));
+    obj.push_back(Pair("version", CLIENT_VERSION));
+    obj.push_back(Pair("subversion", strSubVersion));
+    obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
     if(g_connman)
         obj.push_back(Pair("localservices", strprintf("%016x", g_connman->GetLocalServices())));
-    obj.push_back(Pair("localrelay",     fRelayTxes));
-    obj.push_back(Pair("timeoffset",    GetTimeOffset()));
+    obj.push_back(Pair("localrelay", fRelayTxes));
+    obj.push_back(Pair("timeoffset", GetTimeOffset()));
     if (g_connman) {
         obj.push_back(Pair("networkactive", g_connman->GetNetworkActive()));
-        obj.push_back(Pair("connections",   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
+        obj.push_back(Pair("connections", (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
     }
-    obj.push_back(Pair("networks",      GetNetworksInfo()));
-    obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
+    obj.push_back(Pair("networks", GetNetworksInfo()));
+    obj.push_back(Pair("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK())));
     obj.push_back(Pair("incrementalfee", ValueFromAmount(::incrementalRelayFee.GetFeePerK())));
     UniValue localAddresses(UniValue::VARR);
     {
@@ -482,7 +480,7 @@ UniValue getnetworkinfo(const JSONRPCRequest& request)
         }
     }
     obj.push_back(Pair("localaddresses", localAddresses));
-    obj.push_back(Pair("warnings",       GetWarnings("statusbar")));
+    obj.push_back(Pair("warnings", GetWarnings("statusbar")));
     return obj;
 }
 
@@ -568,8 +566,7 @@ UniValue listbanned(const JSONRPCRequest& request)
     g_connman->GetBanned(banMap);
 
     UniValue bannedAddresses(UniValue::VARR);
-    for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++)
-    {
+    for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++) {
         CBanEntry banEntry = (*it).second;
         UniValue rec(UniValue::VOBJ);
         rec.push_back(Pair("address", (*it).first.ToString()));
@@ -622,20 +619,21 @@ UniValue setnetworkactive(const JSONRPCRequest& request)
 }
 
 static const CRPCCommand commands[] =
-{ //  category              name                      actor (function)         okSafeMode
-  //  --------------------- ------------------------  -----------------------  ----------
-    { "network",            "getconnectioncount",     &getconnectioncount,     true,  {} },
-    { "network",            "ping",                   &ping,                   true,  {} },
-    { "network",            "getpeerinfo",            &getpeerinfo,            true,  {} },
-    { "network",            "addnode",                &addnode,                true,  {"node","command"} },
-    { "network",            "disconnectnode",         &disconnectnode,         true,  {"address", "nodeid"} },
-    { "network",            "getaddednodeinfo",       &getaddednodeinfo,       true,  {"node"} },
-    { "network",            "getnettotals",           &getnettotals,           true,  {} },
-    { "network",            "getnetworkinfo",         &getnetworkinfo,         true,  {} },
-    { "network",            "setban",                 &setban,                 true,  {"subnet", "command", "bantime", "absolute"} },
-    { "network",            "listbanned",             &listbanned,             true,  {} },
-    { "network",            "clearbanned",            &clearbanned,            true,  {} },
-    { "network",            "setnetworkactive",       &setnetworkactive,       true,  {"state"} },
+    {
+        //  category              name                      actor (function)         okSafeMode
+        //  --------------------- ------------------------  -----------------------  ----------
+        {"network", "getconnectioncount", &getconnectioncount, true, {}},
+        {"network", "ping", &ping, true, {}},
+        {"network", "getpeerinfo", &getpeerinfo, true, {}},
+        {"network", "addnode", &addnode, true, {"node", "command"}},
+        {"network", "disconnectnode", &disconnectnode, true, {"address", "nodeid"}},
+        {"network", "getaddednodeinfo", &getaddednodeinfo, true, {"node"}},
+        {"network", "getnettotals", &getnettotals, true, {}},
+        {"network", "getnetworkinfo", &getnetworkinfo, true, {}},
+        {"network", "setban", &setban, true, {"subnet", "command", "bantime", "absolute"}},
+        {"network", "listbanned", &listbanned, true, {}},
+        {"network", "clearbanned", &clearbanned, true, {}},
+        {"network", "setnetworkactive", &setnetworkactive, true, {"state"}},
 };
 
 void RegisterNetRPCCommands(CRPCTable &t)

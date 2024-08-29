@@ -5,13 +5,13 @@
 #include "key.h"
 #include "keystore.h"
 #include "policy/policy.h"
+#include "script/interpreter.h"
+#include "script/ismine.h"
 #include "script/script.h"
 #include "script/script_error.h"
-#include "script/interpreter.h"
 #include "script/sign.h"
-#include "script/ismine.h"
-#include "uint256.h"
 #include "test/test_bitcoin.h"
+#include "uint256.h"
 
 
 #include <boost/test/unit_test.hpp>

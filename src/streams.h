@@ -6,8 +6,8 @@
 #ifndef BITCOIN_STREAMS_H
 #define BITCOIN_STREAMS_H
 
-#include "support/allocators/zeroafterfree.h"
 #include "serialize.h"
+#include "support/allocators/zeroafterfree.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -41,7 +41,7 @@ public:
         return (*this);
     }
 
-    template<typename T>
+    template <typename T>
     OverrideStream<Stream>& operator>>(T& obj)
     {
         // Unserialize from this stream
@@ -76,23 +76,22 @@ OverrideStream<S> WithOrVersion(S* s, int nVersionFlag)
 class CVectorWriter
 {
  public:
-
-/*
- * @param[in]  nTypeIn Serialization Type
- * @param[in]  nVersionIn Serialization Version (including any flags)
- * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
- * @param[in]  nPosIn Starting position. Vector index where writes should start. The vector will initially
- *                    grow as necessary to  max(index, vec.size()). So to append, use vec.size().
-*/
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn) : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn), nPos(nPosIn)
-    {
-        if(nPos > vchData.size())
-            vchData.resize(nPos);
+     /*
+      * @param[in]  nTypeIn Serialization Type
+      * @param[in]  nVersionIn Serialization Version (including any flags)
+      * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
+      * @param[in]  nPosIn Starting position. Vector index where writes should start. The vector will initially
+      *                    grow as necessary to  max(index, vec.size()). So to append, use vec.size().
+      */
+     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn) : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn), nPos(nPosIn)
+     {
+         if (nPos > vchData.size())
+             vchData.resize(nPos);
     }
-/*
- * (other params same as above)
- * @param[in]  args  A list of items to serialize starting at nPos.
-*/
+    /*
+     * (other params same as above)
+     * @param[in]  args  A list of items to serialize starting at nPos.
+     */
     template <typename... Args>
     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
     {
@@ -241,7 +240,7 @@ public:
     const_reference operator[](size_type pos) const  { return vch[pos + nReadPos]; }
     reference operator[](size_type pos)              { return vch[pos + nReadPos]; }
     void clear()                                     { vch.clear(); nReadPos = 0; }
-    iterator insert(iterator it, const char& x=char()) { return vch.insert(it, x); }
+    iterator insert(iterator it, const char& x = char()) { return vch.insert(it, x); }
     void insert(iterator it, size_type n, const char& x) { vch.insert(it, n, x); }
     value_type* data()                               { return vch.data() + nReadPos; }
     const value_type* data() const                   { return vch.data() + nReadPos; }
@@ -332,7 +331,7 @@ public:
     //
     bool eof() const             { return size() == 0; }
     CDataStream* rdbuf()         { return this; }
-    int in_avail()               { return size(); }
+    int in_avail() { return size(); }
 
     void SetType(int n)          { nType = n; }
     int GetType() const          { return nType; }
@@ -345,10 +344,8 @@ public:
 
         // Read from the beginning of the buffer
         unsigned int nReadPosNext = nReadPos + nSize;
-        if (nReadPosNext >= vch.size())
-        {
-            if (nReadPosNext > vch.size())
-            {
+        if (nReadPosNext >= vch.size()) {
+            if (nReadPosNext > vch.size()) {
                 throw std::ios_base::failure("CDataStream::read(): end of data");
             }
             memcpy(pch, &vch[nReadPos], nSize);
@@ -400,7 +397,7 @@ public:
         return (*this);
     }
 
-    template<typename T>
+    template <typename T>
     CDataStream& operator>>(T& obj)
     {
         // Unserialize from this stream
@@ -462,7 +459,7 @@ private:
     const int nType;
     const int nVersion;
 
-    FILE* file;	
+    FILE* file;
 
 public:
     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn)
@@ -544,7 +541,7 @@ public:
         return (*this);
     }
 
-    template<typename T>
+    template <typename T>
     CAutoFile& operator>>(T& obj)
     {
         // Unserialize from this stream
@@ -648,7 +645,8 @@ public:
     }
 
     // return the current reading position
-    uint64_t GetPos() {
+    uint64_t GetPos()
+    {
         return nReadPos;
     }
 
@@ -687,8 +685,9 @@ public:
         return true;
     }
 
-    template<typename T>
-    CBufferedFile& operator>>(T& obj) {
+    template <typename T>
+    CBufferedFile& operator>>(T& obj)
+    {
         // Unserialize from this stream
         ::Unserialize(*this, obj);
         return (*this);

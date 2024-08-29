@@ -42,7 +42,7 @@ namespace GUIUtil
 
     // Set up widgets for address and amounts
     void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
-    void setupAmountWidget(QLineEdit *widget, QWidget *parent);
+    void setupAmountWidget(QLineEdit* widget, QWidget* parent);
 
     // Parse "bitcoin:" URI into recipient object, return true on successful parsing
     bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out);
@@ -216,11 +216,11 @@ namespace GUIUtil
     protected:
         void mouseReleaseEvent(QMouseEvent *event);
     };
-    
+
     class ClickableProgressBar : public QProgressBar
     {
         Q_OBJECT
-        
+
     Q_SIGNALS:
         /** Emitted when the progressbar is clicked. The relative mouse coordinates of the click are
          * passed to the signal.
@@ -236,7 +236,8 @@ namespace GUIUtil
     // QProgressBar uses around 10% CPU even when app is in background
     class ProgressBar : public ClickableProgressBar
     {
-        bool event(QEvent *e) {
+        bool event(QEvent* e)
+        {
             return (e->type() != QEvent::StyleAnimationUpdate) ? QProgressBar::event(e) : false;
         }
     };

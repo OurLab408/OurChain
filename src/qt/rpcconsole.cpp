@@ -10,13 +10,13 @@
 #include "ui_debugwindow.h"
 
 #include "bantablemodel.h"
+#include "chainparams.h"
 #include "clientmodel.h"
 #include "guiutil.h"
-#include "platformstyle.h"
-#include "chainparams.h"
 #include "netbase.h"
-#include "rpc/server.h"
+#include "platformstyle.h"
 #include "rpc/client.h"
+#include "rpc/server.h"
 #include "util.h"
 
 #include <openssl/crypto.h>
@@ -34,10 +34,10 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QSignalMapper>
+#include <QStringList>
 #include <QThread>
 #include <QTime>
 #include <QTimer>
-#include <QStringList>
 
 #if QT_VERSION < 0x050000
 #include <QUrl>
@@ -84,7 +84,7 @@ class RPCExecutor : public QObject
     Q_OBJECT
 
 public Q_SLOTS:
-    void request(const QString &command);
+    void request(const QString& command);
 
 Q_SIGNALS:
     void reply(int category, const QString &command);
@@ -145,7 +145,7 @@ public:
  * @param[out]   pstrFilteredOut  Command line, filtered to remove any sensitive data
  */
 
-bool RPCConsole::RPCParseCommandLine(std::string &strResult, const std::string &strCommand, const bool fExecute, std::string * const pstrFilteredOut)
+bool RPCConsole::RPCParseCommandLine(std::string& strResult, const std::string& strCommand, const bool fExecute, std::string* const pstrFilteredOut)
 {
     std::vector< std::vector<std::string> > stack;
     stack.push_back(std::vector<std::string>());
@@ -307,7 +307,7 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult, const std::string &
                             if (!vpwallets.empty()) {
                                 // in Qt, use always the wallet with index 0 when running with multiple wallets
                                 QByteArray encodedName = QUrl::toPercentEncoding(QString::fromStdString(vpwallets[0]->GetName()));
-                                req.URI = "/wallet/"+std::string(encodedName.constData(), encodedName.length());
+                                req.URI = "/wallet/" + std::string(encodedName.constData(), encodedName.length());
                             }
 #endif
                             lastResult = tableRPC.execute(req);
@@ -385,14 +385,13 @@ bool RPCConsole::RPCParseCommandLine(std::string &strResult, const std::string &
     }
 }
 
-void RPCExecutor::request(const QString &command)
+void RPCExecutor::request(const QString& command)
 {
     try
     {
         std::string result;
         std::string executableCommand = command.toStdString() + "\n";
-        if(!RPCConsole::RPCExecuteCommandLine(result, executableCommand))
-        {
+        if (!RPCConsole::RPCExecuteCommandLine(result, executableCommand)) {
             Q_EMIT reply(RPCConsole::CMD_ERROR, QString("Parse error: unbalanced ' or \""));
             return;
         }
@@ -417,15 +416,14 @@ void RPCExecutor::request(const QString &command)
     }
 }
 
-RPCConsole::RPCConsole(const PlatformStyle *_platformStyle, QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::RPCConsole),
-    clientModel(0),
-    historyPtr(0),
-    platformStyle(_platformStyle),
-    peersTableContextMenu(0),
-    banTableContextMenu(0),
-    consoleFontSize(0)
+RPCConsole::RPCConsole(const PlatformStyle* _platformStyle, QWidget* parent) : QWidget(parent),
+                                                                               ui(new Ui::RPCConsole),
+                                                                               clientModel(0),
+                                                                               historyPtr(0),
+                                                                               platformStyle(_platformStyle),
+                                                                               peersTableContextMenu(0),
+                                                                               banTableContextMenu(0),
+                                                                               consoleFontSize(0)
 {
     ui->setupUi(this);
     GUIUtil::restoreWindowGeometry("nRPCConsoleWindow", this->size(), this);
@@ -595,7 +593,7 @@ void RPCConsole::setClientModel(ClientModel *model)
         connect(model->getPeerTableModel(), SIGNAL(layoutChanged()), this, SLOT(peerLayoutChanged()));
         // peer table signal handling - cache selected node ids
         connect(model->getPeerTableModel(), SIGNAL(layoutAboutToBeChanged()), this, SLOT(peerLayoutAboutToChange()));
-        
+
         // set up ban table
         ui->banlistWidget->setModel(model->getBanTableModel());
         ui->banlistWidget->verticalHeader()->hide();
@@ -742,14 +740,9 @@ void RPCConsole::clear(bool clearHistory)
 #else
     QString clsKey = "Ctrl-L";
 #endif
-	 
-    message(CMD_REPLY, (tr("Welcome to the %1 RPC console.").arg(tr(PACKAGE_NAME)) + "<br>" +
-                        tr("Use up and down arrows to navigate history, and %1 to clear screen.").arg("<b>"+clsKey+"</b>") + "<br>" +
-                        tr("Type <b>help</b> for an overview of available commands.")) +
-                        "<br><span class=\"secwarning\">" +
-                        tr("WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramifications of a command.") +
-                        "</span>",
-                        true);
+
+    message(CMD_REPLY, (tr("Welcome to the %1 RPC console.").arg(tr(PACKAGE_NAME)) + "<br>" + tr("Use up and down arrows to navigate history, and %1 to clear screen.").arg("<b>" + clsKey + "</b>") + "<br>" + tr("Type <b>help</b> for an overview of available commands.")) + "<br><span class=\"secwarning\">" + tr("WARNING: Scammers have been active, telling users to type commands here, stealing their wallet contents. Do not use this console without fully understanding the ramifications of a command.") + "</span>",
+            true);
 }
 
 void RPCConsole::keyPressEvent(QKeyEvent *event)
@@ -782,7 +775,7 @@ void RPCConsole::updateNetworkState()
     connections += tr("In:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_IN)) + " / ";
     connections += tr("Out:") + " " + QString::number(clientModel->getNumConnections(CONNECTIONS_OUT)) + ")";
 
-    if(!clientModel->getNetworkActive()) {
+    if (!clientModel->getNetworkActive()) {
         connections += " (" + tr("Network activity disabled") + ")";
     }
 
@@ -885,7 +878,7 @@ void RPCConsole::browseHistory(int offset)
 
 void RPCConsole::startExecutor()
 {
-    RPCExecutor *executor = new RPCExecutor();
+    RPCExecutor* executor = new RPCExecutor();
     executor->moveToThread(&thread);
 
     // Replies from executor object must go to this object
@@ -932,11 +925,11 @@ void RPCConsole::on_sldGraphRange_valueChanged(int value)
 
 QString RPCConsole::FormatBytes(quint64 bytes)
 {
-    if(bytes < 1024)
+    if (bytes < 1024)
         return QString(tr("%1 B")).arg(bytes);
-    if(bytes < 1024 * 1024)
+    if (bytes < 1024 * 1024)
         return QString(tr("%1 KB")).arg(bytes / 1024);
-    if(bytes < 1024 * 1024 * 1024)
+    if (bytes < 1024 * 1024 * 1024)
         return QString(tr("%1 MB")).arg(bytes / 1024 / 1024);
 
     return QString(tr("%1 GB")).arg(bytes / 1024 / 1024 / 1024);
@@ -1123,9 +1116,9 @@ void RPCConsole::showBanTableContextMenu(const QPoint& point)
 
 void RPCConsole::disconnectSelectedNode()
 {
-    if(!g_connman)
+    if (!g_connman)
         return;
-    
+
     // Get selected peer addresses
     QList<QModelIndex> nodes = GUIUtil::getEntryData(ui->peerWidget, PeerTableModel::NetNodeId);
     for(int i = 0; i < nodes.count(); i++)
@@ -1133,7 +1126,7 @@ void RPCConsole::disconnectSelectedNode()
         // Get currently selected peer address
         NodeId id = nodes.at(i).data().toLongLong();
         // Find the node, disconnect it and clear the selected node
-        if(g_connman->DisconnectNode(id))
+        if (g_connman->DisconnectNode(id))
             clearSelectedNode();
     }
 }
@@ -1142,7 +1135,7 @@ void RPCConsole::banSelectedNode(int bantime)
 {
     if (!clientModel || !g_connman)
         return;
-    
+
     // Get selected peer addresses
     QList<QModelIndex> nodes = GUIUtil::getEntryData(ui->peerWidget, PeerTableModel::NetNodeId);
     for(int i = 0; i < nodes.count(); i++)
@@ -1158,8 +1151,8 @@ void RPCConsole::banSelectedNode(int bantime)
 	// Find possible nodes, ban it and clear the selected node
 	const CNodeCombinedStats *stats = clientModel->getPeerTableModel()->getNodeStats(detailNodeRow);
 	if(stats) {
-	    g_connman->Ban(stats->nodeStats.addr, BanReasonManuallyAdded, bantime);
-	}
+            g_connman->Ban(stats->nodeStats.addr, BanReasonManuallyAdded, bantime);
+        }
     }
     clearSelectedNode();
     clientModel->getBanTableModel()->refresh();
@@ -1179,8 +1172,7 @@ void RPCConsole::unbanSelectedNode()
         CSubNet possibleSubnet;
 
         LookupSubNet(strNode.toStdString().c_str(), possibleSubnet);
-        if (possibleSubnet.IsValid() && g_connman)
-        {
+        if (possibleSubnet.IsValid() && g_connman) {
             g_connman->Unban(possibleSubnet);
             clientModel->getBanTableModel()->refresh();
         }

@@ -6,11 +6,11 @@
 #ifndef BITCOIN_COINS_H
 #define BITCOIN_COINS_H
 
-#include "primitives/transaction.h"
 #include "compressor.h"
 #include "core_memusage.h"
 #include "hash.h"
 #include "memusage.h"
+#include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
 
@@ -334,7 +334,7 @@ public:
     //! Calculate the size of the cache (in bytes)
     size_t DynamicMemoryUsage() const;
 
-    /** 
+    /**
      * Amount of bitcoins coming in to a transaction
      * Note that lightweight clients may not know anything besides the hash of previous transactions,
      * so may not be able to calculate this.
@@ -354,7 +354,7 @@ private:
     /**
      * By making the copy constructor private, we prevent accidentally using it when one intends to create a cache on top of a base cache.
      */
-    CCoinsViewCache(const CCoinsViewCache &);
+    CCoinsViewCache(const CCoinsViewCache&);
 };
 
 //! Utility function to add all of a transaction's outputs to a cache.

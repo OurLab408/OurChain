@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     InitGPoWParameter();
 
     my_Eprintf("m= %i N= %i nBits=0x%08x %10.7e Round= %i Arith= %i Type=0x%02x",
-        Getm(), GetN(), GetNBits(), fGetNBits(), Round, Arith, NONCE_TYPE);
+               Getm(), GetN(), GetNBits(), fGetNBits(), Round, Arith, NONCE_TYPE);
 
     int N = GetN();
 

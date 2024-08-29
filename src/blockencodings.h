@@ -75,8 +75,7 @@ public:
     std::vector<CTransactionRef> txn;
 
     BlockTransactions() {}
-    BlockTransactions(const BlockTransactionsRequest& req) :
-        blockhash(req.blockhash), txn(req.indexes.size()) {}
+    BlockTransactions(const BlockTransactionsRequest& req) : blockhash(req.blockhash), txn(req.indexes.size()) {}
 
     ADD_SERIALIZE_METHODS;
 

@@ -10,17 +10,17 @@
 #include "crypto/sha256.h"
 #include "fs.h"
 #include "key.h"
-#include "validation.h"
 #include "miner.h"
 #include "net_processing.h"
 #include "pubkey.h"
 #include "random.h"
+#include "rpc/register.h"
+#include "rpc/server.h"
+#include "script/sigcache.h"
 #include "txdb.h"
 #include "txmempool.h"
 #include "ui_interface.h"
-#include "rpc/server.h"
-#include "rpc/register.h"
-#include "script/sigcache.h"
+#include "validation.h"
 
 #include "test/testutil.h"
 
@@ -39,23 +39,23 @@ extern void noui_connect();
 
 BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
 {
-        SHA256AutoDetect();
-        RandomInit();
-        ECC_Start();
-        SetupEnvironment();
-        SetupNetworking();
-        InitSignatureCache();
-        InitScriptExecutionCache();
-        fPrintToDebugLog = false; // don't want to write to debug.log file
-        fCheckBlockIndex = true;
-        SelectParams(chainName);
-        noui_connect();
+    SHA256AutoDetect();
+    RandomInit();
+    ECC_Start();
+    SetupEnvironment();
+    SetupNetworking();
+    InitSignatureCache();
+    InitScriptExecutionCache();
+    fPrintToDebugLog = false; // don't want to write to debug.log file
+    fCheckBlockIndex = true;
+    SelectParams(chainName);
+    noui_connect();
 }
 
 BasicTestingSetup::~BasicTestingSetup()
 {
-        ECC_Stop();
-        g_connman.reset();
+    ECC_Stop();
+    g_connman.reset();
 }
 
 TestingSetup::TestingSetup(const std::string& chainName) : BasicTestingSetup(chainName)
@@ -161,7 +161,8 @@ CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) {
     return FromTx(txn);
 }
 
-CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction &txn) {
+CTxMemPoolEntry TestMemPoolEntryHelper::FromTx(const CTransaction& txn)
+{
     return CTxMemPoolEntry(MakeTransactionRef(txn), nFee, nTime, nHeight,
                            spendsCoinbase, sigOpCost, lp);
 }

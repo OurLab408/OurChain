@@ -24,7 +24,7 @@ public:
 
     QList<SendCoinsRecipient> getRecipients();
 
-    CWalletTx *getTransaction();
+    CWalletTx* getTransaction();
     unsigned int getTransactionSize();
 
     void setTransactionFee(const CAmount& newFee);
@@ -32,15 +32,15 @@ public:
 
     CAmount getTotalTransactionAmount();
 
-    void newPossibleKeyChange(CWallet *wallet);
-    CReserveKey *getPossibleKeyChange();
+    void newPossibleKeyChange(CWallet* wallet);
+    CReserveKey* getPossibleKeyChange();
 
     void reassignAmounts(int nChangePosRet); // needed for the subtract-fee-from-amount feature
 
 private:
     QList<SendCoinsRecipient> recipients;
-    CWalletTx *walletTransaction;
-    CReserveKey *keyChange;
+    CWalletTx* walletTransaction;
+    CReserveKey* keyChange;
     CAmount fee;
 };
 

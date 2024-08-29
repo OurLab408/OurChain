@@ -5,10 +5,10 @@
 
 #include "primitives/block.h"
 
+#include "crypto/common.h"
 #include "hash.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
-#include "crypto/common.h"
 
 uint256 CBlockHeader::GetHash() const
 {
@@ -28,19 +28,19 @@ std::string CBlock::ToString() const
 {
     std::stringstream s;
     s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u",
-        GetHash().ToString(),
-        nVersion,
-        hashPrevBlock.ToString(),
-        hashMerkleRoot.ToString(),
-        hashContractState.ToString(),
-        nTime);
+                   GetHash().ToString(),
+                   nVersion,
+                   hashPrevBlock.ToString(),
+                   hashMerkleRoot.ToString(),
+                   hashContractState.ToString(),
+                   nTime);
 #ifdef ENABLE_GPoW
     s << strprintf(", nPrecisionTime=%u, hashGPoW=%s", nPrecisionTime, hashGPoW.ToString());
 #endif
     s << strprintf(", nBits=%08x, nNonce=%s, vtx=%u\n",
-        nBits,
-        nNonce.ToString(),
-        vtx.size());
+                   nBits,
+                   nNonce.ToString(),
+                   vtx.size());
     for (const auto& tx : vtx) {
         s << "  " << tx->ToString() << "\n";
     }

@@ -221,11 +221,9 @@ void PaymentServer::ipcParseCommandLine(int argc, char* argv[])
                 CBitcoinAddress address(r.address.toStdString());
                 auto tempChainParams = CreateChainParams(CBaseChainParams::MAIN);
 
-                if (address.IsValid(*tempChainParams))
-                {
+                if (address.IsValid(*tempChainParams)) {
                     SelectParams(CBaseChainParams::MAIN);
-                }
-                else {
+                } else {
                     tempChainParams = CreateChainParams(CBaseChainParams::TESTNET);
                     if (address.IsValid(*tempChainParams))
                         SelectParams(CBaseChainParams::TESTNET);
@@ -445,8 +443,7 @@ void PaymentServer::handleURIOrFile(const QString& s)
                 if (!address.IsValid()) {
                     Q_EMIT message(tr("URI handling"), tr("Invalid payment address %1").arg(recipient.address),
                         CClientUIInterface::MSG_ERROR);
-                }
-                else
+                } else
                     Q_EMIT receivedPaymentRequest(recipient);
             }
             else
@@ -645,8 +642,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
         CScript s = GetScriptForDestination(*refundAddresses.begin());
         payments::Output* refund_to = payment.add_refund_to();
         refund_to->set_script(&s[0], s.size());
-    }
-    else {
+    } else {
         CPubKey newKey;
         if (wallet->GetKeyFromPool(newKey)) {
             CKeyID keyID = newKey.GetID();
@@ -655,8 +651,7 @@ void PaymentServer::fetchPaymentACK(CWallet* wallet, SendCoinsRecipient recipien
             CScript s = GetScriptForDestination(keyID);
             payments::Output* refund_to = payment.add_refund_to();
             refund_to->set_script(&s[0], s.size());
-        }
-        else {
+        } else {
             // This should never happen, because sending coins should have
             // just unlocked the wallet and refilled the keypool.
             qWarning() << "PaymentServer::fetchPaymentACK: Error getting refund key, refund_to not set";
@@ -765,9 +760,9 @@ bool PaymentServer::verifyNetwork(const payments::PaymentDetails& requestDetails
     bool fVerified = requestDetails.network() == Params().NetworkIDString();
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request network \"%2\" doesn't match client network \"%3\".")
-            .arg(__func__)
-            .arg(QString::fromStdString(requestDetails.network()))
-            .arg(QString::fromStdString(Params().NetworkIDString()));
+                          .arg(__func__)
+                          .arg(QString::fromStdString(requestDetails.network()))
+                          .arg(QString::fromStdString(Params().NetworkIDString()));
     }
     return fVerified;
 }

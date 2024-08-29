@@ -25,7 +25,7 @@ template<unsigned int BITS>
 class base_uint
 {
 protected:
-    enum { WIDTH=BITS/32 };
+    enum { WIDTH = BITS / 32 };
     uint32_t pn[WIDTH];
 public:
 
@@ -312,7 +312,7 @@ public:
     double getdouble() const;
 };
 
-uint256 ArithToUint256(const arith_uint256 &);
+uint256 ArithToUint256(const arith_uint256&);
 arith_uint256 UintToArith256(const uint256&);
 uint256 Arith288ToUint256(base_uint<288>&);
 void Arith288To320(base_uint<288>&, base_uint<320>&);

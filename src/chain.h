@@ -7,8 +7,8 @@
 #define BITCOIN_CHAIN_H
 
 #include "arith_uint256.h"
-#include "primitives/block.h"
 #include "pow.h"
+#include "primitives/block.h"
 #include "tinyformat.h"
 #include "uint256.h"
 
@@ -331,7 +331,7 @@ public:
         return (int64_t)nTimeMax;
     }
 
-    enum { nMedianTimeSpan=11 };
+    enum { nMedianTimeSpan = 11 };
 
     int64_t GetMedianTimePast() const
     {
@@ -350,10 +350,10 @@ public:
     std::string ToString() const
     {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
-            pprev, nHeight,
-            hashMerkleRoot.ToString(),
-            hashContractState.ToString(),
-            GetBlockHash().ToString());
+                         pprev, nHeight,
+                         hashMerkleRoot.ToString(),
+                         hashContractState.ToString(),
+                         GetBlockHash().ToString());
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.

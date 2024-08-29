@@ -89,8 +89,8 @@ void PrintNormalizedMeanNonce(uint256 hash, int decimals) {
     printf("Normalized nonces mean: %.*lf\n", decimals, mpq_get_d(in1));
 }
 */
-//#define MINE
-//#define TEST_RANDOM
+// #define MINE
+// #define TEST_RANDOM
 
 int main(int argc, char** argv)
 {

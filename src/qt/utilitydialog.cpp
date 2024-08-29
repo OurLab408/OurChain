@@ -13,9 +13,9 @@
 #include "bitcoingui.h"
 #include "clientmodel.h"
 #include "guiconstants.h"
+#include "guiutil.h"
 #include "intro.h"
 #include "paymentrequestplus.h"
-#include "guiutil.h"
 
 #include "clientversion.h"
 #include "init.h"
@@ -31,9 +31,8 @@
 #include <QVBoxLayout>
 
 /** "Help message" or "About" dialog box */
-HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about) :
-    QDialog(parent),
-    ui(new Ui::HelpMessageDialog)
+HelpMessageDialog::HelpMessageDialog(QWidget* parent, bool about) : QDialog(parent),
+                                                                    ui(new Ui::HelpMessageDialog)
 {
     ui->setupUi(this);
 
@@ -70,7 +69,7 @@ HelpMessageDialog::HelpMessageDialog(QWidget *parent, bool about) :
     } else {
         setWindowTitle(tr("Command-line options"));
         QString header = tr("Usage:") + "\n" +
-            "  bitcoin-qt [" + tr("command-line options") + "]                     " + "\n";
+                         "  bitcoin-qt [" + tr("command-line options") + "]                     " + "\n";
         QTextCursor cursor(ui->helpMessage->document());
         cursor.insertText(version);
         cursor.insertBlock();

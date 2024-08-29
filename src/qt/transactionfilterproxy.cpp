@@ -4,8 +4,8 @@
 
 #include "transactionfilterproxy.h"
 
-#include "transactiontablemodel.h"
 #include "transactionrecord.h"
+#include "transactiontablemodel.h"
 
 #include <cstdlib>
 
@@ -16,16 +16,15 @@ const QDateTime TransactionFilterProxy::MIN_DATE = QDateTime::fromTime_t(0);
 // Last date that can be represented (far in the future)
 const QDateTime TransactionFilterProxy::MAX_DATE = QDateTime::fromTime_t(0xFFFFFFFF);
 
-TransactionFilterProxy::TransactionFilterProxy(QObject *parent) :
-    QSortFilterProxyModel(parent),
-    dateFrom(MIN_DATE),
-    dateTo(MAX_DATE),
-    addrPrefix(),
-    typeFilter(ALL_TYPES),
-    watchOnlyFilter(WatchOnlyFilter_All),
-    minAmount(0),
-    limitRows(-1),
-    showInactive(true)
+TransactionFilterProxy::TransactionFilterProxy(QObject* parent) : QSortFilterProxyModel(parent),
+                                                                  dateFrom(MIN_DATE),
+                                                                  dateTo(MAX_DATE),
+                                                                  addrPrefix(),
+                                                                  typeFilter(ALL_TYPES),
+                                                                  watchOnlyFilter(WatchOnlyFilter_All),
+                                                                  minAmount(0),
+                                                                  limitRows(-1),
+                                                                  showInactive(true)
 {
 }
 
@@ -41,19 +40,19 @@ bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     qint64 amount = llabs(index.data(TransactionTableModel::AmountRole).toLongLong());
     int status = index.data(TransactionTableModel::StatusRole).toInt();
 
-    if(!showInactive && status == TransactionStatus::Conflicted)
+    if (!showInactive && status == TransactionStatus::Conflicted)
         return false;
-    if(!(TYPE(type) & typeFilter))
+    if (!(TYPE(type) & typeFilter))
         return false;
     if (involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_No)
         return false;
     if (!involvesWatchAddress && watchOnlyFilter == WatchOnlyFilter_Yes)
         return false;
-    if(datetime < dateFrom || datetime > dateTo)
+    if (datetime < dateFrom || datetime > dateTo)
         return false;
     if (!address.contains(addrPrefix, Qt::CaseInsensitive) && !label.contains(addrPrefix, Qt::CaseInsensitive))
         return false;
-    if(amount < minAmount)
+    if (amount < minAmount)
         return false;
 
     return true;
@@ -66,7 +65,7 @@ void TransactionFilterProxy::setDateRange(const QDateTime &from, const QDateTime
     invalidateFilter();
 }
 
-void TransactionFilterProxy::setAddressPrefix(const QString &_addrPrefix)
+void TransactionFilterProxy::setAddressPrefix(const QString& _addrPrefix)
 {
     this->addrPrefix = _addrPrefix;
     invalidateFilter();

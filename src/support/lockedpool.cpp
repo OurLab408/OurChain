@@ -65,7 +65,7 @@ void* Arena::alloc(size_t size)
 
     // Pick a large enough free-chunk
     auto it = std::find_if(chunks_free.begin(), chunks_free.end(),
-        [=](const std::map<char*, size_t>::value_type& chunk){ return chunk.second >= size; });
+                           [=](const std::map<char*, size_t>::value_type& chunk) { return chunk.second >= size; });
     if (it == chunks_free.end())
         return nullptr;
 
@@ -77,7 +77,9 @@ void* Arena::alloc(size_t size)
 }
 
 /* extend the Iterator if other begins at its end */
-template <class Iterator, class Pair> bool extend(Iterator it, const Pair& other) {
+template <class Iterator, class Pair>
+bool extend(Iterator it, const Pair& other)
+{
     if (it->first + it->second == other.first) {
         it->second += other.second;
         return true;
@@ -121,7 +123,8 @@ Arena::Stats Arena::stats() const
 }
 
 #ifdef ARENA_DEBUG
-void printchunk(char* base, size_t sz, bool used) {
+void printchunk(char* base, size_t sz, bool used)
+{
     std::cout <<
         "0x" << std::hex << std::setw(16) << std::setfill('0') << base <<
         " 0x" << std::hex << std::setw(16) << std::setfill('0') << sz <<

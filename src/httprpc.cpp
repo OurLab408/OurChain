@@ -6,15 +6,15 @@
 
 #include "base58.h"
 #include "chainparams.h"
+#include "crypto/hmac_sha256.h"
 #include "httpserver.h"
+#include "random.h"
 #include "rpc/protocol.h"
 #include "rpc/server.h"
-#include "random.h"
 #include "sync.h"
+#include "ui_interface.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "ui_interface.h"
-#include "crypto/hmac_sha256.h"
 #include <stdio.h>
 
 #include <boost/algorithm/string.hpp> // boost::trim
@@ -84,7 +84,7 @@ static void JSONErrorReply(HTTPRequest* req, const UniValue& objError, const Uni
 //This function checks username and password against -rpcauth
 //entries from config file.
 static bool multiUserAuthorized(std::string strUserPass)
-{    
+{
     if (strUserPass.find(":") == std::string::npos) {
         return false;
     }

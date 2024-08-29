@@ -8,12 +8,12 @@
 #include "uint256.h"
 
 #include <assert.h>
-#include <stdint.h>
-#include <string.h>
-#include <vector>
-#include <string>
 #include <boost/variant/apply_visitor.hpp>
 #include <boost/variant/static_visitor.hpp>
+#include <stdint.h>
+#include <string.h>
+#include <string>
+#include <vector>
 
 /** All alphanumeric characters except for "0", "I", "O", and "l" */
 static const char* pszBase58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -210,8 +210,7 @@ int CBase58Data::CompareTo(const CBase58Data& b58) const
     return 0;
 }
 
-namespace
-{
+namespace {
 class CBitcoinAddressVisitor : public boost::static_visitor<bool>
 {
 private:

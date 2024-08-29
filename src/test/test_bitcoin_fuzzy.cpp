@@ -6,19 +6,19 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include "consensus/merkle.h"
-#include "primitives/block.h"
-#include "script/script.h"
 #include "addrman.h"
 #include "chain.h"
 #include "coins.h"
 #include "compressor.h"
+#include "consensus/merkle.h"
 #include "net.h"
+#include "primitives/block.h"
 #include "protocol.h"
+#include "pubkey.h"
+#include "script/script.h"
 #include "streams.h"
 #include "undo.h"
 #include "version.h"
-#include "pubkey.h"
 
 #include <stdint.h>
 #include <unistd.h>
@@ -53,7 +53,8 @@ enum TEST_ID {
     TEST_ID_END
 };
 
-bool read_stdin(std::vector<char> &data) {
+bool read_stdin(std::vector<char>& data)
+{
     char buffer[1024];
     ssize_t length=0;
     while((length = read(STDIN_FILENO, buffer, 1024)) > 0) {

@@ -139,7 +139,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x000000000000000000000000000000000000000000723d3581fe1bd55373540a");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0000000000000000003b9ce759c2a087d52abc4266f8f4ebd6d768b89defa50a"); //477890
+        consensus.defaultAssumeValid = uint256S("0x0000000000000000003b9ce759c2a087d52abc4266f8f4ebd6d768b89defa50a"); // 477890
 
         /**
          * The message start string is designed to be unlikely to occur in normal data.
@@ -194,10 +194,10 @@ public:
 
             if (done == 1) {
                 fprintf(stderr,
-                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
-                    n.ToString().c_str(),
-                    genesis.GetHash().ToString().c_str(),
-                    genesis.hashMerkleRoot.ToString().c_str());
+                        "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                        n.ToString().c_str(),
+                        genesis.GetHash().ToString().c_str(),
+                        genesis.hashMerkleRoot.ToString().c_str());
                 break;
             }
         }
@@ -214,12 +214,12 @@ public:
         assert(genesis.hashMerkleRoot == uint256S("0xaeca09748f19c18e6f4954d674810ae39b888a96a530ffb16206b300a8c10cd3"));
 
         // Note that of those with the service bits flag, most only support a subset of possible options
-        vSeeds.emplace_back("seed.bitcoin.sipa.be", true); // Pieter Wuille, only supports x1, x5, x9, and xd
-        vSeeds.emplace_back("dnsseed.bluematt.me", true); // Matt Corallo, only supports x9
-        vSeeds.emplace_back("dnsseed.bitcoin.dashjr.org", false); // Luke Dashjr
-        vSeeds.emplace_back("seed.bitcoinstats.com", true); // Christian Decker, supports x1 - xf
+        vSeeds.emplace_back("seed.bitcoin.sipa.be", true);          // Pieter Wuille, only supports x1, x5, x9, and xd
+        vSeeds.emplace_back("dnsseed.bluematt.me", true);           // Matt Corallo, only supports x9
+        vSeeds.emplace_back("dnsseed.bitcoin.dashjr.org", false);   // Luke Dashjr
+        vSeeds.emplace_back("seed.bitcoinstats.com", true);         // Christian Decker, supports x1 - xf
         vSeeds.emplace_back("seed.bitcoin.jonasschnelli.ch", true); // Jonas Schnelli, only supports x1, x5, x9, and xd
-        vSeeds.emplace_back("seed.btc.petertodd.org", true); // Peter Todd, only supports x1, x5, x9, and xd
+        vSeeds.emplace_back("seed.btc.petertodd.org", true);        // Peter Todd, only supports x1, x5, x9, and xd
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
@@ -233,11 +233,11 @@ public:
         fRequireStandard = true;
         fMineBlocksOnDemand = false;
 
-        checkpointData = (CCheckpointData) {
+        checkpointData = (CCheckpointData){
             {
-                { 11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")},
-                { 33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6")},
-                { 74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20")},
+                {11111, uint256S("0x0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d")},
+                {33333, uint256S("0x000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6")},
+                {74000, uint256S("0x0000000000573993a3c9e41ce34471c079dcf5f52a0e824a81e7f953b8661a20")},
                 {105000, uint256S("0x00000000000291ce28027faea320c8d2b054b2e0fe44a773f3eefb151d6bdc97")},
                 {134444, uint256S("0x00000000000005b12ffd4cd315cd34ffd4a594f430ac814c91184a0d42d2b0fe")},
                 {168000, uint256S("0x000000000000099e61ea72015e79632f216fe6cb33d7899acb35b75c8303b763")},
@@ -248,8 +248,7 @@ public:
                 {250000, uint256S("0x000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214")},
                 {279000, uint256S("0x0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40")},
                 {295000, uint256S("0x00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983")},
-            }
-        };
+            }};
 
         chainTxData = ChainTxData{
             // Data as of block 000000000000000000d97e53664d17967bd4ee50b23abb92e54a34eb222d15ae (height 478913).
@@ -298,7 +297,7 @@ public:
         consensus.nMinimumChainWork = uint256S("0x00000000000000000000000000000000000000000000002830dab7f76dbb7d63");
 
         // By default assume that the signatures in ancestors of this block are valid.
-        consensus.defaultAssumeValid = uint256S("0x0000000002e9e7b00e1f6dc5123a04aad68dd0f0968d8c7aa45f6640795c37b1"); //1135275
+        consensus.defaultAssumeValid = uint256S("0x0000000002e9e7b00e1f6dc5123a04aad68dd0f0968d8c7aa45f6640795c37b1"); // 1135275
 
         pchMessageStart[0] = 0x0b;
         pchMessageStart[1] = 0x11;
@@ -316,9 +315,9 @@ public:
                 genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                        "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                        genesis.GetHash().ToString().c_str(),
-                        genesis.hashMerkleRoot.ToString().c_str());
+                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
+                            genesis.GetHash().ToString().c_str(),
+                            genesis.hashMerkleRoot.ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
@@ -356,19 +355,16 @@ public:
         fMineBlocksOnDemand = false;
 
 
-        checkpointData = (CCheckpointData) {
+        checkpointData = (CCheckpointData){
             {
                 {546, uint256S("000000002a936ca763904c3c35fce2f3556c559c0214345d31b1bcebf76acb70")},
-            }
-        };
+            }};
 
         chainTxData = ChainTxData{
             // Data as of block 00000000000001c200b9790dc637d3bb141fe77d155b966ed775b17e109f7c6c (height 1156179)
             1501802953,
             14706531,
-            0.15
-        };
-
+            0.15};
     }
 };
 
@@ -459,10 +455,10 @@ public:
 
             if (done == 1) {
                 fprintf(stderr,
-                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
-                    n.ToString().c_str(),
-                    genesis.GetHash().ToString().c_str(),
-                    genesis.hashMerkleRoot.ToString().c_str());
+                        "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                        n.ToString().c_str(),
+                        genesis.GetHash().ToString().c_str(),
+                        genesis.hashMerkleRoot.ToString().c_str());
                 break;
             }
         }
@@ -487,11 +483,10 @@ public:
         fRequireStandard = false;
         fMineBlocksOnDemand = true;
 
-        checkpointData = (CCheckpointData) {
+        checkpointData = (CCheckpointData){
             {
                 {0, uint256S("0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206")},
-            }
-        };
+            }};
 
         chainTxData = ChainTxData{
             0,

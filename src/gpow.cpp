@@ -45,11 +45,11 @@ std::string GNonces::ToString() const
 {
     std::string str;
     str += strprintf("\n(nonce=%06u m= %4u n= %6u %6u nBits=0x%08x NONCE_TYPE=0x%02x",
-        nonce,
-        m,
-        n, N,
-        GetNBits(),
-        NONCE_TYPE);
+                     nonce,
+                     m,
+                     n, N,
+                     GetNBits(),
+                     NONCE_TYPE);
     str += strprintf("\nQ=%04u InnerLoopCount %i array=0x", q.size(), nInnerLoopCount);
     for (auto const& e : q) {
         str += strprintf("\n%06i %s", e.first, e.second.ToString());
@@ -273,7 +273,7 @@ void InitArith2()
     (*(base_uint<288>*)&Avg) = 0;
 };
 
-void ClearArith2(){};
+void ClearArith2() {};
 
 void AddHash2(uint256& avg, uint256& hash)
 {

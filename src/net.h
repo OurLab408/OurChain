@@ -19,8 +19,8 @@
 #include "random.h"
 #include "streams.h"
 #include "sync.h"
-#include "uint256.h"
 #include "threadinterrupt.h"
+#include "uint256.h"
 
 #include <atomic>
 #include <deque>
@@ -39,7 +39,7 @@ class CScheduler;
 class CNode;
 
 namespace boost {
-    class thread_group;
+class thread_group;
 } // namespace boost
 
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
@@ -322,7 +322,7 @@ private:
     CNode* FindNode(const CService& addr);
 
     bool AttemptToEvictConnection();
-    CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure);
+    CNode* ConnectNode(CAddress addrConnect, const char* pszDest, bool fCountFailure);
     bool IsWhitelistedRange(const CNetAddr &addr);
 
     void DeleteNode(CNode* pnode);
@@ -388,8 +388,8 @@ private:
     /** Services this instance cares about */
     ServiceFlags nRelevantServices;
 
-    CSemaphore *semOutbound;
-    CSemaphore *semAddnode;
+    CSemaphore* semOutbound;
+    CSemaphore* semAddnode;
     int nMaxConnections;
     int nMaxOutbound;
     int nMaxAddnode;

@@ -5,10 +5,10 @@
 #include "zmqnotificationinterface.h"
 #include "zmqpublishnotifier.h"
 
-#include "version.h"
-#include "validation.h"
 #include "streams.h"
 #include "util.h"
+#include "validation.h"
+#include "version.h"
 
 void zmqError(const char *str)
 {
@@ -40,8 +40,7 @@ CZMQNotificationInterface* CZMQNotificationInterface::Create()
     factories["pubrawblock"] = CZMQAbstractNotifier::Create<CZMQPublishRawBlockNotifier>;
     factories["pubrawtx"] = CZMQAbstractNotifier::Create<CZMQPublishRawTransactionNotifier>;
 
-    for (std::map<std::string, CZMQNotifierFactory>::const_iterator i=factories.begin(); i!=factories.end(); ++i)
-    {
+    for (std::map<std::string, CZMQNotifierFactory>::const_iterator i = factories.begin(); i != factories.end(); ++i) {
         std::string arg("-zmq" + i->first);
         if (gArgs.IsArgSet(arg))
         {

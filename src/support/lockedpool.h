@@ -85,7 +85,7 @@ public:
      */
     bool addressInArena(void *ptr) const { return ptr >= base && ptr < end; }
 private:
-    Arena(const Arena& other) = delete; // non construction-copyable
+    Arena(const Arena& other) = delete;      // non construction-copyable
     Arena& operator=(const Arena&) = delete; // non copyable
 
     /** Map of chunk address to chunk information. This class makes use of the
@@ -168,7 +168,7 @@ public:
     /** Get pool usage statistics */
     Stats stats() const;
 private:
-    LockedPool(const LockedPool& other) = delete; // non construction-copyable
+    LockedPool(const LockedPool& other) = delete;      // non construction-copyable
     LockedPool& operator=(const LockedPool&) = delete; // non copyable
 
     std::unique_ptr<LockedPageAllocator> allocator;

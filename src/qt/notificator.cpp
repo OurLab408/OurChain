@@ -23,8 +23,8 @@
 // Note: This could also be worked around using:
 // #define __ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES 0
 #ifdef Q_OS_MAC
-#include <ApplicationServices/ApplicationServices.h>
 #include "macnotificationhandler.h"
+#include <ApplicationServices/ApplicationServices.h>
 #endif
 
 
@@ -59,8 +59,7 @@ Notificator::Notificator(const QString &_programName, QSystemTrayIcon *_trayIcon
     // check if users OS has support for NSUserNotification
     if( MacNotificationHandler::instance()->hasUserNotificationCenterSupport()) {
         mode = UserNotificationCenter;
-    }
-    else {
+    } else {
         // Check if Growl is installed (based on Qt's tray icon implementation)
         CFURLRef cfurl;
         OSStatus status = LSGetApplicationForInfo(kLSUnknownType, kLSUnknownCreator, CFSTR("growlTicket"), kLSRolesAll, 0, &cfurl);
@@ -93,7 +92,7 @@ class FreedesktopImage
 {
 public:
     FreedesktopImage() {}
-    FreedesktopImage(const QImage &img);
+    FreedesktopImage(const QImage& img);
 
     static int metaType();
 
@@ -241,16 +240,15 @@ void Notificator::notifySystray(Class cls, const QString &title, const QString &
 
 // Based on Qt's tray icon implementation
 #ifdef Q_OS_MAC
-void Notificator::notifyGrowl(Class cls, const QString &title, const QString &text, const QIcon &icon)
+void Notificator::notifyGrowl(Class cls, const QString& title, const QString& text, const QIcon& icon)
 {
     const QString script(
         "tell application \"%5\"\n"
-        "  set the allNotificationsList to {\"Notification\"}\n" // -- Make a list of all the notification types (all)
-        "  set the enabledNotificationsList to {\"Notification\"}\n" // -- Make a list of the notifications (enabled)
+        "  set the allNotificationsList to {\"Notification\"}\n"                                                                   // -- Make a list of all the notification types (all)
+        "  set the enabledNotificationsList to {\"Notification\"}\n"                                                               // -- Make a list of the notifications (enabled)
         "  register as application \"%1\" all notifications allNotificationsList default notifications enabledNotificationsList\n" // -- Register our script with Growl
-        "  notify with name \"Notification\" title \"%2\" description \"%3\" application name \"%1\"%4\n" // -- Send a Notification
-        "end tell"
-    );
+        "  notify with name \"Notification\" title \"%2\" description \"%3\" application name \"%1\"%4\n"                          // -- Send a Notification
+        "end tell");
 
     QString notificationApp(QApplication::applicationName());
     if (notificationApp.isEmpty())
@@ -259,15 +257,13 @@ void Notificator::notifyGrowl(Class cls, const QString &title, const QString &te
     QPixmap notificationIconPixmap;
     if (icon.isNull()) { // If no icon specified, set icon based on class
         QStyle::StandardPixmap sicon = QStyle::SP_MessageBoxQuestion;
-        switch (cls)
-        {
+        switch (cls) {
         case Information: sicon = QStyle::SP_MessageBoxInformation; break;
         case Warning: sicon = QStyle::SP_MessageBoxWarning; break;
         case Critical: sicon = QStyle::SP_MessageBoxCritical; break;
         }
         notificationIconPixmap = QApplication::style()->standardPixmap(sicon);
-    }
-    else {
+    } else {
         QSize size = icon.actualSize(QSize(48, 48));
         notificationIconPixmap = icon.pixmap(size);
     }

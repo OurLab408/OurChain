@@ -5,8 +5,8 @@
 #ifndef BITCOIN_QT_PEERTABLEMODEL_H
 #define BITCOIN_QT_PEERTABLEMODEL_H
 
-#include "net_processing.h" // For CNodeStateStats
 #include "net.h"
+#include "net_processing.h" // For CNodeStateStats
 
 #include <QAbstractTableModel>
 #include <QStringList>
@@ -45,7 +45,7 @@ class PeerTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit PeerTableModel(ClientModel *parent = 0);
+    explicit PeerTableModel(ClientModel* parent = 0);
     ~PeerTableModel();
     const CNodeCombinedStats *getNodeStats(int idx);
     int getRowByNodeId(NodeId nodeid);

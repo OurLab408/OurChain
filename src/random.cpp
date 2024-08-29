@@ -14,9 +14,9 @@
 #include "util.h"             // for LogPrint()
 #include "utilstrencodings.h" // for GetTime()
 
-#include <stdlib.h>
-#include <limits>
 #include <chrono>
+#include <limits>
+#include <stdlib.h>
 #include <thread>
 
 #ifndef WIN32
@@ -179,7 +179,7 @@ static void RandAddSeedPerfmon()
 /** Fallback: get 32 bytes of system entropy from /dev/urandom. The most
  * compatible way to get cryptographic randomness on UNIX-ish platforms.
  */
-void GetDevURandom(unsigned char *ent32)
+void GetDevURandom(unsigned char* ent32)
 {
     int f = open("/dev/urandom", O_RDONLY);
     if (f == -1) {

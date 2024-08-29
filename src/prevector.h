@@ -202,7 +202,7 @@ public:
         }
         while (size() < n) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(val);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(val);
         }
     }
 
@@ -215,7 +215,7 @@ public:
         }
         while (first != last) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(*first);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(*first);
             ++first;
         }
     }
@@ -230,7 +230,7 @@ public:
         change_capacity(n);
         while (size() < n) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(val);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(val);
         }
     }
 
@@ -240,7 +240,7 @@ public:
         change_capacity(n);
         while (first != last) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(*first);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(*first);
             ++first;
         }
     }
@@ -250,7 +250,7 @@ public:
         const_iterator it = other.begin();
         while (it != other.end()) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(*it);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(*it);
             ++it;
         }
     }
@@ -268,7 +268,7 @@ public:
         const_iterator it = other.begin();
         while (it != other.end()) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T(*it);
+            new (static_cast<void*>(item_ptr(size() - 1))) T(*it);
             ++it;
         }
         return *this;
@@ -322,7 +322,7 @@ public:
         }
         while (size() < new_size) {
             _size++;
-            new(static_cast<void*>(item_ptr(size() - 1))) T();
+            new (static_cast<void*>(item_ptr(size() - 1))) T();
         }
     }
 
@@ -348,7 +348,7 @@ public:
         }
         memmove(item_ptr(p + 1), item_ptr(p), (size() - p) * sizeof(T));
         _size++;
-        new(static_cast<void*>(item_ptr(p))) T(value);
+        new (static_cast<void*>(item_ptr(p))) T(value);
         return iterator(item_ptr(p));
     }
 
@@ -361,7 +361,7 @@ public:
         memmove(item_ptr(p + count), item_ptr(p), (size() - p) * sizeof(T));
         _size += count;
         for (size_type i = 0; i < count; i++) {
-            new(static_cast<void*>(item_ptr(p + i))) T(value);
+            new (static_cast<void*>(item_ptr(p + i))) T(value);
         }
     }
 
@@ -376,7 +376,7 @@ public:
         memmove(item_ptr(p + count), item_ptr(p), (size() - p) * sizeof(T));
         _size += count;
         while (first != last) {
-            new(static_cast<void*>(item_ptr(p))) T(*first);
+            new (static_cast<void*>(item_ptr(p))) T(*first);
             ++p;
             ++first;
         }

@@ -3,19 +3,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "consensus/validation.h"
-#include "key.h"
-#include "validation.h"
-#include "miner.h"
-#include "pubkey.h"
-#include "txmempool.h"
-#include "random.h"
-#include "script/standard.h"
-#include "script/sign.h"
-#include "test/test_bitcoin.h"
-#include "utiltime.h"
 #include "core_io.h"
+#include "key.h"
 #include "keystore.h"
+#include "miner.h"
 #include "policy/policy.h"
+#include "pubkey.h"
+#include "random.h"
+#include "script/sign.h"
+#include "script/standard.h"
+#include "test/test_bitcoin.h"
+#include "txmempool.h"
+#include "utiltime.h"
+#include "validation.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(tx_mempool_block_doublespend, TestChain100Setup)
 // should fail.
 // Capture this interaction with the upgraded_nop argument: set it when evaluating
 // any script flag that is implemented as an upgraded NOP code.
-void ValidateCheckInputsForAllFlags(CMutableTransaction &tx, uint32_t failing_flags, bool add_to_cache, bool upgraded_nop)
+void ValidateCheckInputsForAllFlags(CMutableTransaction& tx, uint32_t failing_flags, bool add_to_cache, bool upgraded_nop)
 {
     PrecomputedTransactionData txdata(tx);
     // If we add many more flags, this loop can get too expensive, but we can
@@ -314,7 +314,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
 
         // Sign
         SignatureData sigdata;
-        ProduceSignature(MutableTransactionSignatureCreator(&keystore, &valid_with_witness_tx, 0, 11*CENT, SIGHASH_ALL), spend_tx.vout[1].scriptPubKey, sigdata);
+        ProduceSignature(MutableTransactionSignatureCreator(&keystore, &valid_with_witness_tx, 0, 11 * CENT, SIGHASH_ALL), spend_tx.vout[1].scriptPubKey, sigdata);
         UpdateTransaction(valid_with_witness_tx, 0, sigdata);
 
         // This should be valid under all script flags.
@@ -342,7 +342,7 @@ BOOST_FIXTURE_TEST_CASE(checkinputs_test, TestChain100Setup)
         // Sign
         for (int i=0; i<2; ++i) {
             SignatureData sigdata;
-            ProduceSignature(MutableTransactionSignatureCreator(&keystore, &tx, i, 11*CENT, SIGHASH_ALL), spend_tx.vout[i].scriptPubKey, sigdata);
+            ProduceSignature(MutableTransactionSignatureCreator(&keystore, &tx, i, 11 * CENT, SIGHASH_ALL), spend_tx.vout[i].scriptPubKey, sigdata);
             UpdateTransaction(tx, i, sigdata);
         }
 
