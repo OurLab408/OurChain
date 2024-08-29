@@ -2830,19 +2830,19 @@ UniValue fundrawtransaction(const JSONRPCRequest& request)
             UniValue options = request.params[1];
 
             RPCTypeCheckObj(options,
-                            {
-                                {"changeAddress", UniValueType(UniValue::VSTR)},
-                                {"changePosition", UniValueType(UniValue::VNUM)},
-                                {"includeWatching", UniValueType(UniValue::VBOOL)},
-                                {"lockUnspents", UniValueType(UniValue::VBOOL)},
-                                {"reserveChangeKey", UniValueType(UniValue::VBOOL)}, // DEPRECATED (and ignored), should be removed in 0.16 or so.
-                                {"feeRate", UniValueType()},                         // will be checked below
-                                {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
-                                {"replaceable", UniValueType(UniValue::VBOOL)},
-                                {"conf_target", UniValueType(UniValue::VNUM)},
-                                {"estimate_mode", UniValueType(UniValue::VSTR)},
-                            },
-                            true, true);
+                {
+                    {"changeAddress", UniValueType(UniValue::VSTR)},
+                    {"changePosition", UniValueType(UniValue::VNUM)},
+                    {"includeWatching", UniValueType(UniValue::VBOOL)},
+                    {"lockUnspents", UniValueType(UniValue::VBOOL)},
+                    {"reserveChangeKey", UniValueType(UniValue::VBOOL)}, // DEPRECATED (and ignored), should be removed in 0.16 or so.
+                    {"feeRate", UniValueType()},                         // will be checked below
+                    {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
+                    {"replaceable", UniValueType(UniValue::VBOOL)},
+                    {"conf_target", UniValueType(UniValue::VNUM)},
+                    {"estimate_mode", UniValueType(UniValue::VSTR)},
+                },
+                true, true);
 
             if (options.exists("changeAddress")) {
                 CBitcoinAddress address(options["changeAddress"].get_str());

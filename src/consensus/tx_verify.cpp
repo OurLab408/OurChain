@@ -232,8 +232,8 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
         if (coin.IsCoinBase()) {
             if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
                 return state.Invalid(false,
-                                     REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
-                                     strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
+                    REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
+                    strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
         }
 
         // Check for negative or overflow input values
@@ -244,7 +244,7 @@ bool Consensus::CheckTxInputs(const CTransaction& tx, CValidationState& state, c
 
     if (nValueIn < tx.GetValueOut())
         return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
-                         strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())));
+            strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())));
 
     // Tally transaction fees
     CAmount nTxFee = nValueIn - tx.GetValueOut();

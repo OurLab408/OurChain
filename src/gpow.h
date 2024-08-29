@@ -64,8 +64,8 @@ static const NONCE_t CONSERVATIVE = (0x01 << 7);
 static const NONCE_t NONCE_COMPRESSED = (0x01 << 6);
 
 enum { REACH_n = -1,
-       OUT_OF_NONCE = -2,
-       OUT_OF_TRY = -3 };
+    OUT_OF_NONCE = -2,
+    OUT_OF_TRY = -3 };
 
 extern uint8_t NONCE_TYPE; // :1　not Conservative :1 not Compressed :4 Bit Size (max 15)
 

@@ -86,8 +86,8 @@ public:
                     QString::fromStdString(item.second.purpose), fMine);
                 const std::string& strName = item.second.name;
                 cachedAddressTable.append(AddressTableEntry(addressType,
-                                                            QString::fromStdString(strName),
-                                                            QString::fromStdString(address.ToString())));
+                    QString::fromStdString(strName),
+                    QString::fromStdString(address.ToString())));
             }
         }
         // qLowerBound() and qUpperBound() require our cachedAddressTable list to be sorted in asc order

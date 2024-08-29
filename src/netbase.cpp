@@ -396,7 +396,9 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials*
         recvr = InterruptibleRecv(pchRet3, nRecv, SOCKS5_RECV_TIMEOUT, hSocket);
         break;
     }
-    default: CloseSocket(hSocket); return error("Error: malformed proxy response");
+    default:
+        CloseSocket(hSocket);
+        return error("Error: malformed proxy response");
     }
     if (recvr != IntrRecvError::OK) {
         CloseSocket(hSocket);

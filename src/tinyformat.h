@@ -874,22 +874,22 @@ class FormatListN : public FormatList
         { static_assert(sizeof...(args) == N, "Number of args must be N"); }
 #else // C++98 version
         void init(int) {}
-#define TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR(n) \
-                                                  \
-    template <TINYFORMAT_ARGTYPES(n)>             \
-    FormatListN(TINYFORMAT_VARARGS(n))            \
-        : FormatList(&m_formatterStore[0], n)     \
-    {                                             \
-        assert(n == N);                           \
-        init(0, TINYFORMAT_PASSARGS(n));          \
-    }                                             \
-                                                  \
-    template <TINYFORMAT_ARGTYPES(n)>             \
-    void init(int i, TINYFORMAT_VARARGS(n))       \
-    {                                             \
-        m_formatterStore[i] = FormatArg(v1);      \
-        init(i + 1 TINYFORMAT_PASSARGS_TAIL(n));  \
-    }
+#define TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR(n)    \
+                                                     \
+        template <TINYFORMAT_ARGTYPES(n)>            \
+        FormatListN(TINYFORMAT_VARARGS(n))           \
+            : FormatList(&m_formatterStore[0], n)    \
+        {                                            \
+            assert(n == N);                          \
+            init(0, TINYFORMAT_PASSARGS(n));         \
+        }                                            \
+                                                     \
+        template <TINYFORMAT_ARGTYPES(n)>            \
+        void init(int i, TINYFORMAT_VARARGS(n))      \
+        {                                            \
+            m_formatterStore[i] = FormatArg(v1);     \
+            init(i + 1 TINYFORMAT_PASSARGS_TAIL(n)); \
+        }
 
         TINYFORMAT_FOREACH_ARGNUM(TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR)
 #       undef TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR

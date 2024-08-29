@@ -112,8 +112,8 @@ void EditAddressDialog::accept()
             break;
         case AddressTableModel::DUPLICATE_ADDRESS:
             QMessageBox::warning(this, windowTitle(),
-                                 tr("The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
-                                 QMessageBox::Ok, QMessageBox::Ok);
+                tr("The entered address \"%1\" is already in the address book.").arg(ui->addressEdit->text()),
+                QMessageBox::Ok, QMessageBox::Ok);
             break;
         case AddressTableModel::WALLET_UNLOCK_FAILURE:
             QMessageBox::critical(this, windowTitle(),

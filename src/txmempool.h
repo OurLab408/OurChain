@@ -638,8 +638,8 @@ private:
      *  same transaction again, if encountered in another transaction chain.
      */
     void UpdateForDescendants(txiter updateIt,
-                              cacheMap& cachedDescendants,
-                              const std::set<uint256>& setExclude);
+        cacheMap& cachedDescendants,
+        const std::set<uint256>& setExclude);
     /** Update ancestors of hash to add/remove it as a descendant transaction. */
     void UpdateAncestorsOf(bool add, txiter hash, setEntries& setAncestors);
     /** Set ancestor state for an entry */

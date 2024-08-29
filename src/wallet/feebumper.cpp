@@ -152,14 +152,14 @@ CFeeBumper::CFeeBumper(const CWallet* pWallet, const uint256 txidIn, const CCoin
         CAmount minTotalFee = nOldFeeRate.GetFee(maxNewTxSize) + ::incrementalRelayFee.GetFee(maxNewTxSize);
         if (totalFee < minTotalFee) {
             vErrors.push_back(strprintf("Insufficient totalFee, must be at least %s (oldFee %s + incrementalFee %s)",
-                                        FormatMoney(minTotalFee), FormatMoney(nOldFeeRate.GetFee(maxNewTxSize)), FormatMoney(::incrementalRelayFee.GetFee(maxNewTxSize))));
+                FormatMoney(minTotalFee), FormatMoney(nOldFeeRate.GetFee(maxNewTxSize)), FormatMoney(::incrementalRelayFee.GetFee(maxNewTxSize))));
             currentResult = BumpFeeResult::INVALID_PARAMETER;
             return;
         }
         CAmount requiredFee = CWallet::GetRequiredFee(maxNewTxSize);
         if (totalFee < requiredFee) {
             vErrors.push_back(strprintf("Insufficient totalFee (cannot be less than required fee %s)",
-                                        FormatMoney(requiredFee)));
+                FormatMoney(requiredFee)));
             currentResult = BumpFeeResult::INVALID_PARAMETER;
             return;
         }
@@ -183,7 +183,7 @@ CFeeBumper::CFeeBumper(const CWallet* pWallet, const uint256 txidIn, const CCoin
     // Check that in all cases the new fee doesn't violate maxTxFee
     if (nNewFee > maxTxFee) {
         vErrors.push_back(strprintf("Specified or calculated fee %s is too high (cannot be higher than maxTxFee %s)",
-                                    FormatMoney(nNewFee), FormatMoney(maxTxFee)));
+            FormatMoney(nNewFee), FormatMoney(maxTxFee)));
         currentResult = BumpFeeResult::WALLET_ERROR;
         return;
     }

@@ -222,9 +222,7 @@ bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CMutab
     return SignSignature(keystore, txout.scriptPubKey, txTo, nIn, txout.nValue, nHashType);
 }
 
-static std::vector<valtype> CombineMultisig(const CScript& scriptPubKey, const BaseSignatureChecker& checker,
-                                            const std::vector<valtype>& vSolutions,
-                                            const std::vector<valtype>& sigs1, const std::vector<valtype>& sigs2, SigVersion sigversion)
+static std::vector<valtype> CombineMultisig(const CScript& scriptPubKey, const BaseSignatureChecker& checker, const std::vector<valtype>& vSolutions, const std::vector<valtype>& sigs1, const std::vector<valtype>& sigs2, SigVersion sigversion)
 {
     // Combine all the signatures we've got:
     std::set<valtype> allsigs;
@@ -293,9 +291,7 @@ struct Stacks {
 };
 } // namespace
 
-static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker,
-                                const txnouttype txType, const std::vector<valtype>& vSolutions,
-                                Stacks sigs1, Stacks sigs2, SigVersion sigversion)
+static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker, const txnouttype txType, const std::vector<valtype>& vSolutions, Stacks sigs1, Stacks sigs2, SigVersion sigversion)
 {
     switch (txType) {
     case TX_NONSTANDARD:
@@ -364,8 +360,7 @@ static Stacks CombineSignatures(const CScript& scriptPubKey, const BaseSignature
     }
 }
 
-SignatureData CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker,
-                                const SignatureData& scriptSig1, const SignatureData& scriptSig2)
+SignatureData CombineSignatures(const CScript& scriptPubKey, const BaseSignatureChecker& checker, const SignatureData& scriptSig1, const SignatureData& scriptSig2)
 {
     txnouttype txType;
     std::vector<std::vector<unsigned char>> vSolutions;

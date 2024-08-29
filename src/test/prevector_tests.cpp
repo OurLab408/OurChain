@@ -39,7 +39,7 @@ class prevector_tester {
         void local_check(bool b)
         {
             passed &= b;
-    }
+        }
     void test() {
         const pretype& const_pre_vector = pre_vector;
         local_check_equal(real_vector.size(), pre_vector.size());

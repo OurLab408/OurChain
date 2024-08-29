@@ -90,9 +90,7 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end,
 
 /** Compute the 256-bit hash of the concatenation of three objects. */
 template <typename T1, typename T2, typename T3>
-inline uint256 Hash(const T1 p1begin, const T1 p1end,
-                    const T2 p2begin, const T2 p2end,
-                    const T3 p3begin, const T3 p3end)
+inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin, const T2 p2end, const T3 p3begin, const T3 p3end)
 {
     static const unsigned char pblank[1] = {};
     uint256 result;

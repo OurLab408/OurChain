@@ -87,15 +87,15 @@ class CVectorWriter
      {
          if (nPos > vchData.size())
              vchData.resize(nPos);
-    }
-    /*
-     * (other params same as above)
-     * @param[in]  args  A list of items to serialize starting at nPos.
-     */
-    template <typename... Args>
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
-    {
-        ::SerializeMany(*this, std::forward<Args>(args)...);
+     }
+     /*
+      * (other params same as above)
+      * @param[in]  args  A list of items to serialize starting at nPos.
+      */
+     template <typename... Args>
+     CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
+     {
+         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
     void write(const char* pch, size_t nSize)
     {

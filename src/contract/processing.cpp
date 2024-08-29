@@ -32,8 +32,8 @@ const static fs::path& GetContractsDir()
 static void exec_dll(const uint256& contract, const std::vector<std::string>& args, int fd_state_read[2], int fd_state_write[2])
 {
     int fd_error = open((GetContractsDir().string() + "/err").c_str(),
-                        O_WRONLY | O_APPEND | O_CREAT,
-                        0664);
+        O_WRONLY | O_APPEND | O_CREAT,
+        0664);
     dup2(fd_error, STDERR_FILENO);
     close(fd_error);
     // state & TX
@@ -126,15 +126,15 @@ static int call_mkdll(const uint256& contract)
     pid = fork();
     if (pid == 0) {
         int fd = open((GetContractsDir().string() + "/err").c_str(),
-                      O_WRONLY | O_APPEND | O_CREAT,
-                      0664);
+            O_WRONLY | O_APPEND | O_CREAT,
+            0664);
         dup2(fd, STDERR_FILENO);
         close(fd);
         execlp("ourcontract-mkdll",
-               "ourcontract-mkdll",
-               GetContractsDir().string().c_str(),
-               contract.GetHex().c_str(),
-               NULL);
+            "ourcontract-mkdll",
+            GetContractsDir().string().c_str(),
+            contract.GetHex().c_str(),
+            NULL);
         exit(EXIT_FAILURE);
     }
 

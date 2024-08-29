@@ -350,10 +350,10 @@ public:
     std::string ToString() const
     {
         return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
-                         pprev, nHeight,
-                         hashMerkleRoot.ToString(),
-                         hashContractState.ToString(),
-                         GetBlockHash().ToString());
+            pprev, nHeight,
+            hashMerkleRoot.ToString(),
+            hashContractState.ToString(),
+            GetBlockHash().ToString());
     }
 
     //! Check whether this block index entry is valid up to the passed validity level.

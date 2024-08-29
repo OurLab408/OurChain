@@ -182,8 +182,8 @@ void SplashScreen::setBreakAction(const std::function<void(void)>& action)
 static void SetProgressBreakAction(SplashScreen* splash, const std::function<void(void)>& action)
 {
     QMetaObject::invokeMethod(splash, "setBreakAction",
-                              Qt::QueuedConnection,
-                              Q_ARG(std::function<void(void)>, action));
+        Qt::QueuedConnection,
+        Q_ARG(std::function<void(void)>, action));
 }
 
 #ifdef ENABLE_WALLET

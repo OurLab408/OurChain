@@ -194,10 +194,10 @@ public:
 
             if (done == 1) {
                 fprintf(stderr,
-                        "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
-                        n.ToString().c_str(),
-                        genesis.GetHash().ToString().c_str(),
-                        genesis.hashMerkleRoot.ToString().c_str());
+                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                    n.ToString().c_str(),
+                    genesis.GetHash().ToString().c_str(),
+                    genesis.hashMerkleRoot.ToString().c_str());
                 break;
             }
         }
@@ -315,9 +315,9 @@ public:
                 genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
                 if (CheckProofOfWork(genesis.GetHash(), genesis.nBits, consensus)) {
                     fprintf(stderr,
-                            "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
-                            genesis.GetHash().ToString().c_str(),
-                            genesis.hashMerkleRoot.ToString().c_str());
+                        "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n", n,
+                        genesis.GetHash().ToString().c_str(),
+                        genesis.hashMerkleRoot.ToString().c_str());
                     assert(false);
                 }
                 if (n == 4294967295) break;
@@ -455,10 +455,10 @@ public:
 
             if (done == 1) {
                 fprintf(stderr,
-                        "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
-                        n.ToString().c_str(),
-                        genesis.GetHash().ToString().c_str(),
-                        genesis.hashMerkleRoot.ToString().c_str());
+                    "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
+                    n.ToString().c_str(),
+                    genesis.GetHash().ToString().c_str(),
+                    genesis.hashMerkleRoot.ToString().c_str());
                 break;
             }
         }

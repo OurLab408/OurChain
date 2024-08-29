@@ -276,7 +276,7 @@ CScript _createmultisig_redeemScript(CWallet* const pwallet, const UniValue& par
         throw std::runtime_error(
             strprintf("not enough keys supplied "
                       "(got %u keys, but need at least %d to redeem)",
-                      keys.size(), nRequired));
+                keys.size(), nRequired));
     if (keys.size() > 16)
         throw std::runtime_error("Number of addresses involved in the multisignature address creation > 16\nReduce the number");
     std::vector<CPubKey> pubkeys;

@@ -42,8 +42,7 @@ static const char *hatoui(const char *first, const char *last,
     return first;
 }
 
-enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed,
-                             const char* raw)
+enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed, const char* raw)
 {
     tokenVal.clear();
     consumed = 0;
