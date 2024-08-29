@@ -17,11 +17,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define BYTE_READ_STATE 0
-#define BYTE_SEND_TO_ADDRESS -1
-#define BYTE_SEND_TO_CONTRACT -2
-#define BYTE_CALL_CONTRACT -3
-
 static fs::path contracts_dir;
 
 const static fs::path& GetContractsDir()
@@ -34,44 +29,96 @@ const static fs::path& GetContractsDir()
     return contracts_dir;
 }
 
-ContractDBWrapper::ContractDBWrapper()
+static void exec_dll(const uint256& contract, const std::vector<std::string>& args, int fd_state_read[2], int fd_state_write[2])
 {
-    options.create_if_missing = true;
-    fs::path path = GetDataDir() / "contracts" / "index";
-    TryCreateDirectories(path);
-    leveldb::Status status = leveldb::DB::Open(options, path.string(), &db);
-    if (status.ok()) {
-        LogPrintf("Opening ContractLevelDB in %s\n", path.string());
+    int fd_error = open((GetContractsDir().string() + "/err").c_str(),
+        O_WRONLY | O_APPEND | O_CREAT,
+        0664);
+    dup2(fd_error, STDERR_FILENO);
+    close(fd_error);
+    // state & TX
+    dup2(fd_state_read[1], STDOUT_FILENO);
+    dup2(fd_state_write[0], STDIN_FILENO);
+    close(fd_state_read[0]);
+    close(fd_state_read[1]);
+    close(fd_state_write[0]);
+    close(fd_state_write[1]);
+    const char** argv = (const char**)malloc((args.size() + 4) * sizeof(char*));
+    argv[0] = "ourcontract-rt";
+    argv[1] = GetContractsDir().string().c_str();
+    std::string hex_ctid(contract.GetHex());
+    argv[2] = hex_ctid.c_str();
+    for (unsigned i = 0; i < args.size(); i++)
+        argv[i + 3] = args[i].c_str();
+    argv[args.size() + 3] = NULL;
+    execvp("ourcontract-rt", (char* const*)argv);
+    exit(EXIT_FAILURE);
+}
+
+static void read_state_from_json(json j, int& flag, FILE* pipe_state_write)
+{
+    if (!j.is_null()) {
+        std::string newbuffer = j.dump();
+        flag = newbuffer.size();
+        fwrite((void*)&flag, sizeof(int), 1, pipe_state_write);
+        fflush(pipe_state_write);
+        fwrite((void*)newbuffer.data(), newbuffer.size(), 1, pipe_state_write);
+        fflush(pipe_state_write);
+    } else {
+        // client will not recive data after flag is 0
+        fwrite((void*)&flag, sizeof(int), 1, pipe_state_write);
+        fflush(pipe_state_write);
     }
-};
+}
 
-ContractDBWrapper::~ContractDBWrapper()
+static void read_state_from_cache(ContractStateCache* cache, std::string& hex_ctid, int& flag, FILE* pipe_state_write)
 {
-    delete db;
-    db = nullptr;
-};
+    json j = cache->getSnapShot()->getContractState(hex_ctid);
+    read_state_from_json(j, flag, pipe_state_write);
+}
 
-void ContractDBWrapper::setState(std::string key, void* buf, size_t size)
+static void read_state_from_tmpDB(ContractDBWrapper* cache, std::string& hex_ctid, int& flag, FILE* pipe_state_write)
 {
-    leveldb::Slice valueSlice = leveldb::Slice((const char*)buf, size);
-    mystatus = db->Put(leveldb::WriteOptions(), key, valueSlice);
-    LogPrintf("put result: %d\n", mystatus.ok());
-    assert(mystatus.ok());
-};
+    json j = json::parse(cache->getState(hex_ctid));
+    read_state_from_json(j, flag, pipe_state_write);
+}
 
-std::string ContractDBWrapper::getState(std::string key)
+static int read_buffer_size(FILE* pipe_state_read)
 {
-    std::string buf;
-    mystatus = db->Get(leveldb::ReadOptions(), key, &buf);
-    LogPrintf("get result: %d\n", mystatus.ok());
-    // struct stateBuf {
-    //   long mtype;
-    //   char buf[1024];
-    // };
-    // struct stateBuf* tmpbuf = ( struct stateBuf*)buf.data();
-    // LogPrintf("get tmpbuf: %s\n", tmpbuf->buf);
-    return buf;
-};
+    int size;
+    int ret = fread((void*)&size, sizeof(int), 1, pipe_state_read);
+    assert(ret >= 0);
+    return size;
+}
+
+static void write_state_to_cache(ContractStateCache* cache, std::string& hex_ctid, int& size, FILE* pipe_state_read)
+{
+    char* tmp = (char*)malloc(size);
+    int ret = fread(tmp, 1, size, pipe_state_read);
+    std::string tmp_str(tmp, size);
+    assert(ret >= 0);
+    cache->getSnapShot()->setContractState(uint256S(hex_ctid), json::parse(tmp_str));
+    free(tmp);
+}
+
+static std::string read_char64(FILE* pipe_state_read)
+{
+    int size = sizeof(char) * 64;
+    char* tmp = (char*)malloc(size);
+    int ret = fread(tmp, 1, size, pipe_state_read);
+    assert(ret >= 0);
+    std::string address(tmp, 64);
+    free(tmp);
+    return address;
+}
+
+static std::string write_state_as_string(std::string& hex_ctid, int& size, FILE* pipe_state_read)
+{
+    char* tmp = (char*)malloc(size);
+    int ret = fread(tmp, 1, size, pipe_state_read);
+    assert(ret >= 0);
+    return std::string(tmp, size);
+}
 
 static int call_mkdll(const uint256& contract)
 {
@@ -97,7 +144,7 @@ static int call_mkdll(const uint256& contract)
     return 0;
 }
 
-static int call_rt(const uint256& contract, const std::vector<std::string>& args, std::vector<CTxOut>& vTxOut, std::vector<uchar>& state, std::vector<Contract>& nextContract)
+static int call_rt(ContractStateCache* cache, const uint256& contract, const std::vector<std::string>& args, const CTransactionRef& curTx)
 {
     int pid, status;
     int fd_state_read[2], fd_state_write[2];
@@ -106,29 +153,7 @@ static int call_rt(const uint256& contract, const std::vector<std::string>& args
 
     pid = fork();
     if (pid == 0) {
-        int fd_error = open((GetContractsDir().string() + "/err").c_str(),
-            O_WRONLY | O_APPEND | O_CREAT,
-            0664);
-        dup2(fd_error, STDERR_FILENO);
-        close(fd_error);
-
-        // state & TX
-        dup2(fd_state_read[1], STDOUT_FILENO);
-        dup2(fd_state_write[0], STDIN_FILENO);
-        close(fd_state_read[0]);
-        close(fd_state_read[1]);
-        close(fd_state_write[0]);
-        close(fd_state_write[1]);
-        const char** argv = (const char**)malloc((args.size() + 4) * sizeof(char*));
-        argv[0] = "ourcontract-rt";
-        argv[1] = GetContractsDir().string().c_str();
-        std::string hex_ctid(contract.GetHex());
-        argv[2] = hex_ctid.c_str();
-        for (unsigned i = 0; i < args.size(); i++)
-            argv[i + 3] = args[i].c_str();
-        argv[args.size() + 3] = NULL;
-        execvp("ourcontract-rt", (char* const*)argv);
-        exit(EXIT_FAILURE);
+        exec_dll(contract, args, fd_state_read, fd_state_write);
     }
 
     // read or write state or send money
@@ -138,73 +163,26 @@ static int call_rt(const uint256& contract, const std::vector<std::string>& args
     FILE* pipe_state_read = fdopen(fd_state_read[0], "rb");
     FILE* pipe_state_write = fdopen(fd_state_write[1], "wb");
 
-    ContractDBWrapper cdb;
     std::string hex_ctid(contract.GetHex());
     int flag;
     while (fread((void*)&flag, sizeof(int), 1, pipe_state_read) != 0) {
-        if (flag < 0) { // read state
-            flag = flag * -1;
-            std::string newbuffer = cdb.getState(hex_ctid.c_str());
-            if (cdb.mystatus.ok()) {
-                fwrite((void*)newbuffer.data(), newbuffer.size(), 1, pipe_state_write);
-                fflush(pipe_state_write);
-            } else {
-                char* tmp = (char*)malloc(flag);
-                fwrite((void*)tmp, flag, 1, pipe_state_write);
-                fflush(pipe_state_write);
-                free(tmp);
-            }
-        } else if (flag > 0) { // write state
-            // LogPrintf("message recieve write %d\n", flag);
-            // state.resize(flag);
-            char* tmp = (char*)malloc(flag);
-            int ret = fread(tmp, 1, flag, pipe_state_read);
-            cdb.setState(hex_ctid.c_str(), tmp, flag);
-            assert(ret >= 0);
+        if (flag == BYTE_READ_STATE) { // read state
+            auto targetAddress = read_char64(pipe_state_read);
+            read_state_from_cache(cache, targetAddress, flag, pipe_state_write);
+        } else if (flag == BYTE_WRITE_STATE) { // write state
+            int size = read_buffer_size(pipe_state_read);
+            write_state_to_cache(cache, hex_ctid, size, pipe_state_read);
+        } else if (flag == CHECK_RUNTIME_STATE) { // check mode (pure = 0, not pure = 1)
+            flag = 1;
+            fwrite((void*)&flag, sizeof(int), 1, pipe_state_write);
+            fflush(pipe_state_write);
+        } else if (flag == GET_PRE_TXID_STATE) {
+            std::string txid = curTx.get()->vin[0].prevout.hash.ToString();
+            fwrite((void*)txid.c_str(), sizeof(char) * 64, 1, pipe_state_write);
+            fflush(pipe_state_write);
         } else {
             break;
         }
-        // else if (flag == BYTE_SEND_TO_ADDRESS) {        // send to address
-        //     char addr_to[40];
-        //     CAmount amount;
-        //     int ret = fread((void *) addr_to, sizeof(char), 40, pipe_state_read);
-        //     assert(ret >= 0);
-        //     ret = fread((void *) &amount, sizeof(long long), 1, pipe_state_read);
-        //     assert(ret >= 0);
-        //     CBitcoinAddress address(addr_to);
-        //     vTxOut.push_back(CTxOut(amount, GetScriptForDestination(address.Get())));
-        // } else if (flag == BYTE_SEND_TO_CONTRACT) {        // send to contract
-        //     char addr_to[64];
-        //     CAmount amount;
-        //     int ret = fread((void *) addr_to, sizeof(char), 64, pipe_state_read);
-        //     assert(ret >= 0);
-        //     ret = fread((void *) &amount, sizeof(long long), 1, pipe_state_read);
-        //     assert(ret >= 0);
-        //     uint256 address = uint256S(addr_to);
-        //     vTxOut.push_back(CTxOut(amount, GetScriptForDestination(address)));
-        // } else if (flag == BYTE_CALL_CONTRACT) {
-        //     Contract contract;
-        //     contract.action = ACTION_CALL;
-        //     char contractName[65] = {0};
-        //     int ret = fread((void *) contractName, sizeof(char), 64, pipe_state_read);
-        //     assert(ret >= 0);
-        //     contract.address = uint256S(contractName);
-        //     int argc;
-        //     ret = fread((void *) &argc, sizeof(int), 1, pipe_state_read);
-        //     assert(ret >= 0);
-        //     for (int i = 0; i < argc; i++) {
-        //         int argLen;
-        //         ret = fread((void *) &argLen, sizeof(int), 1, pipe_state_read);
-        //         assert(ret >= 0);
-        //         char *argName = new char[argLen + 1]();
-        //         ret = fread((void *) argName, sizeof(char), argLen, pipe_state_read);
-        //         assert(ret >= 0);
-        //         contract.args.push_back(std::string(argName));
-        //     }
-        //     nextContract.push_back(contract);
-        // } else {
-        //     puts("Error: pipe");
-        // }
     }
     fclose(pipe_state_read);
     fclose(pipe_state_write);
@@ -215,37 +193,75 @@ static int call_rt(const uint256& contract, const std::vector<std::string>& args
     return 0;
 }
 
-bool ProcessContract(const Contract& contract, std::vector<CTxOut>& vTxOut, std::vector<uchar>& state, CAmount balance, std::vector<Contract>& nextContract)
+std::string call_rt_pure(ContractDBWrapper* cache, const uint256& contract, const std::vector<std::string>& args)
+{
+    int pid, status;
+    int fd_state_read[2], fd_state_write[2];
+    if (pipe(fd_state_read) == -1) return "";
+    if (pipe(fd_state_write) == -1) return "";
+
+    pid = fork();
+    if (pid == 0) {
+        exec_dll(contract, args, fd_state_read, fd_state_write);
+    }
+
+    // read or write state or send money
+    close(fd_state_read[1]);
+    close(fd_state_write[0]);
+
+    FILE* pipe_state_read = fdopen(fd_state_read[0], "rb");
+    FILE* pipe_state_write = fdopen(fd_state_write[1], "wb");
+
+    std::string hex_ctid(contract.GetHex());
+    int flag;
+    std::string result = "";
+    while (fread((void*)&flag, sizeof(int), 1, pipe_state_read) != 0) {
+        if (flag == BYTE_READ_STATE) { // read state
+            auto targetAddress = read_char64(pipe_state_read);
+            read_state_from_tmpDB(cache, targetAddress, flag, pipe_state_write);
+        } else if (flag == BYTE_WRITE_STATE) { // write state
+            int size = read_buffer_size(pipe_state_read);
+            result = write_state_as_string(hex_ctid, size, pipe_state_read);
+        } else if (flag == CHECK_RUNTIME_STATE) { // check mode (pure = 0, not pure = 1)
+            flag = 0;
+            fwrite((void*)&flag, sizeof(int), 1, pipe_state_write);
+            fflush(pipe_state_write);
+        } else if (flag == GET_PRE_TXID_STATE) {
+            char* tmp = new char[64]{0};
+            fwrite((void*)tmp, sizeof(char) * 64, 1, pipe_state_write);
+            fflush(pipe_state_write);
+        } else {
+            break;
+        }
+    }
+    fclose(pipe_state_read);
+    fclose(pipe_state_write);
+
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status) == false) return "";
+    if (WEXITSTATUS(status) != 0) return "";
+    return result;
+}
+
+bool ProcessContract(const Contract& contract, const CTransactionRef& curTx, ContractStateCache* cache)
 {
     if (contract.action == contract_action::ACTION_NEW) {
         fs::path new_dir = GetContractsDir() / contract.address.GetHex();
         fs::create_directories(new_dir);
-        std::ofstream contract_code(new_dir.string() + "/code.c");
+        std::ofstream contract_code(new_dir.string() + "/code.cpp");
         contract_code.write(contract.code.c_str(), contract.code.size());
         contract_code.close();
 
         if (call_mkdll(contract.address) < 0) {
-            /* TODO: clean up files */
             return false;
         }
-
-        if (call_rt(contract.address, contract.args, vTxOut, state, nextContract) < 0) {
-            /* TODO: perform state recovery */
+        if (call_rt(cache, contract.address, contract.args, curTx) < 0) {
             return false;
         }
     } else if (contract.action == contract_action::ACTION_CALL) {
-        if (call_rt(contract.address, contract.args, vTxOut, state, nextContract) < 0) {
-            /* TODO: perform state recovery */
+        if (call_rt(cache, contract.address, contract.args, curTx) < 0) {
             return false;
         }
-    }
-    CAmount amount = 0;
-    for (CTxOut& out : vTxOut) {
-        amount = amount + out.nValue;
-    }
-    if (amount > balance) {
-        /* TODO: perform state recovery */
-        return false;
     }
 
     return true;

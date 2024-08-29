@@ -6,9 +6,11 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
+#include "gpow.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -27,7 +29,11 @@ public:
     uint256 hashContractState;
     uint32_t nTime;
     uint32_t nBits;
-    uint32_t nNonce;
+    GNonces nNonce;
+#ifdef ENABLE_GPoW
+    uint32_t nPrecisionTime;
+    uint256 hashGPoW;
+#endif
 
     CBlockHeader()
     {
@@ -45,6 +51,10 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+#ifdef ENABLE_GPoW
+        READWRITE(nPrecisionTime);
+        READWRITE(hashGPoW);
+#endif
     }
 
     void SetNull()
@@ -56,6 +66,10 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+#ifdef ENABLE_GPoW
+        nPrecisionTime = 0;
+        hashGPoW.SetNull();     
+#endif
     }
 
     bool IsNull() const
@@ -69,6 +83,13 @@ public:
     {
         return (int64_t)nTime;
     }
+
+#ifdef ENABLE_GPoW
+    uint32_t GetPrecisionBlockTime() const
+    {
+        return nPrecisionTime;
+    }
+#endif
 };
 
 
@@ -120,6 +141,10 @@ public:
         block.nTime             = nTime;
         block.nBits             = nBits;
         block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.nPrecisionTime    = nPrecisionTime;
+        block.hashGPoW          = hashGPoW;
+#endif
         return block;
     }
 

@@ -202,14 +202,14 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
     }
 
-    // Check ctid
-    if (tx.contract.action == 1)
-    {
-        CMutableTransaction mtx(tx);
-        mtx.contract.address.SetNull();
-        if (tx.contract.address != mtx.GetHash())
-            return state.DoS(100, false, REJECT_INVALID, "bad-ctid");
-    }
+    // Check Contract ctid
+    // if (tx.contract.action == 1)
+    // {
+    //     CMutableTransaction mtx(tx);
+    //     mtx.contract.address.SetNull();
+    //     if (tx.contract.address != mtx.GetHash())
+    //         return state.DoS(100, false, REJECT_INVALID, "bad-ctid");
+    // }
 
     return true;
 }

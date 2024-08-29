@@ -24,6 +24,10 @@
 
 #include <stdio.h>
 
+#ifdef ENABLE_GPoW
+    T nMaxTries;
+#endif 
+
 /* Introduction text for doxygen: */
 
 /*! \mainpage Developer documentation

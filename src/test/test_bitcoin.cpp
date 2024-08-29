@@ -26,6 +26,11 @@
 
 #include <memory>
 
+#ifdef ENABLE_GPoW
+    #include "gpow.h"
+    T nMaxTries;
+#endif
+
 uint256 insecure_rand_seed = GetRandHash();
 FastRandomContext insecure_rand_ctx(insecure_rand_seed);
 

@@ -26,6 +26,11 @@
 #include <algorithm>
 #include <vector>
 
+#ifdef ENABLE_GPoW
+    #include "gpow.h"
+    T nMaxTries;
+#endif
+
 enum TEST_ID {
     CBLOCK_DESERIALIZE=0,
     CTRANSACTION_DESERIALIZE,

@@ -50,6 +50,12 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 
+#ifdef ENABLE_GPoW
+#include "GNonces.h"
+#include "OurChain/gpowserver.h"
+#include "gpow.h"
+#endif
+
 #if defined(NDEBUG)
 #error "Bitcoin cannot be compiled without assertions."
 #endif
@@ -95,6 +101,10 @@ CScript COINBASE_FLAGS;
 
 const std::string strMessageMagic = "Bitcoin Signed Message:\n";
 
+// Contract State
+ContractStateCache* contractStateCache;
+mutex contractStateCacheMtx;
+
 // Internal stuff
 namespace
 {
@@ -102,6 +112,32 @@ namespace
 struct CBlockIndexWorkComparator {
     bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
     {
+#ifdef ENABLE_GPoW
+        // First sort by most total work, ...
+        // LogPrintf("Check nChainWork: pa->%s, pb->%s\n", ArithToUint256(pa->nChainWork).ToString().c_str(), ArithToUint256(pb->nChainWork).ToString().c_str());
+        if (pa->nChainWork > pb->nChainWork) return false;
+        if (pa->nChainWork < pb->nChainWork) return true;
+
+        if (pa->GetBlockTime() < pb->GetBlockTime()) return false;
+        if (pa->GetBlockTime() > pb->GetBlockTime()) return true;
+
+        if (pa->GetPrecisionBlockTime() < pb->GetPrecisionBlockTime()) {
+            if (pb->GetPrecisionBlockTime() - pa->GetPrecisionBlockTime() > TIME_ERROR) // more than time error
+                return false;
+        }
+        if (pa->GetPrecisionBlockTime() > pb->GetPrecisionBlockTime()) {
+            if (pa->GetPrecisionBlockTime() - pb->GetPrecisionBlockTime() > TIME_ERROR) // more than time error
+                return true;
+        }
+
+        // ... Compare GPoW, Smaller GPoW win ...
+        CBlockHeader ba, bb;
+        ba = pa->GetBlockHeader();
+        bb = pb->GetBlockHeader();
+        if (UintToArith256(ba.hashGPoW) < UintToArith256(bb.hashGPoW)) return false;
+        if (UintToArith256(ba.hashGPoW) > UintToArith256(bb.hashGPoW)) return true;
+
+#else
         // First sort by most total work, ...
         if (pa->nChainWork > pb->nChainWork) return false;
         if (pa->nChainWork < pb->nChainWork) return true;
@@ -110,8 +146,9 @@ struct CBlockIndexWorkComparator {
         if (pa->nSequenceId < pb->nSequenceId) return false;
         if (pa->nSequenceId > pb->nSequenceId) return true;
 
-        // Use pointer address as tie breaker (should only happen with blocks
-        // loaded from disk, as those all have id 0).
+#endif // ENABLE_GPoW
+       //  Use pointer address as tie breaker (should only happen with blocks
+       //  loaded from disk, as those all have id 0).
         if (pa < pb) return false;
         if (pa > pb) return true;
 
@@ -525,7 +562,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
             view.SetBackend(viewMemPool);
 
             // do all inputs exist?
-            for (const CTxIn txin : tx.vin) {
+            for (const CTxIn& txin : tx.vin) {
                 if (!pcoinsTip->HaveCoinInCache(txin.prevout)) {
                     coins_to_uncache.push_back(txin.prevout);
                 }
@@ -1135,32 +1172,6 @@ void static InvalidBlockFound(CBlockIndex* pindex, const CValidationState& state
     }
 }
 
-CTransactionRef ProcessContractTx(const Contract& cont, CCoinsViewCache& inputs, std::vector<Contract>& nextContract)
-{
-    if (cont.action == 0) return CTransactionRef();
-    CMutableTransaction mtx;
-    ContState cs;
-    CAmount balance = 0;
-    inputs.GetContState(cont.address, cs);
-    for (const COutPoint& outpoint : cs.coins) {
-        mtx.vin.push_back(CTxIn(outpoint));
-        balance += inputs.AccessCoin(outpoint).out.nValue;
-    }
-
-    if (!ProcessContract(cont, mtx.vout, cs.state, balance, nextContract)) return CTransactionRef();
-    // update cont state
-    cs.coins.clear();
-    inputs.AddContState(cont.address, std::move(cs));
-    if (mtx.vin.size() == 0) return CTransactionRef();
-    // add the change
-    CAmount amount = 0;
-    for (const CTxOut& txout : mtx.vout)
-        amount += txout.nValue;
-    assert(amount <= balance);
-    if (amount < balance)
-        mtx.vout.push_back(CTxOut(balance - amount, GetScriptForContract(cont.address)));
-    return MakeTransactionRef(mtx);
-}
 
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, CTxUndo& txundo, int nHeight)
 {
@@ -1786,24 +1797,6 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
         }
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
-        std::queue<Contract> contractQueue;
-        if (tx.contract.action != ACTION_NONE)
-            contractQueue.push(tx.contract);
-        while (!contractQueue.empty()) {
-            Contract cur = std::move(contractQueue.front());
-            contractQueue.pop();
-
-            std::vector<Contract> contractCall;
-            CTransactionRef ptx = ProcessContractTx(cur, view, contractCall);
-            if (ptx) {
-                block.vvtx.push_back(ptx);
-                blockundo.vtxundo.push_back(CTxUndo());
-                UpdateCoins(*ptx, view, blockundo.vtxundo.back(), pindex->nHeight);
-                for (Contract& nextContract : contractCall) {
-                    contractQueue.push(std::move(nextContract));
-                }
-            }
-        }
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -2443,7 +2436,6 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     // far from a guarantee. Things in the P2P/RPC will often end up calling
     // us in the middle of ProcessNewBlock - do not assume pblock is set
     // sanely for performance or correctness!
-
     CBlockIndex* pindexMostWork = nullptr;
     CBlockIndex* pindexNewTip = nullptr;
     int nStopAtHeight = gArgs.GetArg("-stopatheight", DEFAULT_STOPATHEIGHT);
@@ -2504,6 +2496,22 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(chainparams, state, FLUSH_STATE_PERIODIC)) {
         return false;
+    }
+
+    {
+        if (contractStateCache == nullptr) {
+            contractStateCacheMtx.lock();
+            if (contractStateCache == nullptr) {
+                contractStateCache = new ContractStateCache();
+            }
+            contractStateCacheMtx.unlock();
+        }
+        ContractObserver observer(contractStateCache);
+        if (!observer.onChainStateSet(chainActive, chainparams.GetConsensus())) {
+            return false;
+        }
+        // should be called after onChainStateSet
+        LogPrintf("ActivateBestChain\n");
     }
 
     return true;
@@ -2789,7 +2797,11 @@ static bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
+#ifdef ENABLE_GPoW
+    if (fCheckPOW && !CheckProofOfWork(block.hashGPoW, block.nBits, consensusParams))
+#else
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
+#endif
         return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
 
     return true;
@@ -3203,6 +3215,9 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
             return error("%s: AcceptBlock FAILED", __func__);
         }
     }
+#ifdef ENABLE_GPoW
+    InterruptMining();
+#endif
 
     NotifyHeaderTip();
 
@@ -3465,7 +3480,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Calculate nChainWork
     std::vector<std::pair<int, CBlockIndex*>> vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
+    for (const std::pair<uint256, CBlockIndex*> item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(std::make_pair(pindex->nHeight, pindex));
     }
@@ -3518,7 +3533,7 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
     // Check presence of blk files
     LogPrintf("Checking all blk files are present...\n");
     std::set<int> setBlkDataFiles;
-    for (const std::pair<uint256, CBlockIndex*>& item : mapBlockIndex) {
+    for (const std::pair<uint256, CBlockIndex*> item : mapBlockIndex) {
         CBlockIndex* pindex = item.second;
         if (pindex->nStatus & BLOCK_HAVE_DATA) {
             setBlkDataFiles.insert(pindex->nFile);

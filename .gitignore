@@ -1,4 +1,8 @@
 *.tar.gz
+src/ourcontract-rt
+.vscode/*.vc.*
+
+.idea/
 
 *.exe
 src/bitcoin
@@ -29,6 +33,7 @@ build-aux/test-driver
 config.log
 config.status
 configure
+configure~
 libtool
 src/config/bitcoin-config.h
 src/config/bitcoin-config.h.in
@@ -109,3 +114,4 @@ test/cache/*
 
 libbitcoinconsensus.pc
 contrib/devtools/split-debug.sh
+

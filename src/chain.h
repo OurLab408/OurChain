@@ -212,7 +212,11 @@ public:
     uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
-    unsigned int nNonce;
+    GNonces nNonce;
+#ifdef ENABLE_GPoW
+    uint32_t nPrecisionTime; 
+    uint256 hashGPoW;
+#endif
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -242,6 +246,10 @@ public:
         nTime             = 0;
         nBits             = 0;
         nNonce            = 0;
+#ifdef ENABLE_GPoW
+        nPrecisionTime    = 0;
+        hashGPoW              = uint256();
+#endif
     }
 
     CBlockIndex()
@@ -259,6 +267,10 @@ public:
         nTime             = block.nTime;
         nBits             = block.nBits;
         nNonce            = block.nNonce;
+#ifdef ENABLE_GPoW
+        nPrecisionTime    = block.nPrecisionTime;
+        hashGPoW          = block.hashGPoW;
+#endif
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -290,6 +302,10 @@ public:
         block.nTime             = nTime;
         block.nBits             = nBits;
         block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.nPrecisionTime    = nPrecisionTime;
+        block.hashGPoW          = hashGPoW;
+#endif
         return block;
     }
 
@@ -302,6 +318,13 @@ public:
     {
         return (int64_t)nTime;
     }
+
+#ifdef ENABLE_GPoW
+    uint32_t GetPrecisionBlockTime() const
+    {
+        return nPrecisionTime;
+    }
+#endif
 
     int64_t GetBlockTimeMax() const
     {
@@ -411,6 +434,10 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+#ifdef ENABLE_GPoW
+        READWRITE(nPrecisionTime);
+        READWRITE(hashGPoW);
+#endif
     }
 
     uint256 GetBlockHash() const
@@ -423,6 +450,10 @@ public:
         block.nTime             = nTime;
         block.nBits             = nBits;
         block.nNonce            = nNonce;
+#ifdef ENABLE_GPoW
+        block.nPrecisionTime        = nPrecisionTime;
+        block.hashGPoW          = hashGPoW;
+#endif
         return block.GetHash();
     }
 

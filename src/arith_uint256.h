@@ -54,7 +54,7 @@ public:
 
     base_uint(uint64_t b)
     {
-        static_assert(BITS/32 > 0 && BITS%32 == 0, "Template parameter BITS must be a positive multiple of 32.");
+        static_assert(BITS / 32 > 0 && BITS % 32 == 0, "Template parameter BITS must be a positive multiple of 32.");
 
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
@@ -231,11 +231,23 @@ public:
     friend inline bool operator<=(const base_uint& a, const base_uint& b) { return a.CompareTo(b) <= 0; }
     friend inline bool operator==(const base_uint& a, uint64_t b) { return a.EqualTo(b); }
     friend inline bool operator!=(const base_uint& a, uint64_t b) { return !a.EqualTo(b); }
+    friend uint256 Arith288ToUint256(base_uint<288>&);
+    friend void Arith288To320(base_uint<288>&, base_uint<320> &);
 
     std::string GetHex() const;
     void SetHex(const char* psz);
     void SetHex(const std::string& str);
     std::string ToString() const;
+
+    inline const unsigned char* begin() const
+    {
+        return (unsigned char*)&pn[0];
+    }
+
+    inline const unsigned char* end() const
+    {
+        return (unsigned char*)&pn[WIDTH];
+    }
 
     unsigned int size() const
     {
@@ -290,7 +302,17 @@ public:
     friend arith_uint256 UintToArith256(const uint256 &);
 };
 
+class arith_uint288 : public base_uint<288> {
+public:
+    arith_uint288& operator+=(uint256& b);
+    arith_uint288& operator/=(uint32_t b);
+    arith_uint288& operator/=(uint64_t b);
+    uint256& ToUint256(uint256& b);                            // for average, assume bit 256-319 = 0;
+    double getdouble() const;
+};
+
 uint256 ArithToUint256(const arith_uint256 &);
 arith_uint256 UintToArith256(const uint256 &);
-
+uint256 Arith288ToUint256(base_uint<288> &);
+void Arith288To320(base_uint<288>&, base_uint<320> &);
 #endif // BITCOIN_ARITH_UINT256_H

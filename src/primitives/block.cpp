@@ -12,19 +12,34 @@
 
 uint256 CBlockHeader::GetHash() const
 {
+#ifdef ENABLE_GPoW
+    // We don't want put gpow into hash
+    CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        
+    ss << nVersion << hashPrevBlock << hashMerkleRoot << hashContractState << nTime << nPrecisionTime << nBits << nNonce;
+    
+    return ss.GetHash();
+#else
     return SerializeHash(*this);
+#endif
 }
 
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u",
         GetHash().ToString(),
         nVersion,
         hashPrevBlock.ToString(),
         hashMerkleRoot.ToString(),
         hashContractState.ToString(),
-        nTime, nBits, nNonce,
+        nTime);
+#ifdef ENABLE_GPoW
+    s << strprintf(", nPrecisionTime=%u, hashGPoW=%s", nPrecisionTime, hashGPoW.ToString());
+#endif
+    s << strprintf(", nBits=%08x, nNonce=%s, vtx=%u\n", 
+        nBits,
+        nNonce.ToString(),
         vtx.size());
     for (const auto& tx : vtx) {
         s << "  " << tx->ToString() << "\n";

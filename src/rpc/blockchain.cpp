@@ -91,7 +91,11 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     result.push_back(Pair("contractstate", blockindex->hashContractState.GetHex()));
     result.push_back(Pair("time", (int64_t)blockindex->nTime));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
+#ifdef ENABLE_GPoW
+    result.push_back(Pair("nonce", (int64_t)blockindex->nNonce.getNonce()));
+#else
     result.push_back(Pair("nonce", (uint64_t)blockindex->nNonce));
+#endif
     result.push_back(Pair("bits", strprintf("%08x", blockindex->nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
@@ -135,8 +139,15 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     }
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
+#ifdef ENABLE_GPoW
+    result.push_back(Pair("precision time (us)", (int64_t)block.GetPrecisionBlockTime()));
+#endif
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
+#ifdef ENABLE_GPoW
+    result.push_back(Pair("nonce", (int64_t)block.nNonce.getNonce()));
+#else
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
+#endif
     result.push_back(Pair("bits", strprintf("%08x", block.nBits)));
     result.push_back(Pair("difficulty", GetDifficulty(blockindex)));
     result.push_back(Pair("chainwork", blockindex->nChainWork.GetHex()));
@@ -798,7 +809,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
     ss << hash;
     ss << VARINT(outputs.begin()->second.nHeight * 2 + outputs.begin()->second.fCoinBase);
     stats.nTransactions++;
-    for (const auto output : outputs) {
+    for (const auto& output : outputs) {
         ss << VARINT(output.first + 1);
         ss << output.second.out.scriptPubKey;
         ss << VARINT(output.second.out.nValue);

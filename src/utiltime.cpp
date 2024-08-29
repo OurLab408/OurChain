@@ -57,6 +57,11 @@ int64_t GetSystemTimeInSeconds()
     return GetTimeMicros()/1000000;
 }
 
+uint32_t GetSystemPrecisionTime()
+{
+    return GetTimeMicros() % 1000000;
+}
+
 void MilliSleep(int64_t n)
 {
 

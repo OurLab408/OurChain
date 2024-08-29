@@ -11,7 +11,7 @@
 #include <boost/thread/condition_variable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
-
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 
 ////////////////////////////////////////////////
 //                                            //

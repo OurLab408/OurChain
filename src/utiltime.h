@@ -23,6 +23,10 @@ int64_t GetTime();
 int64_t GetTimeMillis();
 int64_t GetTimeMicros();
 int64_t GetSystemTimeInSeconds(); // Like GetTime(), but not mockable
+#ifdef ENABLE_GPoW
+uint32_t GetSystemPrecisionTime();
+const uint32_t TIME_ERROR = 100000;
+#endif
 void SetMockTime(int64_t nMockTimeIn);
 int64_t GetMockTime();
 void MilliSleep(int64_t n);

@@ -201,8 +201,6 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
     s >> tx.nVersion;
     unsigned char flags = 0;
 
-    s >> tx.contract;
-
     tx.vin.clear();
     tx.vout.clear();
     /* Try to read the vin. In case the dummy is there, this will be read as an empty vector. */
@@ -229,6 +227,8 @@ inline void UnserializeTransaction(TxType& tx, Stream& s) {
         /* Unknown flag in the serialization */
         throw std::ios_base::failure("Unknown transaction optional data");
     }
+
+    s >> tx.contract;
     s >> tx.nLockTime;
 }
 
@@ -252,8 +252,6 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
         s << flags;
     }
 
-    s << tx.contract;
-
     s << tx.vin;
     s << tx.vout;
     if (flags & 1) {
@@ -261,6 +259,8 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
             s << tx.vin[i].scriptWitness.stack;
         }
     }
+
+    s << tx.contract;
     s << tx.nLockTime;
 }
 

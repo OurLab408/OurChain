@@ -41,8 +41,8 @@ To perform off-chain testing, you need to invoke these two utilities by yourself
 $ mkdir contracts
 $ mkdir contracts/hello
 $ mkdir contracts/vote
-$ mv hello.c contracts/hello/code.c
-$ mv vote.c contracts/vote/code.c
+$ mv hello.c contracts/hello/code.cpp
+$ mv vote.c contracts/vote/code.cpp
 ```
 
 The directory structure will be like this:
@@ -52,11 +52,11 @@ contracts
 |
 +---hello
 |   |
-|   +---code.c
+|   +---code.cpp
 |
 +---vote
 |   |
-|   +---code.c
+|   +---code.cpp
 |
 |---(another contract)
 .
