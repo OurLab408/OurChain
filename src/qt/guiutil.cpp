@@ -10,9 +10,9 @@
 #include "walletmodel.h"
 
 #include "fs.h"
-#include "primitives/transaction.h"
 #include "init.h"
 #include "policy/policy.h"
+#include "primitives/transaction.h"
 #include "protocol.h"
 #include "script/script.h"
 #include "script/standard.h"
@@ -134,13 +134,13 @@ void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent)
     widget->setCheckValidator(new BitcoinAddressCheckValidator(parent));
 }
 
-void setupAmountWidget(QLineEdit *widget, QWidget *parent)
+void setupAmountWidget(QLineEdit* widget, QWidget* parent)
 {
-    QDoubleValidator *amountValidator = new QDoubleValidator(parent);
+    QDoubleValidator* amountValidator = new QDoubleValidator(parent);
     amountValidator->setDecimals(8);
     amountValidator->setBottom(0.0);
     widget->setValidator(amountValidator);
-    widget->setAlignment(Qt::AlignRight|Qt::AlignVCenter);
+    widget->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 }
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
@@ -158,7 +158,7 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
     rv.amount = 0;
 
 #if QT_VERSION < 0x050000
-    QList<QPair<QString, QString> > items = uri.queryItems();
+    QList<QPair<QString, QString>> items = uri.queryItems();
 #else
     QUrlQuery uriQuery(uri);
     QList<QPair<QString, QString> > items = uriQuery.queryItems();
@@ -210,8 +210,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
     //
     //    Cannot handle this later, because bitcoin:// will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if(uri.startsWith("bitcoin://", Qt::CaseInsensitive))
-    {
+    if (uri.startsWith("bitcoin://", Qt::CaseInsensitive)) {
         uri.replace(0, 10, "bitcoin:");
     }
     QUrl uriInstance(uri);
@@ -421,12 +420,12 @@ bool openBitcoinConf()
 
     /* Create the file */
     boost::filesystem::ofstream configFile(pathConfig, std::ios_base::app);
-    
+
     if (!configFile.good())
         return false;
-    
+
     configFile.close();
-    
+
     /* Open bitcoin.conf with the associated application */
     return QDesktopServices::openUrl(QUrl::fromLocalFile(boostPathToQString(pathConfig)));
 }
@@ -447,20 +446,18 @@ void SubstituteFonts(const QString& language)
 // is 10.9 or higher at runtime, substitute the correct font. This needs to
 // happen before the QApplication is created.
 #if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_8
-    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_8)
-    {
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_8) {
         if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_9)
             /* On a 10.9 - 10.9.x system */
             QFont::insertSubstitution(".Lucida Grande UI", "Lucida Grande");
-        else
-        {
+        else {
             /* 10.10 or later system */
             if (language == "zh_CN" || language == "zh_TW" || language == "zh_HK") // traditional or simplified Chinese
-              QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Heiti SC");
+                QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Heiti SC");
             else if (language == "ja") // Japanese
-              QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Songti SC");
+                QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Songti SC");
             else
-              QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Lucida Grande");
+                QFont::insertSubstitution(".Helvetica Neue DeskInterface", "Lucida Grande");
         }
     }
 #endif
@@ -744,7 +741,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
     {
         char pszExePath[MAX_PATH+1];
         memset(pszExePath, 0, sizeof(pszExePath));
-        if (readlink("/proc/self/exe", pszExePath, sizeof(pszExePath)-1) == -1)
+        if (readlink("/proc/self/exe", pszExePath, sizeof(pszExePath) - 1) == -1)
             return false;
 
         fs::create_directories(GetAutostartDir());
@@ -788,17 +785,17 @@ LSSharedFileListItemRef findStartupItemInList(LSSharedFileListRef list, CFURLRef
         CFURLRef currentItemURL = nullptr;
 
 #if defined(MAC_OS_X_VERSION_MAX_ALLOWED) && MAC_OS_X_VERSION_MAX_ALLOWED >= 10100
-    if(&LSSharedFileListItemCopyResolvedURL)
-        currentItemURL = LSSharedFileListItemCopyResolvedURL(item, resolutionFlags, nullptr);
+        if (&LSSharedFileListItemCopyResolvedURL)
+            currentItemURL = LSSharedFileListItemCopyResolvedURL(item, resolutionFlags, nullptr);
 #if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED < 10100
-    else
-        LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL, nullptr);
+        else
+            LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL, nullptr);
 #endif
 #else
-    LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL, nullptr);
+        LSSharedFileListItemResolve(item, resolutionFlags, &currentItemURL, nullptr);
 #endif
 
-        if(currentItemURL && CFEqual(currentItemURL, findUrl)) {
+        if (currentItemURL && CFEqual(currentItemURL, findUrl)) {
             // found
             CFRelease(currentItemURL);
             return item;
@@ -861,7 +858,7 @@ void restoreWindowGeometry(const QString& strSetting, const QSize& defaultSize, 
     if ((!pos.x() && !pos.y()) || (QApplication::desktop()->screenNumber(parent) == -1)) {
         QRect screen = QApplication::desktop()->screenGeometry();
         QPoint defaultPos((screen.width() - defaultSize.width()) / 2,
-            (screen.height() - defaultSize.height()) / 2);
+                          (screen.height() - defaultSize.height()) / 2);
         parent->resize(defaultSize);
         parent->move(defaultPos);
     }
@@ -992,7 +989,7 @@ void ClickableLabel::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_EMIT clicked(event->pos());
 }
-    
+
 void ClickableProgressBar::mouseReleaseEvent(QMouseEvent *event)
 {
     Q_EMIT clicked(event->pos());

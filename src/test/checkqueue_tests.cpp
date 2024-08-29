@@ -6,19 +6,19 @@
 #include "utiltime.h"
 #include "validation.h"
 
-#include "test/test_bitcoin.h"
 #include "checkqueue.h"
+#include "test/test_bitcoin.h"
+#include <atomic>
 #include <boost/test/unit_test.hpp>
 #include <boost/thread.hpp>
-#include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 #include <vector>
-#include <mutex>
-#include <condition_variable>
 
-#include <unordered_set>
-#include <memory>
 #include "random.h"
+#include <memory>
+#include <unordered_set>
 
 // BasicTestingSetup not sufficient because nScriptCheckThreads is not set
 // otherwise.
@@ -94,9 +94,9 @@ struct MemoryCheck {
     {
         fake_allocated_memory += b;
     };
-    ~MemoryCheck(){
+    ~MemoryCheck()
+    {
         fake_allocated_memory -= b;
-    
     };
     void swap(MemoryCheck& x) { std::swap(b, x.b); };
 };
@@ -119,7 +119,7 @@ struct FrozenCleanupCheck {
             std::unique_lock<std::mutex> l(m);
             nFrozen = 1;
             cv.notify_one();
-            cv.wait(l, []{ return nFrozen == 0;});
+            cv.wait(l, [] { return nFrozen == 0; });
         }
     }
     void swap(FrozenCleanupCheck& x){std::swap(should_freeze, x.should_freeze);};
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(test_CheckQueue_Memory)
     tg.join_all();
 }
 
-// Test that a new verification cannot occur until all checks 
+// Test that a new verification cannot occur until all checks
 // have been destructed
 BOOST_AUTO_TEST_CASE(test_CheckQueue_FrozenCleanup)
 {
@@ -404,10 +404,10 @@ BOOST_AUTO_TEST_CASE(test_CheckQueueControl_Locks)
         std::mutex m;
         std::condition_variable cv;
         {
-            bool has_lock {false};
-            bool has_tried {false};
-            bool done {false};
-            bool done_ack {false};
+            bool has_lock{false};
+            bool has_tried{false};
+            bool done{false};
+            bool done_ack{false};
             std::unique_lock<std::mutex> l(m);
             tg.create_thread([&]{
                     CCheckQueueControl<FakeCheck> control(queue.get());

@@ -13,9 +13,9 @@
 #include "guiutil.h"
 #include "optionsmodel.h"
 
-#include "validation.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 #include "netbase.h"
-#include "txdb.h" // for -dbcache defaults
+#include "txdb.h"       // for -dbcache defaults
+#include "validation.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h" // for CWallet::GetRequiredFee()

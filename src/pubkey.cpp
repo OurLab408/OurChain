@@ -250,7 +250,7 @@ void CExtPubKey::Encode(unsigned char code[BIP32_EXTKEY_SIZE]) const {
     code[7] = (nChild >>  8) & 0xFF; code[8] = (nChild >>  0) & 0xFF;
     memcpy(code+9, chaincode.begin(), 32);
     assert(pubkey.size() == 33);
-    memcpy(code+41, pubkey.begin(), 33);
+    memcpy(code + 41, pubkey.begin(), 33);
 }
 
 void CExtPubKey::Decode(const unsigned char code[BIP32_EXTKEY_SIZE]) {

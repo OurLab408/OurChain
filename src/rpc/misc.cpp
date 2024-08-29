@@ -7,9 +7,8 @@
 #include "chain.h"
 #include "clientversion.h"
 #include "core_io.h"
-#include "init.h"
-#include "validation.h"
 #include "httpserver.h"
+#include "init.h"
 #include "net.h"
 #include "netbase.h"
 #include "rpc/blockchain.h"
@@ -17,6 +16,7 @@
 #include "timedata.h"
 #include "util.h"
 #include "utilstrencodings.h"
+#include "validation.h"
 #ifdef ENABLE_WALLET
 #include "wallet/rpcwallet.h"
 #include "wallet/wallet.h"
@@ -66,17 +66,17 @@ UniValue getinfo(const JSONRPCRequest& request)
             "  \"keypoololdest\": xxxxxx,    (numeric) the timestamp (seconds since Unix epoch) of the oldest pre-generated key in the key pool\n"
             "  \"keypoolsize\": xxxx,        (numeric) how many new keys are pre-generated\n"
             "  \"unlocked_until\": ttt,      (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in " + CURRENCY_UNIT + "/kB\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for transactions in " + CURRENCY_UNIT + "/kB\n"
-            "  \"errors\": \"...\"             (string) any error messages\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getinfo", "")
-            + HelpExampleRpc("getinfo", "")
-        );
+            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in " +
+            CURRENCY_UNIT + "/kB\n"
+                            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for transactions in " +
+            CURRENCY_UNIT + "/kB\n"
+                            "  \"errors\": \"...\"             (string) any error messages\n"
+                            "}\n"
+                            "\nExamples:\n" +
+            HelpExampleCli("getinfo", "") + HelpExampleRpc("getinfo", ""));
 
 #ifdef ENABLE_WALLET
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 
     LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
 #else
@@ -88,34 +88,34 @@ UniValue getinfo(const JSONRPCRequest& request)
 
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("deprecation-warning", "WARNING: getinfo is deprecated and will be fully removed in 0.16."
-        " Projects should transition to using getblockchaininfo, getnetworkinfo, and getwalletinfo before upgrading to 0.16"));
+                                              " Projects should transition to using getblockchaininfo, getnetworkinfo, and getwalletinfo before upgrading to 0.16"));
     obj.push_back(Pair("version", CLIENT_VERSION));
     obj.push_back(Pair("protocolversion", PROTOCOL_VERSION));
 #ifdef ENABLE_WALLET
     if (pwallet) {
         obj.push_back(Pair("walletversion", pwallet->GetVersion()));
-        obj.push_back(Pair("balance",       ValueFromAmount(pwallet->GetBalance())));
+        obj.push_back(Pair("balance", ValueFromAmount(pwallet->GetBalance())));
     }
 #endif
-    obj.push_back(Pair("blocks",        (int)chainActive.Height()));
-    obj.push_back(Pair("timeoffset",    GetTimeOffset()));
-    if(g_connman)
-        obj.push_back(Pair("connections",   (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
-    obj.push_back(Pair("proxy",         (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string())));
-    obj.push_back(Pair("difficulty",    (double)GetDifficulty()));
-    obj.push_back(Pair("testnet",       Params().NetworkIDString() == CBaseChainParams::TESTNET));
+    obj.push_back(Pair("blocks", (int)chainActive.Height()));
+    obj.push_back(Pair("timeoffset", GetTimeOffset()));
+    if (g_connman)
+        obj.push_back(Pair("connections", (int)g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL)));
+    obj.push_back(Pair("proxy", (proxy.IsValid() ? proxy.proxy.ToStringIPPort() : std::string())));
+    obj.push_back(Pair("difficulty", (double)GetDifficulty()));
+    obj.push_back(Pair("testnet", Params().NetworkIDString() == CBaseChainParams::TESTNET));
 #ifdef ENABLE_WALLET
     if (pwallet) {
         obj.push_back(Pair("keypoololdest", pwallet->GetOldestKeyPoolTime()));
-        obj.push_back(Pair("keypoolsize",   (int)pwallet->GetKeyPoolSize()));
+        obj.push_back(Pair("keypoolsize", (int)pwallet->GetKeyPoolSize()));
     }
     if (pwallet && pwallet->IsCrypted()) {
         obj.push_back(Pair("unlocked_until", pwallet->nRelockTime));
     }
-    obj.push_back(Pair("paytxfee",      ValueFromAmount(payTxFee.GetFeePerK())));
+    obj.push_back(Pair("paytxfee", ValueFromAmount(payTxFee.GetFeePerK())));
 #endif
-    obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
-    obj.push_back(Pair("errors",        GetWarnings("statusbar")));
+    obj.push_back(Pair("relayfee", ValueFromAmount(::minRelayTxFee.GetFeePerK())));
+    obj.push_back(Pair("errors", GetWarnings("statusbar")));
     return obj;
 }
 
@@ -123,13 +123,14 @@ UniValue getinfo(const JSONRPCRequest& request)
 class DescribeAddressVisitor : public boost::static_visitor<UniValue>
 {
 public:
-    CWallet * const pwallet;
+    CWallet* const pwallet;
 
-    DescribeAddressVisitor(CWallet *_pwallet) : pwallet(_pwallet) {}
+    DescribeAddressVisitor(CWallet* _pwallet) : pwallet(_pwallet) {}
 
-    UniValue operator()(const CNoDestination &dest) const { return UniValue(UniValue::VOBJ); }
+    UniValue operator()(const CNoDestination& dest) const { return UniValue(UniValue::VOBJ); }
 
-    UniValue operator()(const CKeyID &keyID) const {
+    UniValue operator()(const CKeyID& keyID) const
+    {
         UniValue obj(UniValue::VOBJ);
         CPubKey vchPubKey;
         obj.push_back(Pair("isscript", false));
@@ -140,7 +141,8 @@ public:
         return obj;
     }
 
-    UniValue operator()(const CScriptID &scriptID) const {
+    UniValue operator()(const CScriptID& scriptID) const
+    {
         UniValue obj(UniValue::VOBJ);
         CScript subscript;
         obj.push_back(Pair("isscript", true));
@@ -202,13 +204,11 @@ UniValue validateaddress(const JSONRPCRequest& request)
             "  \"hdkeypath\" : \"keypath\"       (string, optional) The HD keypath if the key is HD and available\n"
             "  \"hdmasterkeyid\" : \"<hash160>\" (string, optional) The Hash160 of the HD master pubkey\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
-            + HelpExampleRpc("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\"") + HelpExampleRpc("validateaddress", "\"1PSSGeFHDnKNxiEyFrD1wcEaHr9hrQDDWc\""));
 
 #ifdef ENABLE_WALLET
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 
     LOCK2(cs_main, pwallet ? &pwallet->cs_wallet : nullptr);
 #else
@@ -264,7 +264,7 @@ class CWallet;
 /**
  * Used by addmultisigaddress / createmultisig:
  */
-CScript _createmultisig_redeemScript(CWallet * const pwallet, const UniValue& params)
+CScript _createmultisig_redeemScript(CWallet* const pwallet, const UniValue& params)
 {
     int nRequired = params[0].get_int();
     const UniValue& keys = params[1].get_array();
@@ -275,13 +275,13 @@ CScript _createmultisig_redeemScript(CWallet * const pwallet, const UniValue& pa
     if ((int)keys.size() < nRequired)
         throw std::runtime_error(
             strprintf("not enough keys supplied "
-                      "(got %u keys, but need at least %d to redeem)", keys.size(), nRequired));
+                      "(got %u keys, but need at least %d to redeem)",
+                keys.size(), nRequired));
     if (keys.size() > 16)
         throw std::runtime_error("Number of addresses involved in the multisignature address creation > 16\nReduce the number");
     std::vector<CPubKey> pubkeys;
     pubkeys.resize(keys.size());
-    for (unsigned int i = 0; i < keys.size(); i++)
-    {
+    for (unsigned int i = 0; i < keys.size(); i++) {
         const std::string& ks = keys[i].get_str();
 #ifdef ENABLE_WALLET
         // Case 1: Bitcoin address and we have full public key:
@@ -290,37 +290,34 @@ CScript _createmultisig_redeemScript(CWallet * const pwallet, const UniValue& pa
             CKeyID keyID;
             if (!address.GetKeyID(keyID))
                 throw std::runtime_error(
-                    strprintf("%s does not refer to a key",ks));
+                    strprintf("%s does not refer to a key", ks));
             CPubKey vchPubKey;
             if (!pwallet->GetPubKey(keyID, vchPubKey)) {
                 throw std::runtime_error(
-                    strprintf("no full public key for address %s",ks));
+                    strprintf("no full public key for address %s", ks));
             }
             if (!vchPubKey.IsFullyValid())
-                throw std::runtime_error(" Invalid public key: "+ks);
+                throw std::runtime_error(" Invalid public key: " + ks);
             pubkeys[i] = vchPubKey;
         }
 
         // Case 2: hex public key
         else
 #endif
-        if (IsHex(ks))
-        {
+            if (IsHex(ks)) {
             CPubKey vchPubKey(ParseHex(ks));
             if (!vchPubKey.IsFullyValid())
-                throw std::runtime_error(" Invalid public key: "+ks);
+                throw std::runtime_error(" Invalid public key: " + ks);
             pubkeys[i] = vchPubKey;
-        }
-        else
-        {
-            throw std::runtime_error(" Invalid public key: "+ks);
+        } else {
+            throw std::runtime_error(" Invalid public key: " + ks);
         }
     }
     CScript result = GetScriptForMultisig(nRequired, pubkeys);
 
     if (result.size() > MAX_SCRIPT_ELEMENT_SIZE)
         throw std::runtime_error(
-                strprintf("redeemScript exceeds size limit: %d > %d", result.size(), MAX_SCRIPT_ELEMENT_SIZE));
+            strprintf("redeemScript exceeds size limit: %d > %d", result.size(), MAX_SCRIPT_ELEMENT_SIZE));
 
     return result;
 }
@@ -328,37 +325,34 @@ CScript _createmultisig_redeemScript(CWallet * const pwallet, const UniValue& pa
 UniValue createmultisig(const JSONRPCRequest& request)
 {
 #ifdef ENABLE_WALLET
-    CWallet * const pwallet = GetWalletForJSONRPCRequest(request);
+    CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 #else
-    CWallet * const pwallet = nullptr;
+    CWallet* const pwallet = nullptr;
 #endif
 
-    if (request.fHelp || request.params.size() < 2 || request.params.size() > 2)
-    {
+    if (request.fHelp || request.params.size() < 2 || request.params.size() > 2) {
         std::string msg = "createmultisig nrequired [\"key\",...]\n"
-            "\nCreates a multi-signature address with n signature of m keys required.\n"
-            "It returns a json object with the address and redeemScript.\n"
+                          "\nCreates a multi-signature address with n signature of m keys required.\n"
+                          "It returns a json object with the address and redeemScript.\n"
 
-            "\nArguments:\n"
-            "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
-            "2. \"keys\"       (string, required) A json array of keys which are bitcoin addresses or hex-encoded public keys\n"
-            "     [\n"
-            "       \"key\"    (string) bitcoin address or hex-encoded public key\n"
-            "       ,...\n"
-            "     ]\n"
+                          "\nArguments:\n"
+                          "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
+                          "2. \"keys\"       (string, required) A json array of keys which are bitcoin addresses or hex-encoded public keys\n"
+                          "     [\n"
+                          "       \"key\"    (string) bitcoin address or hex-encoded public key\n"
+                          "       ,...\n"
+                          "     ]\n"
 
-            "\nResult:\n"
-            "{\n"
-            "  \"address\":\"multisigaddress\",  (string) The value of the new multisig address.\n"
-            "  \"redeemScript\":\"script\"       (string) The string value of the hex-encoded redemption script.\n"
-            "}\n"
+                          "\nResult:\n"
+                          "{\n"
+                          "  \"address\":\"multisigaddress\",  (string) The value of the new multisig address.\n"
+                          "  \"redeemScript\":\"script\"       (string) The string value of the hex-encoded redemption script.\n"
+                          "}\n"
 
-            "\nExamples:\n"
-            "\nCreate a multisig address from 2 addresses\n"
-            + HelpExampleCli("createmultisig", "2 \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"") +
-            "\nAs a json rpc call\n"
-            + HelpExampleRpc("createmultisig", "2, \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"")
-        ;
+                          "\nExamples:\n"
+                          "\nCreate a multisig address from 2 addresses\n" +
+                          HelpExampleCli("createmultisig", "2 \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"") +
+                          "\nAs a json rpc call\n" + HelpExampleRpc("createmultisig", "2, \"[\\\"16sSauSf5pF2UkUwvKGq4qjNRzBZYqgEL5\\\",\\\"171sgjn4YtPu27adkKGrdDwzRTxnRkBfKV\\\"]\"");
         throw std::runtime_error(msg);
     }
 
@@ -576,7 +570,8 @@ UniValue getmemoryinfo(const JSONRPCRequest& request)
     }
 }
 
-uint32_t getCategoryMask(UniValue cats) {
+uint32_t getCategoryMask(UniValue cats)
+{
     cats = cats.get_array();
     uint32_t mask = 0;
     for (unsigned int i = 0; i < cats.size(); ++i) {
@@ -598,16 +593,15 @@ UniValue logging(const JSONRPCRequest& request)
             "Gets and sets the logging configuration.\n"
             "When called without an argument, returns the list of categories that are currently being debug logged.\n"
             "When called with arguments, adds or removes categories from debug logging.\n"
-            "The valid logging categories are: " + ListLogCategories() + "\n"
-            "libevent logging is configured on startup and cannot be modified by this RPC during runtime."
-            "Arguments:\n"
-            "1. \"include\" (array of strings) add debug logging for these categories.\n"
-            "2. \"exclude\" (array of strings) remove debug logging for these categories.\n"
-            "\nResult: <categories>  (string): a list of the logging categories that are active.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("logging", "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"")
-            + HelpExampleRpc("logging", "[\"all\"], \"[libevent]\"")
-        );
+            "The valid logging categories are: " +
+            ListLogCategories() + "\n"
+                                  "libevent logging is configured on startup and cannot be modified by this RPC during runtime."
+                                  "Arguments:\n"
+                                  "1. \"include\" (array of strings) add debug logging for these categories.\n"
+                                  "2. \"exclude\" (array of strings) remove debug logging for these categories.\n"
+                                  "\nResult: <categories>  (string): a list of the logging categories that are active.\n"
+                                  "\nExamples:\n" +
+            HelpExampleCli("logging", "\"[\\\"all\\\"]\" \"[\\\"http\\\"]\"") + HelpExampleRpc("logging", "[\"all\"], \"[libevent]\""));
     }
 
     uint32_t originalLogCategories = logCategories;
@@ -629,7 +623,7 @@ UniValue logging(const JSONRPCRequest& request)
         if (!UpdateHTTPServerLogging(logCategories & BCLog::LIBEVENT)) {
             logCategories &= ~BCLog::LIBEVENT;
             if (changedLogCategories == BCLog::LIBEVENT) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "libevent logging cannot be updated when using libevent before v2.1.1.");
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "libevent logging cannot be updated when using libevent before v2.1.1.");
             }
         }
     }
@@ -657,20 +651,21 @@ UniValue echo(const JSONRPCRequest& request)
 }
 
 static const CRPCCommand commands[] =
-{ //  category              name                      actor (function)         okSafeMode
-  //  --------------------- ------------------------  -----------------------  ----------
-    { "control",            "getinfo",                &getinfo,                true,  {} }, /* uses wallet if enabled */
-    { "control",            "getmemoryinfo",          &getmemoryinfo,          true,  {"mode"} },
-    { "util",               "validateaddress",        &validateaddress,        true,  {"address"} }, /* uses wallet if enabled */
-    { "util",               "createmultisig",         &createmultisig,         true,  {"nrequired","keys"} },
-    { "util",               "verifymessage",          &verifymessage,          true,  {"address","signature","message"} },
-    { "util",               "signmessagewithprivkey", &signmessagewithprivkey, true,  {"privkey","message"} },
+    {
+        //  category              name                      actor (function)         okSafeMode
+        //  --------------------- ------------------------  -----------------------  ----------
+        {"control", "getinfo", &getinfo, true, {}}, /* uses wallet if enabled */
+        {"control", "getmemoryinfo", &getmemoryinfo, true, {"mode"}},
+        {"util", "validateaddress", &validateaddress, true, {"address"}}, /* uses wallet if enabled */
+        {"util", "createmultisig", &createmultisig, true, {"nrequired", "keys"}},
+        {"util", "verifymessage", &verifymessage, true, {"address", "signature", "message"}},
+        {"util", "signmessagewithprivkey", &signmessagewithprivkey, true, {"privkey", "message"}},
 
-    /* Not shown in help */
-    { "hidden",             "setmocktime",            &setmocktime,            true,  {"timestamp"}},
-    { "hidden",             "echo",                   &echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "echojson",               &echo,                   true,  {"arg0","arg1","arg2","arg3","arg4","arg5","arg6","arg7","arg8","arg9"}},
-    { "hidden",             "logging",                &logging,                true,  {"include", "exclude"}},
+        /* Not shown in help */
+        {"hidden", "setmocktime", &setmocktime, true, {"timestamp"}},
+        {"hidden", "echo", &echo, true, {"arg0", "arg1", "arg2", "arg3", "arg4", "arg5", "arg6", "arg7", "arg8", "arg9"}},
+        {"hidden", "echojson", &echo, true, {"arg0", "arg1", "arg2", "arg3", "arg4", "arg5", "arg6", "arg7", "arg8", "arg9"}},
+        {"hidden", "logging", &logging, true, {"include", "exclude"}},
 };
 
 void RegisterMiscRPCCommands(CRPCTable &t)

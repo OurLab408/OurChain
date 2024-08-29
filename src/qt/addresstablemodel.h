@@ -21,7 +21,7 @@ class AddressTableModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    explicit AddressTableModel(CWallet *wallet, WalletModel *parent = 0);
+    explicit AddressTableModel(CWallet* wallet, WalletModel* parent = 0);
     ~AddressTableModel();
 
     enum ColumnIndex {
@@ -61,7 +61,7 @@ public:
     /* Add an address to the model.
        Returns the added address on success, and an empty string otherwise.
      */
-    QString addRow(const QString &type, const QString &label, const QString &address);
+    QString addRow(const QString& type, const QString& label, const QString& address);
 
     /* Look up label for address in address book, if not found return empty string.
      */
@@ -75,9 +75,9 @@ public:
     EditStatus getEditStatus() const { return editStatus; }
 
 private:
-    WalletModel *walletModel;
-    CWallet *wallet;
-    AddressTablePriv *priv;
+    WalletModel* walletModel;
+    CWallet* wallet;
+    AddressTablePriv* priv;
     QStringList columns;
     EditStatus editStatus;
 

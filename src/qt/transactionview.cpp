@@ -250,7 +250,7 @@ void TransactionView::setModel(WalletModel *_model)
 
 void TransactionView::chooseDate(int idx)
 {
-    if(!transactionProxyModel)
+    if (!transactionProxyModel)
         return;
     QDate current = QDate::currentDate();
     dateRangeWidget->setVisible(false);

@@ -106,8 +106,7 @@ ContractStateCache* contractStateCache;
 mutex contractStateCacheMtx;
 
 // Internal stuff
-namespace
-{
+namespace {
 
 struct CBlockIndexWorkComparator {
     bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
@@ -627,7 +626,7 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
         }
 
         CTxMemPoolEntry entry(ptx, nFees, nAcceptTime, chainActive.Height(),
-            fSpendsCoinbase, nSigOpsCost, lp);
+                              fSpendsCoinbase, nSigOpsCost, lp);
         unsigned int nSize = entry.GetTxSize();
 
         // Check that the transaction doesn't have an excessive number of
@@ -673,10 +672,10 @@ static bool AcceptToMemoryPoolWorker(const CChainParams& chainparams, CTxMemPool
             const uint256& hashAncestor = ancestorIt->GetTx().GetHash();
             if (setConflicts.count(hashAncestor)) {
                 return state.DoS(10, false,
-                    REJECT_INVALID, "bad-txns-spends-conflicting-tx", false,
-                    strprintf("%s spends conflicting transaction %s",
-                        hash.ToString(),
-                        hashAncestor.ToString()));
+                                 REJECT_INVALID, "bad-txns-spends-conflicting-tx", false,
+                                 strprintf("%s spends conflicting transaction %s",
+                                           hash.ToString(),
+                                           hashAncestor.ToString()));
             }
         }
 
@@ -1323,8 +1322,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
     return true;
 }
 
-namespace
-{
+namespace {
 
 bool UndoWriteToDisk(const CBlockUndo& blockundo, CDiskBlockPos& pos, const uint256& hashBlock, const CMessageHeader::MessageStartChars& messageStart)
 {
@@ -1712,7 +1710,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
             for (size_t o = 0; o < tx->vout.size(); o++) {
                 if (view.HaveCoin(COutPoint(tx->GetHash(), o))) {
                     return state.DoS(100, error("ConnectBlock(): tried to overwrite transaction"),
-                        REJECT_INVALID, "bad-txns-BIP30");
+                                     REJECT_INVALID, "bad-txns-BIP30");
                 }
             }
         }
@@ -1754,7 +1752,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
         if (!tx.IsCoinBase()) {
             if (!view.HaveInputs(tx))
                 return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
-                    REJECT_INVALID, "bad-txns-inputs-missingorspent");
+                                 REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
             // Check that transaction is BIP68 final
             // BIP68 lock checks (as opposed to nLockTime checks) must
@@ -1766,7 +1764,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
 
             if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
                 return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
-                    REJECT_INVALID, "bad-txns-nonfinal");
+                                 REJECT_INVALID, "bad-txns-nonfinal");
             }
         }
 
@@ -1777,7 +1775,7 @@ static bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockInd
         nSigOpsCost += GetTransactionSigOpCost(tx, view, flags);
         if (nSigOpsCost > MAX_BLOCK_SIGOPS_COST)
             return state.DoS(100, error("ConnectBlock(): too many sigops"),
-                REJECT_INVALID, "bad-blk-sigops");
+                             REJECT_INVALID, "bad-blk-sigops");
 
         txdata.emplace_back(tx);
         if (!tx.IsCoinBase()) {
@@ -2854,7 +2852,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     for (const auto& tx : block.vtx)
         if (!CheckTransaction(*tx, state, true))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
-                strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
+                                 strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(), state.GetDebugMessage()));
 
     unsigned int nSigOps = 0;
     for (const auto& tx : block.vtx) {
@@ -3643,7 +3641,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview,
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, chainparams.GetConsensus()))
             return error("%s: *** found bad block at %d, hash=%s (%s)\n", __func__,
-                pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
+                         pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
         // check level 2: verify undo validity
         if (nCheckLevel >= 2 && pindex) {
             CBlockUndo undo;

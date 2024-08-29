@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 #===- clang-format-diff.py - ClangFormat Diff Reformatter ----*- python -*--===#
 #
@@ -69,10 +69,9 @@ Example usage for git/svn users:
 
 import argparse
 import difflib
+import io
 import re
-import string
 import subprocess
-import StringIO
 import sys
 
 
@@ -107,7 +106,7 @@ def main():
   filename = None
   lines_by_file = {}
   for line in sys.stdin:
-    match = re.search('^\+\+\+\ (.*?/){%s}(\S*)' % args.p, line)
+    match = re.search(r'^\+\+\+\ (.*?/){%s}(\S*)' % args.p, line)
     if match:
       filename = match.group(2)
     if filename == None:
@@ -120,7 +119,7 @@ def main():
       if not re.match('^%s$' % args.iregex, filename, re.IGNORECASE):
         continue
 
-    match = re.search('^@@.*\+(\d+)(,(\d+))?', line)
+    match = re.search(r'^@@.*\+(\d+)(,(\d+))?', line)
     if match:
       start_line = int(match.group(1))
       line_count = 1
@@ -133,9 +132,9 @@ def main():
           ['-lines', str(start_line) + ':' + str(end_line)])
 
   # Reformat files containing changes in place.
-  for filename, lines in lines_by_file.iteritems():
+  for filename, lines in lines_by_file.items():
     if args.i and args.verbose:
-      print 'Formatting', filename
+      print('Formatting {}'.format(filename))
     command = [binary, filename]
     if args.i:
       command.append('-i')
@@ -143,28 +142,28 @@ def main():
       command.append('-sort-includes')
     command.extend(lines)
     command.extend(['-style=file', '-fallback-style=none'])
-    
+
     try:
       p = subprocess.Popen(command, stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE, stdin=subprocess.PIPE)
       stdout, stderr = p.communicate()
       if p.returncode != 0:
         if b"error: unknown file type" in stderr or b"Configuration file(s) do(es) not support" in stderr:
-          print 'Skip Format', filename
+          print('Skip Formatting {}'.format(filename))
           continue
         else:
           sys.exit(p.returncode)
     except Exception as e:
         continue
-    
+      
     if not args.i:
-      with open(filename) as f:
+      with open(filename, encoding="utf8") as f:
         code = f.readlines()
-      formatted_code = StringIO.StringIO(stdout).readlines()
+      formatted_code = io.StringIO(stdout).readlines()
       diff = difflib.unified_diff(code, formatted_code,
                                   filename, filename,
                                   '(before formatting)', '(after formatting)')
-      diff_string = string.join(diff, '')
+      diff_string = ''.join(diff)
       if len(diff_string) > 0:
         sys.stdout.write(diff_string)
 

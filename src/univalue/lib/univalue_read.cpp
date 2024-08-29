@@ -42,19 +42,17 @@ static const char *hatoui(const char *first, const char *last,
     return first;
 }
 
-enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed,
-                            const char *raw)
+enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed, const char* raw)
 {
     tokenVal.clear();
     consumed = 0;
 
     const char *rawStart = raw;
 
-    while ((*raw) && (json_isspace(*raw)))             // skip whitespace
+    while ((*raw) && (json_isspace(*raw))) // skip whitespace
         raw++;
 
     switch (*raw) {
-
     case 0:
         return JTOK_NONE;
 
@@ -130,7 +128,7 @@ enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed,
         if ((*first == '-') && (!json_isdigit(*raw)))
             return JTOK_ERR;
 
-        while ((*raw) && json_isdigit(*raw)) {     // copy digits
+        while ((*raw) && json_isdigit(*raw)) { // copy digits
             numStr += *raw;
             raw++;
         }
@@ -197,7 +195,7 @@ enum jtokentype getJsonToken(string& tokenVal, unsigned int& consumed,
                 case 'u': {
                     unsigned int codepoint;
                     if (hatoui(raw + 1, raw + 1 + 4, codepoint) !=
-                               raw + 1 + 4)
+                        raw + 1 + 4)
                         return JTOK_ERR;
                     writer.push_back_u(codepoint);
                     raw += 4;
@@ -246,7 +244,7 @@ enum expect_bits {
 #define setExpect(bit) (expectMask |= EXP_##bit)
 #define clearExpect(bit) (expectMask &= ~EXP_##bit)
 
-bool UniValue::read(const char *raw)
+bool UniValue::read(const char* raw)
 {
     clear();
 
@@ -411,7 +409,7 @@ bool UniValue::read(const char *raw)
             if (!stack.size())
                 return false;
 
-            UniValue *top = stack.back();
+            UniValue* top = stack.back();
 
             if (expect(OBJ_NAME)) {
                 top->keys.push_back(tokenVal);

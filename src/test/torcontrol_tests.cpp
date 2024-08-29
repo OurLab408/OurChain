@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(util_SplitTorReplyLine)
     CheckSplitTorReplyLine("COMMAND   EVEN+more  ARGS", "COMMAND", "  EVEN+more  ARGS");
 }
 
-void CheckParseTorReplyMapping(std::string input, std::map<std::string,std::string> expected)
+void CheckParseTorReplyMapping(std::string input, std::map<std::string, std::string> expected)
 {
     BOOST_TEST_MESSAGE(std::string("CheckParseTorReplyMapping(") + input + ")");
     auto ret = ParseTorReplyMapping(input);

@@ -36,7 +36,8 @@ void ConfirmMessage(QString* text = nullptr)
             }
         }
         delete callback;
-    }), SLOT(call()));
+    }),
+        SLOT(call()));
 }
 
 //! Press "Yes" or "Cancel" buttons in modal send confirmation dialog.
@@ -188,7 +189,7 @@ void TestSendCoins()
     bitdb.Reset();
 }
 
-}
+} // namespace
 
 void WalletTests::walletTests()
 {

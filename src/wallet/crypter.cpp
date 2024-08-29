@@ -27,7 +27,7 @@ int CCrypter::BytesToKeySHA512AES(const std::vector<unsigned char>& chSalt, cons
     CSHA512 di;
 
     di.Write((const unsigned char*)strKeyData.c_str(), strKeyData.size());
-    if(chSalt.size())
+    if (chSalt.size())
         di.Write(&chSalt[0], chSalt.size());
     di.Finalize(buf);
 
@@ -247,10 +247,9 @@ bool CCryptoKeyStore::GetKey(const CKeyID &address, CKey& keyOut) const
             return CBasicKeyStore::GetKey(address, keyOut);
 
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-        if (mi != mapCryptedKeys.end())
-        {
-            const CPubKey &vchPubKey = (*mi).second.first;
-            const std::vector<unsigned char> &vchCryptedSecret = (*mi).second.second;
+        if (mi != mapCryptedKeys.end()) {
+            const CPubKey& vchPubKey = (*mi).second.first;
+            const std::vector<unsigned char>& vchCryptedSecret = (*mi).second.second;
             return DecryptKey(vMasterKey, vchCryptedSecret, vchPubKey, keyOut);
         }
     }
@@ -265,8 +264,7 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) co
             return CBasicKeyStore::GetPubKey(address, vchPubKeyOut);
 
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-        if (mi != mapCryptedKeys.end())
-        {
+        if (mi != mapCryptedKeys.end()) {
             vchPubKeyOut = (*mi).second.first;
             return true;
         }
@@ -283,9 +281,8 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn)
             return false;
 
         fUseCrypto = true;
-        for (KeyMap::value_type& mKey : mapKeys)
-        {
-            const CKey &key = mKey.second;
+        for (KeyMap::value_type& mKey : mapKeys) {
+            const CKey& key = mKey.second;
             CPubKey vchPubKey = key.GetPubKey();
             CKeyingMaterial vchSecret(key.begin(), key.end());
             std::vector<unsigned char> vchCryptedSecret;

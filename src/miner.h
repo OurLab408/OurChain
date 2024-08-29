@@ -9,10 +9,10 @@
 #include "primitives/block.h"
 #include "txmempool.h"
 
-#include <stdint.h>
-#include <memory>
-#include "boost/multi_index_container.hpp"
 #include "boost/multi_index/ordered_index.hpp"
+#include "boost/multi_index_container.hpp"
+#include <memory>
+#include <stdint.h>
 
 class CBlockIndex;
 class CChainParams;
@@ -86,7 +86,7 @@ struct CompareModifiedEntry {
 // This is sufficient to sort an ancestor package in an order that is valid
 // to appear in a block.
 struct CompareTxIterByAncestorCount {
-    bool operator()(const CTxMemPool::txiter &a, const CTxMemPool::txiter &b)
+    bool operator()(const CTxMemPool::txiter& a, const CTxMemPool::txiter& b)
     {
         if (a->GetCountWithAncestors() != b->GetCountWithAncestors())
             return a->GetCountWithAncestors() < b->GetCountWithAncestors();
@@ -99,17 +99,14 @@ typedef boost::multi_index_container<
     boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
             modifiedentry_iter,
-            CompareCTxMemPoolIter
-        >,
+            CompareCTxMemPoolIter>,
         // sorted by modified ancestor fee rate
         boost::multi_index::ordered_non_unique<
             // Reuse same tag from CTxMemPool's similar index
             boost::multi_index::tag<ancestor_score>,
             boost::multi_index::identity<CTxMemPoolModifiedEntry>,
-            CompareModifiedEntry
-        >
-    >
-> indexed_modified_transaction_set;
+            CompareModifiedEntry>>>
+    indexed_modified_transaction_set;
 
 typedef indexed_modified_transaction_set::nth_index<0>::type::iterator modtxiter;
 typedef indexed_modified_transaction_set::index<ancestor_score>::type::iterator modtxscoreiter;
@@ -181,7 +178,7 @@ private:
     /** Add transactions based on feerate including unconfirmed ancestors
       * Increments nPackagesSelected / nDescendantsUpdated with corresponding
       * statistics from the package selection (for logging statistics). */
-    void addPackageTxs(int &nPackagesSelected, int &nDescendantsUpdated);
+    void addPackageTxs(int& nPackagesSelected, int& nDescendantsUpdated);
 
     // helper functions for addPackageTxs()
     /** Remove confirmed (inBlock) entries from given set */
@@ -195,13 +192,13 @@ private:
     bool TestPackageTransactions(const CTxMemPool::setEntries& package);
     /** Return true if given transaction from mapTx has already been evaluated,
       * or if the transaction's cached data in mapTx is incorrect. */
-    bool SkipMapTxEntry(CTxMemPool::txiter it, indexed_modified_transaction_set &mapModifiedTx, CTxMemPool::setEntries &failedTx);
+    bool SkipMapTxEntry(CTxMemPool::txiter it, indexed_modified_transaction_set& mapModifiedTx, CTxMemPool::setEntries& failedTx);
     /** Sort the package in an order that is valid to appear in a block */
     void SortForBlock(const CTxMemPool::setEntries& package, CTxMemPool::txiter entry, std::vector<CTxMemPool::txiter>& sortedEntries);
     /** Add descendants of given transactions to mapModifiedTx with ancestor
       * state updated assuming given transactions are inBlock. Returns number
       * of updated descendants. */
-    int UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded, indexed_modified_transaction_set &mapModifiedTx);
+    int UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded, indexed_modified_transaction_set& mapModifiedTx);
 };
 
 /** Modify the extranonce in a block */

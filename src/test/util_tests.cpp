@@ -7,9 +7,9 @@
 #include "clientversion.h"
 #include "primitives/transaction.h"
 #include "sync.h"
-#include "utilstrencodings.h"
-#include "utilmoneystr.h"
 #include "test/test_bitcoin.h"
+#include "utilmoneystr.h"
+#include "utilstrencodings.h"
 
 #include <stdint.h>
 #include <vector>
@@ -104,7 +104,7 @@ public:
     {
         return mapArgs;
     };
-    const std::map<std::string, std::vector<std::string> >& GetMapMultiArgs()
+    const std::map<std::string, std::vector<std::string>>& GetMapMultiArgs()
     {
         return mapMultiArgs;
     };
@@ -128,8 +128,7 @@ BOOST_AUTO_TEST_CASE(util_ParseParameters)
     BOOST_CHECK(testArgs.GetMapArgs().size() == 3 && testArgs.GetMapMultiArgs().size() == 3);
     BOOST_CHECK(testArgs.IsArgSet("-a") && testArgs.IsArgSet("-b") && testArgs.IsArgSet("-ccc")
                 && !testArgs.IsArgSet("f") && !testArgs.IsArgSet("-d"));
-    BOOST_CHECK(testArgs.GetMapMultiArgs().count("-a") && testArgs.GetMapMultiArgs().count("-b") && testArgs.GetMapMultiArgs().count("-ccc")
-                && !testArgs.GetMapMultiArgs().count("f") && !testArgs.GetMapMultiArgs().count("-d"));
+    BOOST_CHECK(testArgs.GetMapMultiArgs().count("-a") && testArgs.GetMapMultiArgs().count("-b") && testArgs.GetMapMultiArgs().count("-ccc") && !testArgs.GetMapMultiArgs().count("f") && !testArgs.GetMapMultiArgs().count("-d"));
 
     BOOST_CHECK(testArgs.GetMapArgs()["-a"] == "" && testArgs.GetMapArgs()["-ccc"] == "multiple");
     BOOST_CHECK(testArgs.GetArgs("-ccc").size() == 2);

@@ -8,8 +8,8 @@
 #include "key.h"
 #include "keystore.h"
 #include "script/script.h"
-#include "script/standard.h"
 #include "script/sign.h"
+#include "script/standard.h"
 
 
 typedef std::vector<unsigned char> valtype;
@@ -17,8 +17,7 @@ typedef std::vector<unsigned char> valtype;
 unsigned int HaveKeys(const std::vector<valtype>& pubkeys, const CKeyStore& keystore)
 {
     unsigned int nResult = 0;
-    for (const valtype& pubkey : pubkeys)
-    {
+    for (const valtype& pubkey : pubkeys) {
         CKeyID keyID = CPubKey(pubkey).GetID();
         if (keystore.HaveKey(keyID))
             ++nResult;
@@ -38,13 +37,13 @@ isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest, SigVers
     return IsMine(keystore, dest, isInvalid, sigversion);
 }
 
-isminetype IsMine(const CKeyStore &keystore, const CTxDestination& dest, bool& isInvalid, SigVersion sigversion)
+isminetype IsMine(const CKeyStore& keystore, const CTxDestination& dest, bool& isInvalid, SigVersion sigversion)
 {
     CScript script = GetScriptForDestination(dest);
     return IsMine(keystore, script, isInvalid, sigversion);
 }
 
-isminetype IsMine(const CKeyStore &keystore, const CScript& scriptPubKey, bool& isInvalid, SigVersion sigversion)
+isminetype IsMine(const CKeyStore& keystore, const CScript& scriptPubKey, bool& isInvalid, SigVersion sigversion)
 {
     std::vector<valtype> vSolutions;
     txnouttype whichType;

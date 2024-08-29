@@ -6,11 +6,11 @@
 #ifndef BITCOIN_CONSENSUS_VALIDATION_H
 #define BITCOIN_CONSENSUS_VALIDATION_H
 
-#include <string>
-#include "version.h"
 #include "consensus/consensus.h"
-#include "primitives/transaction.h"
 #include "primitives/block.h"
+#include "primitives/transaction.h"
+#include "version.h"
+#include <string>
 
 /** "reject" message codes */
 static const unsigned char REJECT_MALFORMED = 0x01;
@@ -91,7 +91,7 @@ public:
 
 static inline int64_t GetTransactionWeight(const CTransaction& tx)
 {
-    return ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR -1) + ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
+    return ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * (WITNESS_SCALE_FACTOR - 1) + ::GetSerializeSize(tx, SER_NETWORK, PROTOCOL_VERSION);
 }
 
 static inline int64_t GetBlockWeight(const CBlock& block)

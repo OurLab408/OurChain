@@ -40,7 +40,7 @@ class ClientModel : public QObject
     Q_OBJECT
 
 public:
-    explicit ClientModel(OptionsModel *optionsModel, QObject *parent = 0);
+    explicit ClientModel(OptionsModel* optionsModel, QObject* parent = 0);
     ~ClientModel();
 
     OptionsModel *getOptionsModel();
@@ -56,11 +56,11 @@ public:
     long getMempoolSize() const;
     //! Return the dynamic memory usage of the mempool
     size_t getMempoolDynamicUsage() const;
-    
+
     quint64 getTotalBytesRecv() const;
     quint64 getTotalBytesSent() const;
 
-    double getVerificationProgress(const CBlockIndex *tip) const;
+    double getVerificationProgress(const CBlockIndex* tip) const;
     QDateTime getLastBlockDate() const;
 
     //! Return true if core is doing initial block download

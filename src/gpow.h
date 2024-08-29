@@ -17,7 +17,7 @@
 
 using namespace std;
 
-//#define ENABLE_GPoW
+// #define ENABLE_GPoW
 
 #ifndef ENABLE_GPoW
 typedef uint32_t GNonces;
@@ -26,7 +26,7 @@ typedef uint32_t GNonces;
 extern int Debug;
 extern bool (*CONDITION)();
 
-//#define my_debug
+// #define my_debug
 #define my_Eprintf(...)                                         \
     {                                                           \
         printf("\n0x%04x  %s(%i):", Debug, __FILE__, __LINE__); \

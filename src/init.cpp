@@ -831,8 +831,7 @@ void InitLogging()
     LogPrintf("Bitcoin version %s\n", FormatFullVersion());
 }
 
-namespace
-{ // Variables internal to initialization process only
+namespace { // Variables internal to initialization process only
 
 ServiceFlags nRelevantServices = NODE_NETWORK;
 int nMaxConnections;

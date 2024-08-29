@@ -273,7 +273,7 @@ void InitArith2()
     (*(base_uint<288>*)&Avg) = 0;
 };
 
-void ClearArith2(){};
+void ClearArith2() {};
 
 void AddHash2(uint256& avg, uint256& hash)
 {

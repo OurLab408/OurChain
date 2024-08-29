@@ -6,17 +6,16 @@
 
 #include "crypto/sha256.h"
 #include "key.h"
-#include "validation.h"
-#include "util.h"
 #include "random.h"
+#include "util.h"
+#include "validation.h"
 
 #ifdef ENABLE_GPoW
 #include "gpow.h"
 T nMaxTries;
 #endif
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
     SHA256AutoDetect();
     RandomInit();

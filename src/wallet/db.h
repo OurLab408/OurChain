@@ -36,7 +36,7 @@ private:
 
 public:
     mutable CCriticalSection cs_db;
-    DbEnv *dbenv;
+    DbEnv* dbenv;
     std::map<std::string, int> mapFileUseCount;
     std::map<std::string, Db*> mapDb;
 
@@ -93,6 +93,7 @@ extern CDBEnv bitdb;
 class CWalletDBWrapper
 {
     friend class CDB;
+
 public:
     /** Create dummy DB handle */
     CWalletDBWrapper() : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0), nLastWalletUpdate(0), env(nullptr)
@@ -100,8 +101,7 @@ public:
     }
 
     /** Create DB handle to real database */
-    CWalletDBWrapper(CDBEnv *env_in, const std::string &strFile_in) :
-        nUpdateCounter(0), nLastSeen(0), nLastFlushed(0), nLastWalletUpdate(0), env(env_in), strFile(strFile_in)
+    CWalletDBWrapper(CDBEnv* env_in, const std::string& strFile_in) : nUpdateCounter(0), nLastSeen(0), nLastFlushed(0), nLastWalletUpdate(0), env(env_in), strFile(strFile_in)
     {
     }
 
@@ -130,7 +130,7 @@ public:
 
 private:
     /** BerkeleyDB specific */
-    CDBEnv *env;
+    CDBEnv* env;
     std::string strFile;
 
     /** Return whether this database handle is a dummy for testing.
@@ -150,15 +150,15 @@ protected:
     DbTxn* activeTxn;
     bool fReadOnly;
     bool fFlushOnClose;
-    CDBEnv *env;
+    CDBEnv* env;
 
 public:
-    explicit CDB(CWalletDBWrapper& dbw, const char* pszMode = "r+", bool fFlushOnCloseIn=true);
+    explicit CDB(CWalletDBWrapper& dbw, const char* pszMode = "r+", bool fFlushOnCloseIn = true);
     ~CDB() { Close(); }
 
     void Flush();
     void Close();
-    static bool Recover(const std::string& filename, void *callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream ssKey, CDataStream ssValue), std::string& out_backup_filename);
+    static bool Recover(const std::string& filename, void* callbackDataIn, bool (*recoverKVcallback)(void* callbackData, CDataStream ssKey, CDataStream ssValue), std::string& out_backup_filename);
 
     /* flush the wallet passively (TRY_LOCK)
        ideal to be called periodically */

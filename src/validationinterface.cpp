@@ -19,8 +19,8 @@ struct MainSignalsInstance {
     boost::signals2::signal<void (const CTransactionRef &)> TransactionAddedToMempool;
     boost::signals2::signal<void (const std::shared_ptr<const CBlock> &, const CBlockIndex *pindex, const std::vector<CTransactionRef>&)> BlockConnected;
     boost::signals2::signal<void (const std::shared_ptr<const CBlock> &)> BlockDisconnected;
-    boost::signals2::signal<void (const CBlockLocator &)> SetBestChain;
-    boost::signals2::signal<void (const uint256 &)> Inventory;
+    boost::signals2::signal<void(const CBlockLocator&)> SetBestChain;
+    boost::signals2::signal<void(const uint256&)> Inventory;
     boost::signals2::signal<void (int64_t nBestBlockTime, CConnman* connman)> Broadcast;
     boost::signals2::signal<void (const CBlock&, const CValidationState&)> BlockChecked;
     boost::signals2::signal<void (const CBlockIndex *, const std::shared_ptr<const CBlock>&)> NewPoWValidBlock;
@@ -30,7 +30,7 @@ struct MainSignalsInstance {
     // our own queue here :(
     SingleThreadedSchedulerClient m_schedulerClient;
 
-    MainSignalsInstance(CScheduler *pscheduler) : m_schedulerClient(pscheduler) {}
+    MainSignalsInstance(CScheduler* pscheduler) : m_schedulerClient(pscheduler) {}
 };
 
 static CMainSignals g_signals;
@@ -97,7 +97,8 @@ void CMainSignals::TransactionAddedToMempool(const CTransactionRef &ptx) {
     m_internals->TransactionAddedToMempool(ptx);
 }
 
-void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex, const std::vector<CTransactionRef>& vtxConflicted) {
+void CMainSignals::BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex* pindex, const std::vector<CTransactionRef>& vtxConflicted)
+{
     m_internals->BlockConnected(pblock, pindex, vtxConflicted);
 }
 
@@ -105,11 +106,13 @@ void CMainSignals::BlockDisconnected(const std::shared_ptr<const CBlock> &pblock
     m_internals->BlockDisconnected(pblock);
 }
 
-void CMainSignals::SetBestChain(const CBlockLocator &locator) {
+void CMainSignals::SetBestChain(const CBlockLocator& locator)
+{
     m_internals->SetBestChain(locator);
 }
 
-void CMainSignals::Inventory(const uint256 &hash) {
+void CMainSignals::Inventory(const uint256& hash)
+{
     m_internals->Inventory(hash);
 }
 

@@ -95,14 +95,14 @@ private:
     CScheduler *m_pscheduler;
 
     CCriticalSection m_cs_callbacks_pending;
-    std::list<std::function<void (void)>> m_callbacks_pending;
+    std::list<std::function<void(void)>> m_callbacks_pending;
     bool m_are_callbacks_running = false;
 
     void MaybeScheduleProcessQueue();
     void ProcessQueue();
 
 public:
-    SingleThreadedSchedulerClient(CScheduler *pschedulerIn) : m_pscheduler(pschedulerIn) {}
+    SingleThreadedSchedulerClient(CScheduler* pschedulerIn) : m_pscheduler(pschedulerIn) {}
     void AddToProcessQueue(std::function<void (void)> func);
 
     // Processes all remaining queue members on the calling thread, blocking until queue is empty

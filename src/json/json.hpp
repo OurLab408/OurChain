@@ -130,12 +130,10 @@
 
 #ifndef NLOHMANN_JSON_NAMESPACE_BEGIN
 #define NLOHMANN_JSON_NAMESPACE_BEGIN                \
-    namespace nlohmann                               \
-    {                                                \
+    namespace nlohmann {                             \
     inline namespace NLOHMANN_JSON_NAMESPACE_CONCAT( \
         NLOHMANN_JSON_ABI_TAGS,                      \
-        NLOHMANN_JSON_NAMESPACE_VERSION)             \
-    {
+        NLOHMANN_JSON_NAMESPACE_VERSION) {
 #endif
 
 #ifndef NLOHMANN_JSON_NAMESPACE_END
@@ -237,8 +235,7 @@
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename... Ts>
 struct make_void {
@@ -252,8 +249,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 // https://en.cppreference.com/w/cpp/experimental/is_detected
 struct nonesuch {
@@ -362,7 +358,7 @@ NLOHMANN_JSON_NAMESPACE_END
 #if defined(JSON_HEDLEY_VERSION_ENCODE)
 #undef JSON_HEDLEY_VERSION_ENCODE
 #endif
-#define JSON_HEDLEY_VERSION_ENCODE(major, minor, revision) (((major)*1000000) + ((minor)*1000) + (revision))
+#define JSON_HEDLEY_VERSION_ENCODE(major, minor, revision) (((major) * 1000000) + ((minor) * 1000) + (revision))
 
 #if defined(JSON_HEDLEY_VERSION_DECODE_MAJOR)
 #undef JSON_HEDLEY_VERSION_DECODE_MAJOR
@@ -477,11 +473,11 @@ NLOHMANN_JSON_NAMESPACE_END
 #if defined(__SUNPRO_C) && (__SUNPRO_C > 0x1000)
 #define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((((__SUNPRO_C >> 16) & 0xf) * 10) + ((__SUNPRO_C >> 12) & 0xf), (((__SUNPRO_C >> 8) & 0xf) * 10) + ((__SUNPRO_C >> 4) & 0xf), (__SUNPRO_C & 0xf) * 10)
 #elif defined(__SUNPRO_C)
-#define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((__SUNPRO_C >> 8) & 0xf, (__SUNPRO_C >> 4) & 0xf, (__SUNPRO_C)&0xf)
+#define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((__SUNPRO_C >> 8) & 0xf, (__SUNPRO_C >> 4) & 0xf, (__SUNPRO_C) & 0xf)
 #elif defined(__SUNPRO_CC) && (__SUNPRO_CC > 0x1000)
 #define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((((__SUNPRO_CC >> 16) & 0xf) * 10) + ((__SUNPRO_CC >> 12) & 0xf), (((__SUNPRO_CC >> 8) & 0xf) * 10) + ((__SUNPRO_CC >> 4) & 0xf), (__SUNPRO_CC & 0xf) * 10)
 #elif defined(__SUNPRO_CC)
-#define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((__SUNPRO_CC >> 8) & 0xf, (__SUNPRO_CC >> 4) & 0xf, (__SUNPRO_CC)&0xf)
+#define JSON_HEDLEY_SUNPRO_VERSION JSON_HEDLEY_VERSION_ENCODE((__SUNPRO_CC >> 8) & 0xf, (__SUNPRO_CC >> 4) & 0xf, (__SUNPRO_CC) & 0xf)
 #endif
 
 #if defined(JSON_HEDLEY_SUNPRO_VERSION_CHECK)
@@ -2022,10 +2018,10 @@ JSON_HEDLEY_DIAGNOSTIC_POP
     JSON_HEDLEY_ARM_VERSION_CHECK(5, 4, 0) ||                \
     JSON_HEDLEY_TINYC_VERSION_CHECK(0, 9, 24)
 #if defined(__INTPTR_TYPE__)
-#define JSON_HEDLEY_IS_CONSTEXPR_(expr) __builtin_types_compatible_p(__typeof__((1 ? (void*)((__INTPTR_TYPE__)((expr)*0)) : (int*)0)), int*)
+#define JSON_HEDLEY_IS_CONSTEXPR_(expr) __builtin_types_compatible_p(__typeof__((1 ? (void*)((__INTPTR_TYPE__)((expr) * 0)) : (int*)0)), int*)
 #else
 #include <stdint.h>
-#define JSON_HEDLEY_IS_CONSTEXPR_(expr) __builtin_types_compatible_p(__typeof__((1 ? (void*)((intptr_t)((expr)*0)) : (int*)0)), int*)
+#define JSON_HEDLEY_IS_CONSTEXPR_(expr) __builtin_types_compatible_p(__typeof__((1 ? (void*)((intptr_t)((expr) * 0)) : (int*)0)), int*)
 #endif
 #elif (                                                                                       \
     defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) &&                             \
@@ -2038,10 +2034,10 @@ JSON_HEDLEY_DIAGNOSTIC_POP
     JSON_HEDLEY_IBM_VERSION_CHECK(12, 1, 0) ||                                                \
     JSON_HEDLEY_ARM_VERSION_CHECK(5, 3, 0)
 #if defined(__INTPTR_TYPE__)
-#define JSON_HEDLEY_IS_CONSTEXPR_(expr) _Generic((1 ? (void*)((__INTPTR_TYPE__)((expr)*0)) : (int*)0), int* : 1, void* : 0)
+#define JSON_HEDLEY_IS_CONSTEXPR_(expr) _Generic((1 ? (void*)((__INTPTR_TYPE__)((expr) * 0)) : (int*)0), int*: 1, void*: 0)
 #else
 #include <stdint.h>
-#define JSON_HEDLEY_IS_CONSTEXPR_(expr) _Generic((1 ? (void*)((intptr_t)*0) : (int*)0), int* : 1, void* : 0)
+#define JSON_HEDLEY_IS_CONSTEXPR_(expr) _Generic((1 ? (void*)((intptr_t) * 0) : (int*)0), int*: 1, void*: 0)
 #endif
 #elif defined(JSON_HEDLEY_GCC_VERSION) ||            \
     defined(JSON_HEDLEY_INTEL_VERSION) ||            \
@@ -2057,7 +2053,7 @@ JSON_HEDLEY_DIAGNOSTIC_POP
     sizeof(void) !=                       \
     sizeof(*(                             \
         1 ?                               \
-            ((void*)((expr)*0L)) :        \
+            ((void*)((expr) * 0L)) :      \
             ((struct { char v[sizeof(void) * 2]; }*)1))))
 #endif
 #endif
@@ -2689,16 +2685,14 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 // it allows using the detected idiom to retrieve the return type
 // of such an expression
 #define NLOHMANN_CAN_CALL_STD_FUNC_IMPL(std_name)                                 \
-    namespace detail                                                              \
-    {                                                                             \
+    namespace detail {                                                            \
     using std::std_name;                                                          \
                                                                                   \
     template <typename... T>                                                      \
     using result_of_##std_name = decltype(std_name(std::declval<T>()...));        \
     }                                                                             \
                                                                                   \
-    namespace detail2                                                             \
-    {                                                                             \
+    namespace detail2 {                                                           \
     struct std_name##_tag {                                                       \
     };                                                                            \
                                                                                   \
@@ -2742,8 +2736,7 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 #endif
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 ///////////////////////////
 // JSON type enumeration //
@@ -2800,7 +2793,7 @@ Returns an ordering that is similar to Python:
 @since version 1.0.0
 */
 #if JSON_HAS_THREE_WAY_COMPARISON
-inline std::partial_ordering operator<=>(const value_t lhs, const value_t rhs) noexcept // *NOPAD*
+inline std::partial_ordering operator<= > (const value_t lhs, const value_t rhs) noexcept // *NOPAD*
 #else
 inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #endif
@@ -2815,7 +2808,7 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
     const auto r_index = static_cast<std::size_t>(rhs);
 #if JSON_HAS_THREE_WAY_COMPARISON
     if (l_index < order.size() && r_index < order.size()) {
-        return order[l_index] <=> order[r_index]; // *NOPAD*
+        return order[l_index] <= > order[r_index]; // *NOPAD*
     }
     return std::partial_ordering::unordered;
 #else
@@ -2830,7 +2823,7 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 #if JSON_HAS_THREE_WAY_COMPARISON && defined(__GNUC__)
 inline bool operator<(const value_t lhs, const value_t rhs) noexcept
 {
-    return std::is_lt(lhs <=> rhs); // *NOPAD*
+    return std::is_lt(lhs <= > rhs); // *NOPAD*
 }
 #endif
 
@@ -2851,8 +2844,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /*!
 @brief replace all occurrences of a substring by another string
@@ -2927,8 +2919,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /// struct to capture the start position of the current token
 struct position_t {
@@ -2971,8 +2962,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename T>
 using uncvref_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
@@ -3032,8 +3022,7 @@ struct integer_sequence {
 template <size_t... Ints>
 using index_sequence = integer_sequence<size_t, Ints...>;
 
-namespace utility_internal
-{
+namespace utility_internal {
 
 template <typename Seq, size_t SeqSize, size_t Rem>
 struct Extend;
@@ -3157,8 +3146,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename It, typename = void>
 struct iterator_types {
@@ -3331,8 +3319,7 @@ implementations of some @ref basic_json methods, and meta-programming helpers.
 
 @since version 2.1.0
 */
-namespace detail
-{
+namespace detail {
 
 /////////////
 // helpers //
@@ -4009,8 +3996,7 @@ using bool_constant = std::integral_constant<bool, Value>;
 // is_c_string
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace impl
-{
+namespace impl {
 
 template <typename T>
 inline constexpr bool is_c_string()
@@ -4036,8 +4022,7 @@ using is_c_string_uncvref = is_c_string<uncvref_t<T>>;
 // is_transparent
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace impl
-{
+namespace impl {
 
 template <typename T>
 inline constexpr bool is_transparent()
@@ -4077,8 +4062,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 inline std::size_t concat_length()
 {
@@ -4190,8 +4174,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 ////////////////
 // exceptions //
@@ -4428,8 +4411,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 // dispatching helper struct
 template <class T>
@@ -4455,16 +4437,14 @@ NLOHMANN_JSON_NAMESPACE_END
 #if JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #include <experimental/filesystem>
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 namespace std_fs = std::experimental::filesystem;
 } // namespace detail
 NLOHMANN_JSON_NAMESPACE_END
 #elif JSON_HAS_FILESYSTEM
 #include <filesystem>
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 namespace std_fs = std::filesystem;
 } // namespace detail
 NLOHMANN_JSON_NAMESPACE_END
@@ -4478,8 +4458,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename BasicJsonType>
 inline void from_json(const BasicJsonType& j, typename std::nullptr_t& n)
@@ -4922,8 +4901,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename string_type>
 void int_to_string(string_type& target, std::size_t value)
@@ -4957,7 +4935,7 @@ private:
 
 public:
     explicit iteration_proxy_value() = default;
-    explicit iteration_proxy_value(IteratorType it, std::size_t array_index_ = 0) noexcept(std::is_nothrow_move_constructible<IteratorType>::value&& std::is_nothrow_default_constructible<string_type>::value)
+    explicit iteration_proxy_value(IteratorType it, std::size_t array_index_ = 0) noexcept(std::is_nothrow_move_constructible<IteratorType>::value && std::is_nothrow_default_constructible<string_type>::value)
         : anchor(std::move(it)), array_index(array_index_)
     {
     }
@@ -4965,8 +4943,8 @@ public:
     iteration_proxy_value(iteration_proxy_value const&) = default;
     iteration_proxy_value& operator=(iteration_proxy_value const&) = default;
     // older GCCs are a bit fussy and require explicit noexcept specifiers on defaulted functions
-    iteration_proxy_value(iteration_proxy_value&&) noexcept(std::is_nothrow_move_constructible<IteratorType>::value&& std::is_nothrow_move_constructible<string_type>::value) = default;      // NOLINT(hicpp-noexcept-move,performance-noexcept-move-constructor)
-    iteration_proxy_value& operator=(iteration_proxy_value&&) noexcept(std::is_nothrow_move_assignable<IteratorType>::value&& std::is_nothrow_move_assignable<string_type>::value) = default; // NOLINT(hicpp-noexcept-move,performance-noexcept-move-constructor)
+    iteration_proxy_value(iteration_proxy_value&&) noexcept(std::is_nothrow_move_constructible<IteratorType>::value && std::is_nothrow_move_constructible<string_type>::value) = default;      // NOLINT(hicpp-noexcept-move,performance-noexcept-move-constructor)
+    iteration_proxy_value& operator=(iteration_proxy_value&&) noexcept(std::is_nothrow_move_assignable<IteratorType>::value && std::is_nothrow_move_assignable<string_type>::value) = default; // NOLINT(hicpp-noexcept-move,performance-noexcept-move-constructor)
     ~iteration_proxy_value() = default;
 
     /// dereference operator (needed for range-based for)
@@ -5102,8 +5080,7 @@ NLOHMANN_JSON_NAMESPACE_END
 // Structured Bindings Support to the iteration_proxy_value class
 // For further reference see https://blog.tartanllama.xyz/structured-bindings/
 // And see https://github.com/nlohmann/json/pull/1391
-namespace std
-{
+namespace std {
 
 #if defined(__clang__)
 // Fix: https://github.com/nlohmann/json/issues/1401
@@ -5146,8 +5123,7 @@ inline constexpr bool ::std::ranges::enable_borrowed_range<::nlohmann::detail::i
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 //////////////////
 // constructors //
@@ -5702,8 +5678,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 // boost::hash_combine
 inline std::size_t combine(std::size_t seed, std::size_t h) noexcept
@@ -5857,8 +5832,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /// the supported input formats
 enum class input_format_t { json,
@@ -6191,8 +6165,7 @@ typename iterator_input_adapter_factory<IteratorType>::adapter_type input_adapte
 // Enables ADL on begin(container) and end(container)
 // Encloses the using declarations in namespace for not to leak them to outside scope
 
-namespace container_input_adapter_factory_impl
-{
+namespace container_input_adapter_factory_impl {
 
 using std::begin;
 using std::end;
@@ -6446,8 +6419,7 @@ struct json_sax {
 };
 
 
-namespace detail
-{
+namespace detail {
 /*!
 @brief SAX implementation to create a JSON value from SAX events
 
@@ -6606,9 +6578,8 @@ private:
                object to which we can add elements
     */
     template <typename Value>
-    JSON_HEDLEY_RETURNS_NON_NULL
-        BasicJsonType*
-        handle_value(Value&& v)
+    JSON_HEDLEY_RETURNS_NON_NULL BasicJsonType*
+    handle_value(Value&& v)
     {
         if (ref_stack.empty()) {
             root = BasicJsonType(std::forward<Value>(v));
@@ -7031,8 +7002,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 ///////////
 // lexer //
@@ -8498,8 +8468,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename T>
 using null_function_t = decltype(std::declval<T&>().null());
@@ -8644,8 +8613,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /// how to treat CBOR tags
 enum class cbor_tag_handler_t {
@@ -11379,8 +11347,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 ////////////
 // parser //
 ////////////
@@ -11830,8 +11797,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /*
 @brief an iterator for primitive JSON types
@@ -11949,8 +11915,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /*!
 @brief an iterator value
@@ -12000,8 +11965,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 // forward declare, to be able to friend it later on
 template <typename IteratorType>
@@ -12710,8 +12674,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 //////////////////////
 // reverse_iterator //
@@ -12835,8 +12798,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /*!
 @brief Default base class of the @ref basic_json class.
@@ -13653,9 +13615,9 @@ public:
 
     /// @brief 3-way compares two JSON pointers
     template <typename RefStringTypeRhs>
-    std::strong_ordering operator<=>(const json_pointer<RefStringTypeRhs>& rhs) const noexcept // *NOPAD*
+        std::strong_ordering operator<= > (const json_pointer<RefStringTypeRhs>& rhs) const noexcept // *NOPAD*
     {
-        return reference_tokens <=> rhs.reference_tokens; // *NOPAD*
+        return reference_tokens <= > rhs.reference_tokens; // *NOPAD*
     }
 #else
     /// @brief compares two JSON pointers for equality
@@ -13793,8 +13755,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 template <typename BasicJsonType>
 class json_ref
@@ -13919,8 +13880,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /// abstract output adapter interface
 template <typename CharType>
@@ -14055,8 +14015,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 ///////////////////
 // binary writer //
@@ -15353,8 +15312,7 @@ private:
     */
     bool write_bjdata_ndarray(const typename BasicJsonType::object_t& value, const bool use_count, const bool use_type)
     {
-        std::map<string_t, CharType> bjdtype = {{"uint8", 'U'}, {"int8", 'i'}, {"uint16", 'u'}, {"int16", 'I'},
-            {"uint32", 'm'}, {"int32", 'l'}, {"uint64", 'M'}, {"int64", 'L'}, {"single", 'd'}, {"double", 'D'}, {"char", 'C'}};
+        std::map<string_t, CharType> bjdtype = {{"uint8", 'U'}, {"int8", 'i'}, {"uint16", 'u'}, {"int16", 'I'}, {"uint32", 'm'}, {"int32", 'l'}, {"uint64", 'M'}, {"int64", 'L'}, {"single", 'd'}, {"double", 'D'}, {"char", 'C'}};
 
         string_t key = "_ArrayType_";
         auto it = bjdtype.find(static_cast<string_t>(value.at(key)));
@@ -15575,8 +15533,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 /*!
 @brief implements the Grisu2 algorithm for binary to decimal floating-point
@@ -15597,8 +15554,7 @@ For a detailed description of the algorithm see:
     Proceedings of the ACM SIGPLAN 1996 Conference on Programming Language
     Design and Implementation, PLDI 1996
 */
-namespace dtoa_impl
-{
+namespace dtoa_impl {
 
 template <typename Target, typename Source>
 Target reinterpret_bits(const Source source)
@@ -16649,8 +16605,7 @@ NLOHMANN_JSON_NAMESPACE_END
 
 
 NLOHMANN_JSON_NAMESPACE_BEGIN
-namespace detail
-{
+namespace detail {
 
 ///////////////////
 // serialization //
@@ -19011,11 +18966,11 @@ public:
     /// @brief copy assignment
     /// @sa https://json.nlohmann.me/api/basic_json/operator=/
     basic_json& operator=(basic_json other) noexcept(
-        std::is_nothrow_move_constructible<value_t>::value&&
-            std::is_nothrow_move_assignable<value_t>::value&&
-                std::is_nothrow_move_constructible<json_value>::value&&
-                    std::is_nothrow_move_assignable<json_value>::value&&
-                        std::is_nothrow_move_assignable<json_base_class_t>::value)
+        std::is_nothrow_move_constructible<value_t>::value &&
+        std::is_nothrow_move_assignable<value_t>::value &&
+        std::is_nothrow_move_constructible<json_value>::value &&
+        std::is_nothrow_move_assignable<json_value>::value &&
+        std::is_nothrow_move_assignable<json_base_class_t>::value)
     {
         // check that passed value is valid
         other.assert_invariant();
@@ -21063,10 +21018,10 @@ public:
     /// @brief exchanges the values
     /// @sa https://json.nlohmann.me/api/basic_json/swap/
     void swap(reference other) noexcept(
-        std::is_nothrow_move_constructible<value_t>::value&&
-            std::is_nothrow_move_assignable<value_t>::value&&
-                std::is_nothrow_move_constructible<json_value>::value&&
-                    std::is_nothrow_move_assignable<json_value>::value)
+        std::is_nothrow_move_constructible<value_t>::value &&
+        std::is_nothrow_move_assignable<value_t>::value &&
+        std::is_nothrow_move_constructible<json_value>::value &&
+        std::is_nothrow_move_assignable<json_value>::value)
     {
         std::swap(m_data.m_type, other.m_data.m_type);
         std::swap(m_data.m_value, other.m_data.m_value);
@@ -21079,10 +21034,10 @@ public:
     /// @brief exchanges the values
     /// @sa https://json.nlohmann.me/api/basic_json/swap/
     friend void swap(reference left, reference right) noexcept(
-        std::is_nothrow_move_constructible<value_t>::value&&
-            std::is_nothrow_move_assignable<value_t>::value&&
-                std::is_nothrow_move_constructible<json_value>::value&&
-                    std::is_nothrow_move_assignable<json_value>::value)
+        std::is_nothrow_move_constructible<value_t>::value &&
+        std::is_nothrow_move_assignable<value_t>::value &&
+        std::is_nothrow_move_constructible<json_value>::value &&
+        std::is_nothrow_move_assignable<json_value>::value)
     {
         left.swap(right);
     }
@@ -21265,7 +21220,7 @@ public:
     /// @brief comparison: equal
     /// @sa https://json.nlohmann.me/api/basic_json/operator_eq/
     template <typename ScalarType>
-    requires std::is_scalar_v<ScalarType>
+        requires std::is_scalar_v<ScalarType>
     bool operator==(ScalarType rhs) const noexcept
     {
         return *this == basic_json(rhs);
@@ -21283,24 +21238,24 @@ public:
 
     /// @brief comparison: 3-way
     /// @sa https://json.nlohmann.me/api/basic_json/operator_spaceship/
-    std::partial_ordering operator<=>(const_reference rhs) const noexcept // *NOPAD*
+    std::partial_ordering operator<= > (const_reference rhs) const noexcept // *NOPAD*
     {
         const_reference lhs = *this;
         // default_result is used if we cannot compare values. In that case,
         // we compare types.
-        JSON_IMPLEMENT_OPERATOR(<=>, // *NOPAD*
+        JSON_IMPLEMENT_OPERATOR(<= >, // *NOPAD*
             std::partial_ordering::equivalent,
             std::partial_ordering::unordered,
-            lhs_type <=> rhs_type) // *NOPAD*
+            lhs_type <= > rhs_type) // *NOPAD*
     }
 
     /// @brief comparison: 3-way
     /// @sa https://json.nlohmann.me/api/basic_json/operator_spaceship/
     template <typename ScalarType>
-    requires std::is_scalar_v<ScalarType>
-        std::partial_ordering operator<=>(ScalarType rhs) const noexcept // *NOPAD*
+        requires std::is_scalar_v<ScalarType>
+    std::partial_ordering operator<= > (ScalarType rhs) const noexcept // *NOPAD*
     {
-        return *this <=> basic_json(rhs); // *NOPAD*
+        return *this <= > basic_json(rhs); // *NOPAD*
     }
 
 #if JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON
@@ -21321,7 +21276,7 @@ public:
     /// @brief comparison: less than or equal
     /// @sa https://json.nlohmann.me/api/basic_json/operator_le/
     template <typename ScalarType>
-    requires std::is_scalar_v<ScalarType>
+        requires std::is_scalar_v<ScalarType>
     bool operator<=(ScalarType rhs) const noexcept
     {
         return *this <= basic_json(rhs);
@@ -21341,7 +21296,7 @@ public:
     /// @brief comparison: greater than or equal
     /// @sa https://json.nlohmann.me/api/basic_json/operator_ge/
     template <typename ScalarType>
-    requires std::is_scalar_v<ScalarType>
+        requires std::is_scalar_v<ScalarType>
     bool operator>=(ScalarType rhs) const noexcept
     {
         return *this >= basic_json(rhs);
@@ -22521,8 +22476,7 @@ public:
                     // found a key that is not in this -> add it
                     const auto path_key = detail::concat(path, '/', detail::escape(it.key()));
                     result.push_back(
-                        {{"op", "add"}, {"path", path_key},
-                            {"value", it.value()}});
+                        {{"op", "add"}, {"path", path_key}, {"value", it.value()}});
                 }
             }
 
@@ -22587,10 +22541,8 @@ std::string to_string(const NLOHMANN_BASIC_JSON_TPL& j)
     return j.dump();
 }
 
-inline namespace literals
-{
-inline namespace json_literals
-{
+inline namespace literals {
+inline namespace json_literals {
 
 /// @brief user-defined string literal for JSON values
 /// @sa https://json.nlohmann.me/api/basic_json/operator_literal_json/
@@ -22642,7 +22594,7 @@ struct less<::nlohmann::detail::value_t> // do not remove the space after '<', s
         ::nlohmann::detail::value_t rhs) const noexcept
     {
 #if JSON_HAS_THREE_WAY_COMPARISON
-        return std::is_lt(lhs <=> rhs); // *NOPAD*
+        return std::is_lt(lhs <= > rhs); // *NOPAD*
 #else
         return ::nlohmann::detail::operator<(lhs, rhs);
 #endif
@@ -22656,8 +22608,8 @@ struct less<::nlohmann::detail::value_t> // do not remove the space after '<', s
 /// @sa https://json.nlohmann.me/api/basic_json/std_swap/
 NLOHMANN_BASIC_JSON_TPL_DECLARATION
 inline void swap(nlohmann::NLOHMANN_BASIC_JSON_TPL& j1, nlohmann::NLOHMANN_BASIC_JSON_TPL& j2) noexcept( // NOLINT(readability-inconsistent-declaration-parameter-name, cert-dcl58-cpp)
-    is_nothrow_move_constructible<nlohmann::NLOHMANN_BASIC_JSON_TPL>::value&&                            // NOLINT(misc-redundant-expression)
-        is_nothrow_move_assignable<nlohmann::NLOHMANN_BASIC_JSON_TPL>::value)
+    is_nothrow_move_constructible<nlohmann::NLOHMANN_BASIC_JSON_TPL>::value &&                           // NOLINT(misc-redundant-expression)
+    is_nothrow_move_assignable<nlohmann::NLOHMANN_BASIC_JSON_TPL>::value)
 {
     j1.swap(j2);
 }

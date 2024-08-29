@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
     poolSize = testPool.size();
     testPool.removeRecursive(txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 1);
-    
+
     // Parent, children, grandchildren:
     testPool.addUnchecked(txParent.GetHash(), entry.FromTx(txParent));
     for (int i = 0; i < 3; i++)
@@ -105,8 +105,8 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
     BOOST_CHECK_EQUAL(testPool.size(), 0);
 }
 
-template<typename name>
-void CheckSort(CTxMemPool &pool, std::vector<std::string> &sortedOrder)
+template <typename name>
+void CheckSort(CTxMemPool& pool, std::vector<std::string>& sortedOrder)
 {
     BOOST_CHECK_EQUAL(pool.size(), sortedOrder.size());
     typename CTxMemPool::indexed_transaction_set::index<name>::type::iterator it = pool.mapTx.get<name>().begin();
@@ -559,15 +559,15 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest)
     // ... we should keep the same min fee until we get a block
     pool.removeForBlock(vtx, 1);
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000)/2);
+    BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000) / 2);
     // ... then feerate should drop 1/2 each halflife
 
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 5 / 2).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000)/4);
+    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 5 / 2).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000) / 4);
     // ... with a 1/2 halflife when mempool is < 1/2 its target size
 
     SetMockTime(42 + 2*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2 + CTxMemPool::ROLLING_FEE_HALFLIFE/4);
-    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000)/8);
+    BOOST_CHECK_EQUAL(pool.GetMinFee(pool.DynamicMemoryUsage() * 9 / 2).GetFeePerK(), (maxFeeRateRemoved.GetFeePerK() + 1000) / 8);
     // ... with a 1/4 halflife when mempool is < 1/4 its target size
 
     SetMockTime(42 + 7*CTxMemPool::ROLLING_FEE_HALFLIFE + CTxMemPool::ROLLING_FEE_HALFLIFE/2 + CTxMemPool::ROLLING_FEE_HALFLIFE/4);

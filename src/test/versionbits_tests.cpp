@@ -3,11 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chain.h"
-#include "versionbits.h"
-#include "test/test_bitcoin.h"
 #include "chainparams.h"
-#include "validation.h"
 #include "consensus/params.h"
+#include "test/test_bitcoin.h"
+#include "validation.h"
+#include "versionbits.h"
 
 #include <boost/test/unit_test.hpp>
 
@@ -318,7 +318,7 @@ BOOST_AUTO_TEST_CASE(versionbits_computeblockversion)
     BOOST_CHECK((ComputeBlockVersion(lastBlock, mainnetParams) & (1<<bit)) != 0);
 
     // Mine another period worth of blocks, signaling the new bit.
-    lastBlock = secondChain.Mine(4032, nStartTime, VERSIONBITS_TOP_BITS | (1<<bit)).Tip();
+    lastBlock = secondChain.Mine(4032, nStartTime, VERSIONBITS_TOP_BITS | (1 << bit)).Tip();
     // After one period of setting the bit on each block, it should have locked in.
     // We keep setting the bit for one more period though, until activation.
     BOOST_CHECK((ComputeBlockVersion(lastBlock, mainnetParams) & (1<<bit)) != 0);

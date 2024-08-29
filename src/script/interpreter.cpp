@@ -5,10 +5,10 @@
 
 #include "interpreter.h"
 
-#include "primitives/transaction.h"
 #include "crypto/ripemd160.h"
 #include "crypto/sha1.h"
 #include "crypto/sha256.h"
+#include "primitives/transaction.h"
 #include "pubkey.h"
 #include "script/script.h"
 #include "uint256.h"
@@ -100,7 +100,7 @@ bool static IsCompressedPubKey(const valtype &vchPubKey) {
  * Where R and S are not negative (their first byte has its highest bit not set), and not
  * excessively padded (do not start with a 0 byte, unless an otherwise negative number follows,
  * in which case a single 0 byte is necessary and even required).
- * 
+ *
  * See https://bitcointalk.org/index.php?topic=8392.msg127623#msg127623
  *
  * This function is consensus-critical since BIP66.
@@ -140,7 +140,7 @@ bool static IsValidSignatureEncoding(const std::vector<unsigned char> &sig) {
     // Verify that the length of the signature matches the sum of the length
     // of the elements.
     if ((size_t)(lenR + lenS + 7) != sig.size()) return false;
- 
+
     // Check whether the R element is an integer.
     if (sig[2] != 0x02) return false;
 
@@ -866,8 +866,7 @@ bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& 
                         CHash256().Write(vch.data(), vch.size()).Finalize(vchHash.data());
                     popstack(stack);
                     stack.push_back(vchHash);
-                }
-                break;                                   
+                } break;
 
                 case OP_CODESEPARATOR:
                 {
@@ -1052,7 +1051,8 @@ namespace {
  * Wrapper that serializes like CTransaction, but with the modifications
  *  required for the signature hash done in-place
  */
-class CTransactionSignatureSerializer {
+class CTransactionSignatureSerializer
+{
 private:
     const CTransaction& txTo;  //!< reference to the spending transaction (the one being serialized)
     const CScript& scriptCode; //!< output script being consumed
@@ -1062,11 +1062,10 @@ private:
     const bool fHashNone;      //!< whether the hashtype is SIGHASH_NONE
 
 public:
-    CTransactionSignatureSerializer(const CTransaction &txToIn, const CScript &scriptCodeIn, unsigned int nInIn, int nHashTypeIn) :
-        txTo(txToIn), scriptCode(scriptCodeIn), nIn(nInIn),
-        fAnyoneCanPay(!!(nHashTypeIn & SIGHASH_ANYONECANPAY)),
-        fHashSingle((nHashTypeIn & 0x1f) == SIGHASH_SINGLE),
-        fHashNone((nHashTypeIn & 0x1f) == SIGHASH_NONE) {}
+    CTransactionSignatureSerializer(const CTransaction& txToIn, const CScript& scriptCodeIn, unsigned int nInIn, int nHashTypeIn) : txTo(txToIn), scriptCode(scriptCodeIn), nIn(nInIn),
+                                                                                                                                    fAnyoneCanPay(!!(nHashTypeIn & SIGHASH_ANYONECANPAY)),
+                                                                                                                                    fHashSingle((nHashTypeIn & 0x1f) == SIGHASH_SINGLE),
+                                                                                                                                    fHashNone((nHashTypeIn & 0x1f) == SIGHASH_NONE) {}
 
     /** Serialize the passed scriptCode, skipping OP_CODESEPARATORs */
     template<typename S>
@@ -1143,7 +1142,8 @@ public:
     }
 };
 
-uint256 GetPrevoutHash(const CTransaction& txTo) {
+uint256 GetPrevoutHash(const CTransaction& txTo)
+{
     CHashWriter ss(SER_GETHASH, 0);
     for (const auto& txin : txTo.vin) {
         ss << txin.prevout;
@@ -1151,7 +1151,8 @@ uint256 GetPrevoutHash(const CTransaction& txTo) {
     return ss.GetHash();
 }
 
-uint256 GetSequenceHash(const CTransaction& txTo) {
+uint256 GetSequenceHash(const CTransaction& txTo)
+{
     CHashWriter ss(SER_GETHASH, 0);
     for (const auto& txin : txTo.vin) {
         ss << txin.nSequence;
@@ -1159,7 +1160,8 @@ uint256 GetSequenceHash(const CTransaction& txTo) {
     return ss.GetHash();
 }
 
-uint256 GetOutputsHash(const CTransaction& txTo) {
+uint256 GetOutputsHash(const CTransaction& txTo)
+{
     CHashWriter ss(SER_GETHASH, 0);
     for (const auto& txout : txTo.vout) {
         ss << txout;

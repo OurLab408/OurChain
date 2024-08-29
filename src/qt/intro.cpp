@@ -43,7 +43,7 @@ class FreespaceChecker : public QObject
     Q_OBJECT
 
 public:
-    FreespaceChecker(Intro *intro);
+    FreespaceChecker(Intro* intro);
 
     enum Status {
         ST_OK,
@@ -230,7 +230,7 @@ bool Intro::pickDataDirectory()
      * override -datadir in the bitcoin.conf file in the default data directory
      * (to be consistent with bitcoind behavior)
      */
-    if(dataDir != getDefaultDataDirectory())
+    if (dataDir != getDefaultDataDirectory())
         gArgs.SoftSetArg("-datadir", GUIUtil::qstringToBoostPath(dataDir).string()); // use OS locale for path setting
     return true;
 }

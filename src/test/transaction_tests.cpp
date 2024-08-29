@@ -6,20 +6,20 @@
 #include "data/tx_valid.json.h"
 #include "test/test_bitcoin.h"
 
-#include "clientversion.h"
 #include "checkqueue.h"
+#include "clientversion.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
 #include "core_io.h"
 #include "key.h"
 #include "keystore.h"
-#include "validation.h"
 #include "policy/policy.h"
 #include "script/script.h"
-#include "script/sign.h"
 #include "script/script_error.h"
+#include "script/sign.h"
 #include "script/standard.h"
 #include "utilstrencodings.h"
+#include "validation.h"
 
 #include <map>
 #include <string>

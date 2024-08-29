@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "blockencodings.h"
-#include "consensus/merkle.h"
 #include "chainparams.h"
+#include "consensus/merkle.h"
 #include "random.h"
 
 #include "test/test_bitcoin.h"
@@ -118,13 +118,13 @@ public:
     std::vector<uint64_t> shorttxids;
     std::vector<PrefilledTransaction> prefilledtxn;
 
-    TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs& orig) {
+    TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs& orig)
+    {
         CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
         stream << orig;
         stream >> *this;
     }
-    TestHeaderAndShortIDs(const CBlock& block) :
-        TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block, true)) {}
+    TestHeaderAndShortIDs(const CBlock& block) : TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block, true)) {}
 
     uint64_t GetShortID(const uint256& txhash) const {
         CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);

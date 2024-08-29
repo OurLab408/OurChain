@@ -33,11 +33,12 @@ class RPCConsole: public QWidget
     Q_OBJECT
 
 public:
-    explicit RPCConsole(const PlatformStyle *platformStyle, QWidget *parent);
+    explicit RPCConsole(const PlatformStyle* platformStyle, QWidget* parent);
     ~RPCConsole();
 
-    static bool RPCParseCommandLine(std::string &strResult, const std::string &strCommand, bool fExecute, std::string * const pstrFilteredOut = nullptr);
-    static bool RPCExecuteCommandLine(std::string &strResult, const std::string &strCommand, std::string * const pstrFilteredOut = nullptr) {
+    static bool RPCParseCommandLine(std::string& strResult, const std::string& strCommand, bool fExecute, std::string* const pstrFilteredOut = nullptr);
+    static bool RPCExecuteCommandLine(std::string& strResult, const std::string& strCommand, std::string* const pstrFilteredOut = nullptr)
+    {
         return RPCParseCommandLine(strResult, strCommand, true, pstrFilteredOut);
     }
 
@@ -120,7 +121,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     // For RPC command executor
     void stopExecutor();
-    void cmdRequest(const QString &command);
+    void cmdRequest(const QString& command);
 
 private:
     static QString FormatBytes(quint64 bytes);
@@ -139,18 +140,18 @@ private:
 
     };
 
-    Ui::RPCConsole *ui;
-    ClientModel *clientModel;
+    Ui::RPCConsole* ui;
+    ClientModel* clientModel;
     QStringList history;
     int historyPtr;
     QString cmdBeforeBrowsing;
     QList<NodeId> cachedNodeids;
-    const PlatformStyle *platformStyle;
-    RPCTimerInterface *rpcTimerInterface;
-    QMenu *peersTableContextMenu;
-    QMenu *banTableContextMenu;
+    const PlatformStyle* platformStyle;
+    RPCTimerInterface* rpcTimerInterface;
+    QMenu* peersTableContextMenu;
+    QMenu* banTableContextMenu;
     int consoleFontSize;
-    QCompleter *autoCompleter;
+    QCompleter* autoCompleter;
     QThread thread;
 
     /** Update UI with latest network info from model. */

@@ -7,10 +7,10 @@
 #include "config/bitcoin-config.h"
 #endif
 
-#include "netaddress.h"
 #include "hash.h"
-#include "utilstrencodings.h"
+#include "netaddress.h"
 #include "tinyformat.h"
+#include "utilstrencodings.h"
 
 static const unsigned char pchIPv4[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff };
 static const unsigned char pchOnionCat[] = {0xFD,0x87,0xD8,0x7E,0xEB,0x43};
@@ -451,7 +451,8 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const
         switch(ourNet) {
         default:         return REACH_DEFAULT;
         case NET_IPV4:   return REACH_IPV4; // Tor users can connect to IPv4 as well
-        case NET_TOR:    return REACH_PRIVATE;
+        case NET_TOR:
+            return REACH_PRIVATE;
         }
     case NET_TEREDO:
         switch(ourNet) {
@@ -468,7 +469,8 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr *paddrPartner) const
         case NET_TEREDO:  return REACH_TEREDO;
         case NET_IPV6:    return REACH_IPV6_WEAK;
         case NET_IPV4:    return REACH_IPV4;
-        case NET_TOR:     return REACH_PRIVATE; // either from Tor, or don't care about our address
+        case NET_TOR:
+            return REACH_PRIVATE; // either from Tor, or don't care about our address
         }
     }
 }
@@ -730,7 +732,7 @@ bool operator==(const CSubNet& a, const CSubNet& b)
 
 bool operator!=(const CSubNet& a, const CSubNet& b)
 {
-    return !(a==b);
+    return !(a == b);
 }
 
 bool operator<(const CSubNet& a, const CSubNet& b)

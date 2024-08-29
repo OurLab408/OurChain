@@ -53,9 +53,9 @@
 
 #include <secp256k1.h>
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
 /** Parse a signature in "lax DER" format
  *

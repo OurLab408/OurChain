@@ -66,7 +66,7 @@ private:
     QComboBox *dateWidget;
     QComboBox *typeWidget;
     QComboBox *watchOnlyWidget;
-    QLineEdit *addressWidget;
+    QLineEdit* addressWidget;
     QLineEdit *amountWidget;
 
     QMenu *contextMenu;
@@ -116,7 +116,6 @@ public Q_SLOTS:
     void changedAmount(const QString& amount);
     void exportClicked();
     void focusTransaction(const QModelIndex&);
-
 };
 
 #endif // BITCOIN_QT_TRANSACTIONVIEW_H

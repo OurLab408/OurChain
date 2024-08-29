@@ -19,7 +19,7 @@ public:
     void showNotification(const QString &title, const QString &text);
 
     /** executes AppleScript */
-    void sendAppleScript(const QString &script);
+    void sendAppleScript(const QString& script);
 
     /** check if OS can handle UserNotifications */
     bool hasUserNotificationCenterSupport(void);

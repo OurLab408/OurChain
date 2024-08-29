@@ -7,11 +7,10 @@
 #include "policy/policy.h"
 #include "wallet/wallet.h"
 
-WalletModelTransaction::WalletModelTransaction(const QList<SendCoinsRecipient> &_recipients) :
-    recipients(_recipients),
-    walletTransaction(0),
-    keyChange(0),
-    fee(0)
+WalletModelTransaction::WalletModelTransaction(const QList<SendCoinsRecipient>& _recipients) : recipients(_recipients),
+                                                                                               walletTransaction(0),
+                                                                                               keyChange(0),
+                                                                                               fee(0)
 {
     walletTransaction = new CWalletTx();
 }
@@ -27,7 +26,7 @@ QList<SendCoinsRecipient> WalletModelTransaction::getRecipients()
     return recipients;
 }
 
-CWalletTx *WalletModelTransaction::getTransaction()
+CWalletTx* WalletModelTransaction::getTransaction()
 {
     return walletTransaction;
 }
@@ -89,12 +88,12 @@ CAmount WalletModelTransaction::getTotalTransactionAmount()
     return totalTransactionAmount;
 }
 
-void WalletModelTransaction::newPossibleKeyChange(CWallet *wallet)
+void WalletModelTransaction::newPossibleKeyChange(CWallet* wallet)
 {
     keyChange = new CReserveKey(wallet);
 }
 
-CReserveKey *WalletModelTransaction::getPossibleKeyChange()
+CReserveKey* WalletModelTransaction::getPossibleKeyChange()
 {
     return keyChange;
 }

@@ -6,12 +6,12 @@
 
 #include "chainparamsbase.h"
 #include "compat.h"
-#include "util.h"
-#include "utilstrencodings.h"
 #include "netbase.h"
 #include "rpc/protocol.h" // For HTTP status codes
 #include "sync.h"
 #include "ui_interface.h"
+#include "util.h"
+#include "utilstrencodings.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,8 +78,8 @@ private:
     class ThreadCounter
     {
     public:
-        WorkQueue &wq;
-        ThreadCounter(WorkQueue &w): wq(w)
+        WorkQueue& wq;
+        ThreadCounter(WorkQueue& w) : wq(w)
         {
             std::lock_guard<std::mutex> lock(wq.cs);
             wq.numThreads += 1;
@@ -94,8 +94,8 @@ private:
 
 public:
     WorkQueue(size_t _maxDepth) : running(true),
-                                 maxDepth(_maxDepth),
-                                 numThreads(0)
+                                  maxDepth(_maxDepth),
+                                  numThreads(0)
     {
     }
     /** Precondition: worker threads have all stopped
@@ -512,7 +512,7 @@ struct event_base* EventBase()
 static void httpevent_callback_fn(evutil_socket_t, short, void* data)
 {
     // Static handler: simply call inner handler
-    HTTPEvent *self = ((HTTPEvent*)data);
+    HTTPEvent* self = ((HTTPEvent*)data);
     self->handler();
     if (self->deleteWhenTriggered)
         delete self;

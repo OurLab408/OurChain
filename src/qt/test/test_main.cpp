@@ -7,10 +7,10 @@
 #endif
 
 #include "chainparams.h"
-#include "rpcnestedtests.h"
-#include "util.h"
-#include "uritests.h"
 #include "compattests.h"
+#include "rpcnestedtests.h"
+#include "uritests.h"
+#include "util.h"
 
 #ifdef ENABLE_WALLET
 #include "paymentservertests.h"
@@ -60,14 +60,14 @@ int main(int argc, char *argv[])
 
     bool fInvalid = false;
 
-    // Prefer the "minimal" platform for the test instead of the normal default
-    // platform ("xcb", "windows", or "cocoa") so tests can't unintentially
-    // interfere with any background GUIs and don't require extra resources.
-    #if defined(WIN32)
-        _putenv_s("QT_QPA_PLATFORM", "minimal");
-    #else
-        setenv("QT_QPA_PLATFORM", "minimal", 0);
-    #endif
+// Prefer the "minimal" platform for the test instead of the normal default
+// platform ("xcb", "windows", or "cocoa") so tests can't unintentially
+// interfere with any background GUIs and don't require extra resources.
+#if defined(WIN32)
+    _putenv_s("QT_QPA_PLATFORM", "minimal");
+#else
+    setenv("QT_QPA_PLATFORM", "minimal", 0);
+#endif
 
     // Don't remove this, it's needed to access
     // QApplication:: and QCoreApplication:: in the tests

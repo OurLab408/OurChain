@@ -12,14 +12,14 @@
 #include "utiltime.h"
 #include "version.h"
 
-#include <stdint.h>
 #include <fstream>
+#include <stdint.h>
 
 /**
  * JSON-RPC protocol.  Bitcoin speaks version 1.0 for maximum compatibility,
  * but uses JSON-RPC 1.1/2.0 standards for parts of the 1.0 standard that were
  * unspecified (HTTP errors and contents of 'error').
- * 
+ *
  * 1.0 spec: http://json-rpc.org/wiki/specification
  * 1.2 spec: http://jsonrpc.org/historical/json-rpc-over-http.html
  */

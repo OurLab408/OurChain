@@ -78,50 +78,49 @@ const std::string BitcoinGUI::DEFAULT_UIPLATFORM =
  * collisions in the future with additional wallets */
 const QString BitcoinGUI::DEFAULT_WALLET = "~Default";
 
-BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *networkStyle, QWidget *parent) :
-    QMainWindow(parent),
-    enableWallet(false),
-    clientModel(0),
-    walletFrame(0),
-    unitDisplayControl(0),
-    labelWalletEncryptionIcon(0),
-    labelWalletHDStatusIcon(0),
-    connectionsControl(0),
-    labelBlocksIcon(0),
-    progressBarLabel(0),
-    progressBar(0),
-    progressDialog(0),
-    appMenuBar(0),
-    overviewAction(0),
-    historyAction(0),
-    quitAction(0),
-    sendCoinsAction(0),
-    sendCoinsMenuAction(0),
-    usedSendingAddressesAction(0),
-    usedReceivingAddressesAction(0),
-    signMessageAction(0),
-    verifyMessageAction(0),
-    aboutAction(0),
-    receiveCoinsAction(0),
-    receiveCoinsMenuAction(0),
-    optionsAction(0),
-    toggleHideAction(0),
-    encryptWalletAction(0),
-    backupWalletAction(0),
-    changePassphraseAction(0),
-    aboutQtAction(0),
-    openRPCConsoleAction(0),
-    openAction(0),
-    showHelpMessageAction(0),
-    trayIcon(0),
-    trayIconMenu(0),
-    notificator(0),
-    rpcConsole(0),
-    helpMessageDialog(0),
-    modalOverlay(0),
-    prevBlocks(0),
-    spinnerFrame(0),
-    platformStyle(_platformStyle)
+BitcoinGUI::BitcoinGUI(const PlatformStyle* _platformStyle, const NetworkStyle* networkStyle, QWidget* parent) : QMainWindow(parent),
+                                                                                                                 enableWallet(false),
+                                                                                                                 clientModel(0),
+                                                                                                                 walletFrame(0),
+                                                                                                                 unitDisplayControl(0),
+                                                                                                                 labelWalletEncryptionIcon(0),
+                                                                                                                 labelWalletHDStatusIcon(0),
+                                                                                                                 connectionsControl(0),
+                                                                                                                 labelBlocksIcon(0),
+                                                                                                                 progressBarLabel(0),
+                                                                                                                 progressBar(0),
+                                                                                                                 progressDialog(0),
+                                                                                                                 appMenuBar(0),
+                                                                                                                 overviewAction(0),
+                                                                                                                 historyAction(0),
+                                                                                                                 quitAction(0),
+                                                                                                                 sendCoinsAction(0),
+                                                                                                                 sendCoinsMenuAction(0),
+                                                                                                                 usedSendingAddressesAction(0),
+                                                                                                                 usedReceivingAddressesAction(0),
+                                                                                                                 signMessageAction(0),
+                                                                                                                 verifyMessageAction(0),
+                                                                                                                 aboutAction(0),
+                                                                                                                 receiveCoinsAction(0),
+                                                                                                                 receiveCoinsMenuAction(0),
+                                                                                                                 optionsAction(0),
+                                                                                                                 toggleHideAction(0),
+                                                                                                                 encryptWalletAction(0),
+                                                                                                                 backupWalletAction(0),
+                                                                                                                 changePassphraseAction(0),
+                                                                                                                 aboutQtAction(0),
+                                                                                                                 openRPCConsoleAction(0),
+                                                                                                                 openAction(0),
+                                                                                                                 showHelpMessageAction(0),
+                                                                                                                 trayIcon(0),
+                                                                                                                 trayIconMenu(0),
+                                                                                                                 notificator(0),
+                                                                                                                 rpcConsole(0),
+                                                                                                                 helpMessageDialog(0),
+                                                                                                                 modalOverlay(0),
+                                                                                                                 prevBlocks(0),
+                                                                                                                 spinnerFrame(0),
+                                                                                                                 platformStyle(_platformStyle)
 {
     GUIUtil::restoreWindowGeometry("nWindow", QSize(850, 550), this);
 
@@ -496,13 +495,13 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel)
         }
 #endif // ENABLE_WALLET
         unitDisplayControl->setOptionsModel(_clientModel->getOptionsModel());
-        
+
         OptionsModel* optionsModel = _clientModel->getOptionsModel();
         if(optionsModel)
         {
             // be aware of the tray icon disable state change reported by the OptionsModel object.
             connect(optionsModel,SIGNAL(hideTrayIconChanged(bool)),this,SLOT(setTrayIconVisible(bool)));
-        
+
             // initialize the disable state of the tray icon with the current value in the model.
             setTrayIconVisible(optionsModel->getHideTrayIcon());
         }
@@ -527,7 +526,7 @@ void BitcoinGUI::setClientModel(ClientModel *_clientModel)
 }
 
 #ifdef ENABLE_WALLET
-bool BitcoinGUI::addWallet(const QString& name, WalletModel *walletModel)
+bool BitcoinGUI::addWallet(const QString& name, WalletModel* walletModel)
 {
     if(!walletFrame)
         return false;
@@ -597,7 +596,7 @@ void BitcoinGUI::createTrayIconMenu()
 #else
     // Note: On Mac, the dock icon is used to provide the tray's functionality.
     MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
-    dockIconHandler->setMainWindow((QMainWindow *)this);
+    dockIconHandler->setMainWindow((QMainWindow*)this);
     trayIconMenu = dockIconHandler->dockMenu();
 #endif
 
@@ -778,30 +777,30 @@ void BitcoinGUI::setNumBlocks(int count, const QDateTime& blockDate, double nVer
     // Acquire current block source
     enum BlockSource blockSource = clientModel->getBlockSource();
     switch (blockSource) {
-        case BLOCK_SOURCE_NETWORK:
-            if (header) {
-                updateHeadersSyncProgressLabel();
-                return;
-            }
-            progressBarLabel->setText(tr("Synchronizing with network..."));
+    case BLOCK_SOURCE_NETWORK:
+        if (header) {
             updateHeadersSyncProgressLabel();
-            break;
-        case BLOCK_SOURCE_DISK:
-            if (header) {
-                progressBarLabel->setText(tr("Indexing blocks on disk..."));
-            } else {
-                progressBarLabel->setText(tr("Processing blocks on disk..."));
-            }
-            break;
-        case BLOCK_SOURCE_REINDEX:
-            progressBarLabel->setText(tr("Reindexing blocks on disk..."));
-            break;
-        case BLOCK_SOURCE_NONE:
-            if (header) {
-                return;
-            }
-            progressBarLabel->setText(tr("Connecting to peers..."));
-            break;
+            return;
+        }
+        progressBarLabel->setText(tr("Synchronizing with network..."));
+        updateHeadersSyncProgressLabel();
+        break;
+    case BLOCK_SOURCE_DISK:
+        if (header) {
+            progressBarLabel->setText(tr("Indexing blocks on disk..."));
+        } else {
+            progressBarLabel->setText(tr("Processing blocks on disk..."));
+        }
+        break;
+    case BLOCK_SOURCE_REINDEX:
+        progressBarLabel->setText(tr("Reindexing blocks on disk..."));
+        break;
+    case BLOCK_SOURCE_NONE:
+        if (header) {
+            return;
+        }
+        progressBarLabel->setText(tr("Connecting to peers..."));
+        break;
     }
 
     QString tooltip;
@@ -1044,7 +1043,7 @@ void BitcoinGUI::setHDStatus(int hdEnabled)
     labelWalletHDStatusIcon->setPixmap(platformStyle->SingleColorIcon(hdEnabled ? ":/icons/hd_enabled" : ":/icons/hd_disabled").pixmap(STATUSBAR_ICONSIZE,STATUSBAR_ICONSIZE));
     labelWalletHDStatusIcon->setToolTip(hdEnabled ? tr("HD key generation is <b>enabled</b>") : tr("HD key generation is <b>disabled</b>"));
 
-    // eventually disable the QLabel to set its opacity to 50% 
+    // eventually disable the QLabel to set its opacity to 50%
     labelWalletHDStatusIcon->setEnabled(hdEnabled);
 }
 
@@ -1110,8 +1109,7 @@ void BitcoinGUI::toggleHidden()
 
 void BitcoinGUI::detectShutdown()
 {
-    if (ShutdownRequested())
-    {
+    if (ShutdownRequested()) {
         if(rpcConsole)
             rpcConsole->hide();
         qApp->quit();
@@ -1223,7 +1221,7 @@ void UnitDisplayStatusBarControl::createContextMenu()
     menu = new QMenu(this);
     for (BitcoinUnits::Unit u : BitcoinUnits::availableUnits())
     {
-        QAction *menuAction = new QAction(QString(BitcoinUnits::name(u)), this);
+        QAction* menuAction = new QAction(QString(BitcoinUnits::name(u)), this);
         menuAction->setData(QVariant(u));
         menu->addAction(menuAction);
     }

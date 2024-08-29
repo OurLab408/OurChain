@@ -8,8 +8,8 @@
 #include "guiconstants.h"
 #include "guiutil.h"
 
-#include "validation.h" // for cs_main
 #include "sync.h"
+#include "validation.h" // for cs_main
 
 #include <QDebug>
 #include <QList>
@@ -57,13 +57,12 @@ public:
         {
             cachedNodeStats.clear();
             std::vector<CNodeStats> vstats;
-            if(g_connman)
+            if (g_connman)
                 g_connman->GetNodeStats(vstats);
 #if QT_VERSION >= 0x040700
             cachedNodeStats.reserve(vstats.size());
 #endif
-            for (const CNodeStats& nodestats : vstats)
-            {
+            for (const CNodeStats& nodestats : vstats) {
                 CNodeCombinedStats stats;
                 stats.nodeStateStats.nMisbehavior = 0;
                 stats.nodeStateStats.nSyncHeight = -1;
@@ -77,9 +76,8 @@ public:
         // Try to retrieve the CNodeStateStats for each node.
         {
             TRY_LOCK(cs_main, lockMain);
-            if (lockMain)
-            {
-                for (CNodeCombinedStats &stats : cachedNodeStats)
+            if (lockMain) {
+                for (CNodeCombinedStats& stats : cachedNodeStats)
                     stats.fNodeStateStatsAvailable = GetNodeStateStats(stats.nodeStats.nodeid, stats.nodeStateStats);
             }
         }
@@ -109,10 +107,9 @@ public:
     }
 };
 
-PeerTableModel::PeerTableModel(ClientModel *parent) :
-    QAbstractTableModel(parent),
-    clientModel(parent),
-    timer(0)
+PeerTableModel::PeerTableModel(ClientModel* parent) : QAbstractTableModel(parent),
+                                                      clientModel(parent),
+                                                      timer(0)
 {
     columns << tr("NodeId") << tr("Node/Service") << tr("User Agent") << tr("Ping");
     priv.reset(new PeerTablePriv());

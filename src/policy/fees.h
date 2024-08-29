@@ -7,9 +7,9 @@
 
 #include "amount.h"
 #include "feerate.h"
-#include "uint256.h"
 #include "random.h"
 #include "sync.h"
+#include "uint256.h"
 
 #include <map>
 #include <string>

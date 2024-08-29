@@ -16,8 +16,7 @@
 #include <string>
 #include <vector>
 
-enum Network
-{
+enum Network {
     NET_UNROUTABLE = 0,
     NET_IPV4,
     NET_IPV6,
@@ -170,7 +169,7 @@ class CService : public CNetAddr
             unsigned short portN = htons(port);
             READWRITE(FLATDATA(portN));
             if (ser_action.ForRead())
-                 port = ntohs(portN);
+                port = ntohs(portN);
         }
 };
 

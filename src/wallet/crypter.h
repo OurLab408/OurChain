@@ -16,13 +16,13 @@ const unsigned int WALLET_CRYPTO_IV_SIZE = 16;
 /**
  * Private key encryption is done based on a CMasterKey,
  * which holds a salt and random encryption key.
- * 
+ *
  * CMasterKeys are encrypted using AES-256-CBC using a key
  * derived using derivation method nDerivationMethod
  * (0 == EVP_sha512()) and derivation iterations nDeriveIterations.
  * vchOtherDerivationParameters is provided for alternative algorithms
  * which may require more parameters (such as scrypt).
- * 
+ *
  * Wallet Private Keys are then encrypted using AES-256-CBC
  * with the double-sha256 of the public key as the IV, and the
  * master key's key as the encryption key (see keystore.[ch]).
@@ -65,15 +65,14 @@ public:
 
 typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 
-namespace wallet_crypto
-{
-    class TestCrypter;
+namespace wallet_crypto {
+class TestCrypter;
 }
 
 /** Encryption/decryption context with key information */
 class CCrypter
 {
-friend class wallet_crypto::TestCrypter; // for test access to chKey/chIV
+    friend class wallet_crypto::TestCrypter; // for test access to chKey/chIV
 private:
     std::vector<unsigned char, secure_allocator<unsigned char>> vchKey;
     std::vector<unsigned char, secure_allocator<unsigned char>> vchIV;
@@ -158,7 +157,7 @@ public:
 
     virtual bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
-    bool HaveKey(const CKeyID &address) const override
+    bool HaveKey(const CKeyID& address) const override
     {
         {
             LOCK(cs_KeyStore);
@@ -170,17 +169,15 @@ public:
     }
     bool GetKey(const CKeyID &address, CKey& keyOut) const override;
     bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const override;
-    void GetKeys(std::set<CKeyID> &setAddress) const override
+    void GetKeys(std::set<CKeyID>& setAddress) const override
     {
-        if (!IsCrypted())
-        {
+        if (!IsCrypted()) {
             CBasicKeyStore::GetKeys(setAddress);
             return;
         }
         setAddress.clear();
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
-        while (mi != mapCryptedKeys.end())
-        {
+        while (mi != mapCryptedKeys.end()) {
             setAddress.insert((*mi).first);
             mi++;
         }

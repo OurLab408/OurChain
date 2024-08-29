@@ -118,15 +118,13 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     ui->signatureOut_SM->clear();
 
     CBitcoinAddress addr(ui->addressIn_SM->text().toStdString());
-    if (!addr.IsValid())
-    {
+    if (!addr.IsValid()) {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("The entered address is invalid.") + QString(" ") + tr("Please check the address and try again."));
         return;
     }
     CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-    {
+    if (!addr.GetKeyID(keyID)) {
         ui->addressIn_SM->setValid(false);
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("The entered address does not refer to a key.") + QString(" ") + tr("Please check the address and try again."));
@@ -142,8 +140,7 @@ void SignVerifyMessageDialog::on_signMessageButton_SM_clicked()
     }
 
     CKey key;
-    if (!model->getPrivKey(keyID, key))
-    {
+    if (!model->getPrivKey(keyID, key)) {
         ui->statusLabel_SM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_SM->setText(tr("Private key for the entered address is not available."));
         return;
@@ -198,15 +195,13 @@ void SignVerifyMessageDialog::on_addressBookButton_VM_clicked()
 void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
 {
     CBitcoinAddress addr(ui->addressIn_VM->text().toStdString());
-    if (!addr.IsValid())
-    {
+    if (!addr.IsValid()) {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(tr("The entered address is invalid.") + QString(" ") + tr("Please check the address and try again."));
         return;
     }
     CKeyID keyID;
-    if (!addr.GetKeyID(keyID))
-    {
+    if (!addr.GetKeyID(keyID)) {
         ui->addressIn_VM->setValid(false);
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(tr("The entered address does not refer to a key.") + QString(" ") + tr("Please check the address and try again."));
@@ -237,8 +232,7 @@ void SignVerifyMessageDialog::on_verifyMessageButton_VM_clicked()
         return;
     }
 
-    if (!(CBitcoinAddress(pubkey.GetID()) == addr))
-    {
+    if (!(CBitcoinAddress(pubkey.GetID()) == addr)) {
         ui->statusLabel_VM->setStyleSheet("QLabel { color: red; }");
         ui->statusLabel_VM->setText(QString("<nobr>") + tr("Message verification failed.") + QString("</nobr>"));
         return;

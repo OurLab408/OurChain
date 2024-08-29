@@ -176,8 +176,8 @@ public:
 #define ADDRMAN_NEW_BUCKET_COUNT (1 << ADDRMAN_NEW_BUCKET_COUNT_LOG2)
 #define ADDRMAN_BUCKET_SIZE (1 << ADDRMAN_BUCKET_SIZE_LOG2)
 
-/** 
- * Stochastical (IP) address manager 
+/**
+ * Stochastical (IP) address manager
  */
 class CAddrMan
 {
@@ -239,7 +239,7 @@ protected:
     void ClearNew(int nUBucket, int nUBucketPos);
 
     //! Mark an entry "good", possibly moving it from "new" to "tried".
-    void Good_(const CService &addr, int64_t nTime);
+    void Good_(const CService& addr, int64_t nTime);
 
     //! Add an entry to the "new" table.
     bool Add_(const CAddress &addr, const CNetAddr& source, int64_t nTimePenalty);
@@ -315,7 +315,7 @@ public:
         int nIds = 0;
         for (std::map<int, CAddrInfo>::const_iterator it = mapInfo.begin(); it != mapInfo.end(); it++) {
             mapUnkIds[(*it).first] = nIds;
-            const CAddrInfo &info = (*it).second;
+            const CAddrInfo& info = (*it).second;
             if (info.nRefCount) {
                 assert(nIds != nNew); // this means nNew was wrong, oh ow
                 s << info;
@@ -324,7 +324,7 @@ public:
         }
         nIds = 0;
         for (std::map<int, CAddrInfo>::const_iterator it = mapInfo.begin(); it != mapInfo.end(); it++) {
-            const CAddrInfo &info = (*it).second;
+            const CAddrInfo& info = (*it).second;
             if (info.fInTried) {
                 assert(nIds != nTried); // this means nTried was wrong, oh ow
                 s << info;
@@ -534,7 +534,7 @@ public:
     }
 
     //! Mark an entry as accessible.
-    void Good(const CService &addr, int64_t nTime = GetAdjustedTime())
+    void Good(const CService& addr, int64_t nTime = GetAdjustedTime())
     {
         LOCK(cs);
         Check();

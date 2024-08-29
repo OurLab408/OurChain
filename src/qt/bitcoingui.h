@@ -49,7 +49,7 @@ public:
     static const QString DEFAULT_WALLET;
     static const std::string DEFAULT_UIPLATFORM;
 
-    explicit BitcoinGUI(const PlatformStyle *platformStyle, const NetworkStyle *networkStyle, QWidget *parent = 0);
+    explicit BitcoinGUI(const PlatformStyle* platformStyle, const NetworkStyle* networkStyle, QWidget* parent = 0);
     ~BitcoinGUI();
 
     /** Set the client model.
@@ -62,7 +62,7 @@ public:
         The wallet model represents a bitcoin wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
-    bool addWallet(const QString& name, WalletModel *walletModel);
+    bool addWallet(const QString& name, WalletModel* walletModel);
     bool setCurrentWallet(const QString& name);
     void removeAllWallets();
 #endif // ENABLE_WALLET
@@ -77,47 +77,47 @@ protected:
     bool eventFilter(QObject *object, QEvent *event);
 
 private:
-    ClientModel *clientModel;
-    WalletFrame *walletFrame;
+    ClientModel* clientModel;
+    WalletFrame* walletFrame;
 
-    UnitDisplayStatusBarControl *unitDisplayControl;
-    QLabel *labelWalletEncryptionIcon;
-    QLabel *labelWalletHDStatusIcon;
-    QLabel *connectionsControl;
-    QLabel *labelBlocksIcon;
-    QLabel *progressBarLabel;
-    QProgressBar *progressBar;
-    QProgressDialog *progressDialog;
+    UnitDisplayStatusBarControl* unitDisplayControl;
+    QLabel* labelWalletEncryptionIcon;
+    QLabel* labelWalletHDStatusIcon;
+    QLabel* connectionsControl;
+    QLabel* labelBlocksIcon;
+    QLabel* progressBarLabel;
+    QProgressBar* progressBar;
+    QProgressDialog* progressDialog;
 
-    QMenuBar *appMenuBar;
-    QAction *overviewAction;
-    QAction *historyAction;
-    QAction *quitAction;
-    QAction *sendCoinsAction;
-    QAction *sendCoinsMenuAction;
-    QAction *usedSendingAddressesAction;
-    QAction *usedReceivingAddressesAction;
-    QAction *signMessageAction;
-    QAction *verifyMessageAction;
-    QAction *aboutAction;
-    QAction *receiveCoinsAction;
-    QAction *receiveCoinsMenuAction;
-    QAction *optionsAction;
-    QAction *toggleHideAction;
-    QAction *encryptWalletAction;
-    QAction *backupWalletAction;
-    QAction *changePassphraseAction;
-    QAction *aboutQtAction;
-    QAction *openRPCConsoleAction;
-    QAction *openAction;
-    QAction *showHelpMessageAction;
+    QMenuBar* appMenuBar;
+    QAction* overviewAction;
+    QAction* historyAction;
+    QAction* quitAction;
+    QAction* sendCoinsAction;
+    QAction* sendCoinsMenuAction;
+    QAction* usedSendingAddressesAction;
+    QAction* usedReceivingAddressesAction;
+    QAction* signMessageAction;
+    QAction* verifyMessageAction;
+    QAction* aboutAction;
+    QAction* receiveCoinsAction;
+    QAction* receiveCoinsMenuAction;
+    QAction* optionsAction;
+    QAction* toggleHideAction;
+    QAction* encryptWalletAction;
+    QAction* backupWalletAction;
+    QAction* changePassphraseAction;
+    QAction* aboutQtAction;
+    QAction* openRPCConsoleAction;
+    QAction* openAction;
+    QAction* showHelpMessageAction;
 
-    QSystemTrayIcon *trayIcon;
-    QMenu *trayIconMenu;
-    Notificator *notificator;
-    RPCConsole *rpcConsole;
-    HelpMessageDialog *helpMessageDialog;
-    ModalOverlay *modalOverlay;
+    QSystemTrayIcon* trayIcon;
+    QMenu* trayIconMenu;
+    Notificator* notificator;
+    RPCConsole* rpcConsole;
+    HelpMessageDialog* helpMessageDialog;
+    ModalOverlay* modalOverlay;
 
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
@@ -233,7 +233,7 @@ private Q_SLOTS:
 
     /** Show progress dialog e.g. for verifychain */
     void showProgress(const QString &title, int nProgress);
-    
+
     /** When hideTrayIcon setting is changed in OptionsModel hide or show the icon accordingly. */
     void setTrayIconVisible(bool);
 

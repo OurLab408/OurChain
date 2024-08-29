@@ -48,15 +48,14 @@ public:
     void refreshBanlist()
     {
         banmap_t banMap;
-        if(g_connman)
+        if (g_connman)
             g_connman->GetBanned(banMap);
 
         cachedBanlist.clear();
 #if QT_VERSION >= 0x040700
         cachedBanlist.reserve(banMap.size());
 #endif
-        for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++)
-        {
+        for (banmap_t::iterator it = banMap.begin(); it != banMap.end(); it++) {
             CCombinedBan banEntry;
             banEntry.subnet = (*it).first;
             banEntry.banEntry = (*it).second;
@@ -82,9 +81,8 @@ public:
     }
 };
 
-BanTableModel::BanTableModel(ClientModel *parent) :
-    QAbstractTableModel(parent),
-    clientModel(parent)
+BanTableModel::BanTableModel(ClientModel* parent) : QAbstractTableModel(parent),
+                                                    clientModel(parent)
 {
     columns << tr("IP/Netmask") << tr("Banned Until");
     priv.reset(new BanTablePriv());

@@ -30,9 +30,9 @@
 
 #include <secp256k1.h>
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
 /** Export a private key in DER format.
  *

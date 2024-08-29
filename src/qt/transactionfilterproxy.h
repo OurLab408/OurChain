@@ -35,7 +35,7 @@ public:
     };
 
     void setDateRange(const QDateTime &from, const QDateTime &to);
-    void setAddressPrefix(const QString &addrPrefix);
+    void setAddressPrefix(const QString& addrPrefix);
     /**
       @note Type filter takes a bit field created with TYPE() or ALL_TYPES
      */

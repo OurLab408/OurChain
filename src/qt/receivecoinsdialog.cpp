@@ -135,15 +135,13 @@ void ReceiveCoinsDialog::on_receiveButton_clicked()
 
     QString address;
     QString label = ui->reqLabel->text();
-    if(ui->reuseAddress->isChecked())
-    {
+    if (ui->reuseAddress->isChecked()) {
         /* Choose existing receiving address */
         AddressBookPage dlg(platformStyle, AddressBookPage::ForSelection, AddressBookPage::ReceivingTab, this);
         dlg.setModel(model->getAddressTableModel());
-        if(dlg.exec())
-        {
+        if (dlg.exec()) {
             address = dlg.getReturnValue();
-            if(label.isEmpty()) /* If no label provided, use the previously used label */
+            if (label.isEmpty()) /* If no label provided, use the previously used label */
             {
                 label = model->getAddressTableModel()->labelForAddress(address);
             }

@@ -17,11 +17,11 @@
 
 #include "base58.h"
 #include "chainparams.h"
-#include "wallet/coincontrol.h"
-#include "validation.h" // mempool and minRelayTxFee
-#include "ui_interface.h"
-#include "txmempool.h"
 #include "policy/fees.h"
+#include "txmempool.h"
+#include "ui_interface.h"
+#include "validation.h" // mempool and minRelayTxFee
+#include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 
 #include <QFontMetrics>
@@ -160,7 +160,7 @@ void SendCoinsDialog::setModel(WalletModel *_model)
 
         setBalance(_model->getBalance(), _model->getUnconfirmedBalance(), _model->getImmatureBalance(),
                    _model->getWatchBalance(), _model->getWatchUnconfirmedBalance(), _model->getWatchImmatureBalance());
-        connect(_model, SIGNAL(balanceChanged(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)), this, SLOT(setBalance(CAmount,CAmount,CAmount,CAmount,CAmount,CAmount)));
+        connect(_model, SIGNAL(balanceChanged(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)), this, SLOT(setBalance(CAmount, CAmount, CAmount, CAmount, CAmount, CAmount)));
         connect(_model->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
         updateDisplayUnit();
 
@@ -171,7 +171,7 @@ void SendCoinsDialog::setModel(WalletModel *_model)
         coinControlUpdateLabels();
 
         // fee section
-        for (const int &n : confTargets) {
+        for (const int& n : confTargets) {
             ui->confTargetSelector->addItem(tr("%1 (%2 blocks)").arg(GUIUtil::formatNiceTimeOffset(n*Params().GetConsensus().nPowTargetSpacing)).arg(n));
         }
         connect(ui->confTargetSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(updateSmartFeeLabel()));
@@ -235,12 +235,9 @@ void SendCoinsDialog::on_sendButton_clicked()
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
         if(entry)
         {
-            if(entry->validate())
-            {
+            if (entry->validate()) {
                 recipients.append(entry->getValue());
-            }
-            else
-            {
+            } else {
                 valid = false;
             }
         }
@@ -346,12 +343,11 @@ void SendCoinsDialog::on_sendButton_clicked()
             alternativeUnits.append(BitcoinUnits::formatHtmlWithUnit(u, totalAmount));
     }
     questionString.append(tr("Total Amount %1")
-        .arg(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount)));
+                              .arg(BitcoinUnits::formatHtmlWithUnit(model->getOptionsModel()->getDisplayUnit(), totalAmount)));
     questionString.append(QString("<span style='font-size:10pt;font-weight:normal;'><br />(=%2)</span>")
-        .arg(alternativeUnits.join(" " + tr("or") + "<br />")));
+                              .arg(alternativeUnits.join(" " + tr("or") + "<br />")));
 
-    if (ui->optInRBF->isChecked())
-    {
+    if (ui->optInRBF->isChecked()) {
         questionString.append("<hr /><span>");
         questionString.append(tr("This transaction signals replaceability (optin-RBF)."));
         questionString.append("</span>");
@@ -642,9 +638,7 @@ void SendCoinsDialog::updateFeeMinimizedLabel()
 void SendCoinsDialog::updateMinFeeLabel()
 {
     if (model && model->getOptionsModel())
-        ui->checkBoxMinimumFee->setText(tr("Pay only the required fee of %1").arg(
-            BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), CWallet::GetRequiredFee(1000)) + "/kB")
-        );
+        ui->checkBoxMinimumFee->setText(tr("Pay only the required fee of %1").arg(BitcoinUnits::formatWithUnit(model->getOptionsModel()->getDisplayUnit(), CWallet::GetRequiredFee(1000)) + "/kB"));
 }
 
 void SendCoinsDialog::updateCoinControlState(CCoinControl& ctrl)
@@ -680,9 +674,7 @@ void SendCoinsDialog::updateSmartFeeLabel()
         QColor warning_colour(255 - (lightness / 5), 176 - (lightness / 3), 48 - (lightness / 14));
         ui->fallbackFeeWarningLabel->setStyleSheet("QLabel { color: " + warning_colour.name() + "; }");
         ui->fallbackFeeWarningLabel->setIndent(QFontMetrics(ui->fallbackFeeWarningLabel->font()).width("x"));
-    }
-    else
-    {
+    } else {
         ui->labelSmartFee2->hide();
         ui->labelFeeEstimation->setText(tr("Estimated to begin confirmation within %n block(s).", "", feeCalc.returnedTarget));
         ui->fallbackFeeWarningLabel->setVisible(false);
@@ -782,12 +774,10 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         if (text.isEmpty()) // Nothing entered
         {
             ui->labelCoinControlChangeLabel->setText("");
-        }
-        else if (!addr.IsValid()) // Invalid address
+        } else if (!addr.IsValid()) // Invalid address
         {
             ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Bitcoin address"));
-        }
-        else // Valid address
+        } else // Valid address
         {
             CKeyID keyid;
             addr.GetKeyID(keyid);
@@ -848,17 +838,14 @@ void SendCoinsDialog::coinControlUpdateLabels()
         }
     }
 
-    if (CoinControlDialog::coinControl->HasSelected())
-    {
+    if (CoinControlDialog::coinControl->HasSelected()) {
         // actual coin control calculation
         CoinControlDialog::updateLabels(model, this);
 
         // show coin control stats
         ui->labelCoinControlAutomaticallySelected->hide();
         ui->widgetCoinControl->show();
-    }
-    else
-    {
+    } else {
         // hide coin control stats
         ui->labelCoinControlAutomaticallySelected->show();
         ui->widgetCoinControl->hide();

@@ -80,9 +80,9 @@
 #include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 #include <boost/program_options/detail/config_file.hpp>
 #include <boost/thread.hpp>
+#include <openssl/conf.h>
 #include <openssl/crypto.h>
 #include <openssl/rand.h>
-#include <openssl/conf.h>
 
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
@@ -177,7 +177,7 @@ static FILE* fileout = nullptr;
 static boost::mutex* mutexDebugLog = nullptr;
 static std::list<std::string>* vMsgsBeforeOpenLog;
 
-static int FileWriteStr(const std::string &str, FILE *fp)
+static int FileWriteStr(const std::string& str, FILE* fp)
 {
     return fwrite(str.data(), 1, str.size(), fp);
 }
@@ -211,41 +211,40 @@ void OpenDebugLog()
     vMsgsBeforeOpenLog = nullptr;
 }
 
-struct CLogCategoryDesc
-{
+struct CLogCategoryDesc {
     uint32_t flag;
     std::string category;
 };
 
 const CLogCategoryDesc LogCategories[] =
-{
-    {BCLog::NONE, "0"},
-    {BCLog::NET, "net"},
-    {BCLog::TOR, "tor"},
-    {BCLog::MEMPOOL, "mempool"},
-    {BCLog::HTTP, "http"},
-    {BCLog::BENCH, "bench"},
-    {BCLog::ZMQ, "zmq"},
-    {BCLog::DB, "db"},
-    {BCLog::RPC, "rpc"},
-    {BCLog::ESTIMATEFEE, "estimatefee"},
-    {BCLog::ADDRMAN, "addrman"},
-    {BCLog::SELECTCOINS, "selectcoins"},
-    {BCLog::REINDEX, "reindex"},
-    {BCLog::CMPCTBLOCK, "cmpctblock"},
-    {BCLog::RAND, "rand"},
-    {BCLog::PRUNE, "prune"},
-    {BCLog::PROXY, "proxy"},
-    {BCLog::MEMPOOLREJ, "mempoolrej"},
-    {BCLog::LIBEVENT, "libevent"},
-    {BCLog::COINDB, "coindb"},
-    {BCLog::QT, "qt"},
-    {BCLog::LEVELDB, "leveldb"},
-    {BCLog::ALL, "1"},
-    {BCLog::ALL, "all"},
+    {
+        {BCLog::NONE, "0"},
+        {BCLog::NET, "net"},
+        {BCLog::TOR, "tor"},
+        {BCLog::MEMPOOL, "mempool"},
+        {BCLog::HTTP, "http"},
+        {BCLog::BENCH, "bench"},
+        {BCLog::ZMQ, "zmq"},
+        {BCLog::DB, "db"},
+        {BCLog::RPC, "rpc"},
+        {BCLog::ESTIMATEFEE, "estimatefee"},
+        {BCLog::ADDRMAN, "addrman"},
+        {BCLog::SELECTCOINS, "selectcoins"},
+        {BCLog::REINDEX, "reindex"},
+        {BCLog::CMPCTBLOCK, "cmpctblock"},
+        {BCLog::RAND, "rand"},
+        {BCLog::PRUNE, "prune"},
+        {BCLog::PROXY, "proxy"},
+        {BCLog::MEMPOOLREJ, "mempoolrej"},
+        {BCLog::LIBEVENT, "libevent"},
+        {BCLog::COINDB, "coindb"},
+        {BCLog::QT, "qt"},
+        {BCLog::LEVELDB, "leveldb"},
+        {BCLog::ALL, "1"},
+        {BCLog::ALL, "all"},
 };
 
-bool GetLogCategory(uint32_t *f, const std::string *str)
+bool GetLogCategory(uint32_t* f, const std::string* str)
 {
     if (f && str) {
         if (*str == "") {
@@ -297,7 +296,7 @@ std::vector<CLogCategoryActive> ListActiveLogCategories()
  * suppress printing of the timestamp when multiple calls are made that don't
  * end in a newline. Initialize it to true, and hold it, in the calling context.
  */
-static std::string LogTimestampStr(const std::string &str, std::atomic_bool *fStartedNewLine)
+static std::string LogTimestampStr(const std::string& str, std::atomic_bool* fStartedNewLine)
 {
     std::string strStamped;
 
@@ -306,9 +305,9 @@ static std::string LogTimestampStr(const std::string &str, std::atomic_bool *fSt
 
     if (*fStartedNewLine) {
         int64_t nTimeMicros = GetTimeMicros();
-        strStamped = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros/1000000);
+        strStamped = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", nTimeMicros / 1000000);
         if (fLogTimeMicros)
-            strStamped += strprintf(".%06d", nTimeMicros%1000000);
+            strStamped += strprintf(".%06d", nTimeMicros % 1000000);
         int64_t mocktime = GetMockTime();
         if (mocktime) {
             strStamped += " (mocktime: " + DateTimeStrFormat("%Y-%m-%d %H:%M:%S", mocktime) + ")";
@@ -317,7 +316,7 @@ static std::string LogTimestampStr(const std::string &str, std::atomic_bool *fSt
     } else
         strStamped = str;
 
-    if (!str.empty() && str[str.size()-1] == '\n')
+    if (!str.empty() && str[str.size() - 1] == '\n')
         *fStartedNewLine = true;
     else
         *fStartedNewLine = false;
@@ -325,21 +324,18 @@ static std::string LogTimestampStr(const std::string &str, std::atomic_bool *fSt
     return strStamped;
 }
 
-int LogPrintStr(const std::string &str)
+int LogPrintStr(const std::string& str)
 {
     int ret = 0; // Returns total number of characters written
     static std::atomic_bool fStartedNewLine(true);
 
     std::string strTimestamped = LogTimestampStr(str, &fStartedNewLine);
 
-    if (fPrintToConsole)
-    {
+    if (fPrintToConsole) {
         // print to console
         ret = fwrite(strTimestamped.data(), 1, strTimestamped.size(), stdout);
         fflush(stdout);
-    }
-    else if (fPrintToDebugLog)
-    {
+    } else if (fPrintToDebugLog) {
         boost::call_once(&DebugPrintInit, debugPrintInitFlag);
         boost::mutex::scoped_lock scoped_lock(*mutexDebugLog);
 
@@ -348,14 +344,12 @@ int LogPrintStr(const std::string &str)
             assert(vMsgsBeforeOpenLog);
             ret = strTimestamped.length();
             vMsgsBeforeOpenLog->push_back(strTimestamped);
-        }
-        else
-        {
+        } else {
             // reopen the log file, if requested
             if (fReopenDebugLog) {
                 fReopenDebugLog = false;
                 fs::path pathDebug = GetDataDir() / "debug.log";
-                if (fsbridge::freopen(pathDebug,"a",fileout) != nullptr)
+                if (fsbridge::freopen(pathDebug, "a", fileout) != nullptr)
                     setbuf(fileout, nullptr); // unbuffered
             }
 
@@ -376,8 +370,7 @@ static bool InterpretBool(const std::string& strValue)
 /** Turn -noX into -X=0 */
 static void InterpretNegativeSetting(std::string& strKey, std::string& strValue)
 {
-    if (strKey.length()>3 && strKey[0]=='-' && strKey[1]=='n' && strKey[2]=='o')
-    {
+    if (strKey.length() > 3 && strKey[0] == '-' && strKey[1] == 'n' && strKey[2] == 'o') {
         strKey = "-" + strKey.substr(3);
         strValue = InterpretBool(strValue) ? "0" : "1";
     }
@@ -389,14 +382,12 @@ void ArgsManager::ParseParameters(int argc, const char* const argv[])
     mapArgs.clear();
     mapMultiArgs.clear();
 
-    for (int i = 1; i < argc; i++)
-    {
+    for (int i = 1; i < argc; i++) {
         std::string str(argv[i]);
         std::string strValue;
         size_t is_index = str.find('=');
-        if (is_index != std::string::npos)
-        {
-            strValue = str.substr(is_index+1);
+        if (is_index != std::string::npos) {
+            strValue = str.substr(is_index + 1);
             str = str.substr(0, is_index);
         }
 #ifdef WIN32
@@ -609,8 +600,7 @@ void ArgsManager::ReadConfigFile(const std::string& confPath)
         std::set<std::string> setOptions;
         setOptions.insert("*");
 
-        for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it)
-        {
+        for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it) {
             // Don't overwrite existing settings so command line settings override bitcoin.conf
             std::string strKey = std::string("-") + it->string_key;
             std::string strValue = it->value[0];
@@ -673,7 +663,7 @@ bool TryCreateDirectories(const fs::path& p)
     return false;
 }
 
-void FileCommit(FILE *file)
+void FileCommit(FILE* file)
 {
     fflush(file); // harmless if redundantly called
 #ifdef WIN32
@@ -682,11 +672,11 @@ void FileCommit(FILE *file)
 #else
     #if defined(__linux__) || defined(__NetBSD__)
     fdatasync(fileno(file));
-    #elif defined(__APPLE__) && defined(F_FULLFSYNC)
+#elif defined(__APPLE__) && defined(F_FULLFSYNC)
     fcntl(fileno(file), F_FULLFSYNC, 0);
-    #else
+#else
     fsync(fileno(file));
-    #endif
+#endif
 #endif
 }
 
@@ -776,8 +766,7 @@ void ShrinkDebugFile()
     FILE* file = fsbridge::fopen(pathLog, "r");
     // If debug.log file is more than 10% bigger the RECENT_DEBUG_HISTORY_SIZE
     // trim it down by saving only the last RECENT_DEBUG_HISTORY_SIZE bytes
-    if (file && fs::file_size(pathLog) > 11 * (RECENT_DEBUG_HISTORY_SIZE / 10))
-    {
+    if (file && fs::file_size(pathLog) > 11 * (RECENT_DEBUG_HISTORY_SIZE / 10)) {
         // Restart the file with some of the end
         std::vector<char> vch(RECENT_DEBUG_HISTORY_SIZE, 0);
         fseek(file, -((long)vch.size()), SEEK_END);
@@ -785,13 +774,11 @@ void ShrinkDebugFile()
         fclose(file);
 
         file = fsbridge::fopen(pathLog, "w");
-        if (file)
-        {
+        if (file) {
             fwrite(vch.data(), 1, nBytes, file);
             fclose(file);
         }
-    }
-    else if (file != nullptr)
+    } else if (file != nullptr)
         fclose(file);
 }
 

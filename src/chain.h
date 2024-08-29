@@ -7,8 +7,8 @@
 #define BITCOIN_CHAIN_H
 
 #include "arith_uint256.h"
-#include "primitives/block.h"
 #include "pow.h"
+#include "primitives/block.h"
 #include "tinyformat.h"
 #include "uint256.h"
 
@@ -331,7 +331,7 @@ public:
         return (int64_t)nTimeMax;
     }
 
-    enum { nMedianTimeSpan=11 };
+    enum { nMedianTimeSpan = 11 };
 
     int64_t GetMedianTimePast() const
     {

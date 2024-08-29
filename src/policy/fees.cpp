@@ -563,7 +563,7 @@ void CBlockPolicyEstimator::processTransaction(const CTxMemPoolEntry& entry, boo
     if (mapMemPoolTxs.count(hash)) {
         LogPrint(BCLog::ESTIMATEFEE, "Blockpolicy error mempool tx %s already being tracked\n",
                  hash.ToString().c_str());
-	return;
+        return;
     }
 
     if (txHeight != nBestSeenHeight) {
@@ -968,8 +968,7 @@ bool CBlockPolicyEstimator::Read(CAutoFile& filein)
             for (unsigned int i = 0; i < tempBuckets.size(); i++) {
                 tempMap[tempBuckets[i]] = i;
             }
-        }
-        else { // nVersionThatWrote >= 149900
+        } else { // nVersionThatWrote >= 149900
             unsigned int nFileHistoricalFirst, nFileHistoricalBest;
             filein >> nFileHistoricalFirst >> nFileHistoricalBest;
             if (nFileHistoricalFirst > nFileHistoricalBest || nFileHistoricalBest > nFileBestSeenHeight) {
@@ -1016,7 +1015,8 @@ bool CBlockPolicyEstimator::Read(CAutoFile& filein)
     return true;
 }
 
-void CBlockPolicyEstimator::FlushUnconfirmed(CTxMemPool& pool) {
+void CBlockPolicyEstimator::FlushUnconfirmed(CTxMemPool& pool)
+{
     int64_t startclear = GetTimeMicros();
     std::vector<uint256> txids;
     pool.queryHashes(txids);
@@ -1025,7 +1025,7 @@ void CBlockPolicyEstimator::FlushUnconfirmed(CTxMemPool& pool) {
         removeTx(txid, false);
     }
     int64_t endclear = GetTimeMicros();
-    LogPrint(BCLog::ESTIMATEFEE, "Recorded %u unconfirmed txs from mempool in %gs\n",txids.size(), (endclear - startclear)*0.000001);
+    LogPrint(BCLog::ESTIMATEFEE, "Recorded %u unconfirmed txs from mempool in %gs\n", txids.size(), (endclear - startclear) * 0.000001);
 }
 
 FeeFilterRounder::FeeFilterRounder(const CFeeRate& minIncrementalFee)

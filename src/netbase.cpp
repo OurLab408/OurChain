@@ -10,9 +10,9 @@
 #include "netbase.h"
 
 #include "hash.h"
+#include "random.h"
 #include "sync.h"
 #include "uint256.h"
-#include "random.h"
 #include "util.h"
 #include "utilstrencodings.h"
 
@@ -44,7 +44,7 @@ enum Network ParseNetwork(std::string net) {
     boost::to_lower(net);
     if (net == "ipv4") return NET_IPV4;
     if (net == "ipv6") return NET_IPV6;
-    if (net == "tor" || net == "onion")  return NET_TOR;
+    if (net == "tor" || net == "onion") return NET_TOR;
     return NET_UNROUTABLE;
 }
 
@@ -120,8 +120,7 @@ bool LookupHost(const char *pszName, std::vector<CNetAddr>& vIP, unsigned int nM
     std::string strHost(pszName);
     if (strHost.empty())
         return false;
-    if (boost::algorithm::starts_with(strHost, "[") && boost::algorithm::ends_with(strHost, "]"))
-    {
+    if (boost::algorithm::starts_with(strHost, "[") && boost::algorithm::ends_with(strHost, "]")) {
         strHost = strHost.substr(1, strHost.size() - 2);
     }
 
@@ -273,7 +272,7 @@ std::string Socks5ErrorString(int err)
 }
 
 /** Connect using SOCKS5 (as described in RFC1928) */
-static bool Socks5(const std::string& strDest, int port, const ProxyCredentials *auth, SOCKET& hSocket)
+static bool Socks5(const std::string& strDest, int port, const ProxyCredentials* auth, SOCKET& hSocket)
 {
     IntrRecvError recvr;
     LogPrint(BCLog::NET, "SOCKS5 connecting %s\n", strDest);
@@ -397,7 +396,9 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
         recvr = InterruptibleRecv(pchRet3, nRecv, SOCKS5_RECV_TIMEOUT, hSocket);
         break;
     }
-        default: CloseSocket(hSocket); return error("Error: malformed proxy response");
+    default:
+        CloseSocket(hSocket);
+        return error("Error: malformed proxy response");
     }
     if (recvr != IntrRecvError::OK) {
         CloseSocket(hSocket);
@@ -411,7 +412,7 @@ static bool Socks5(const std::string& strDest, int port, const ProxyCredentials 
     return true;
 }
 
-bool static ConnectSocketDirectly(const CService &addrConnect, SOCKET& hSocketRet, int nTimeout)
+bool static ConnectSocketDirectly(const CService& addrConnect, SOCKET& hSocketRet, int nTimeout)
 {
     hSocketRet = INVALID_SOCKET;
 
@@ -546,7 +547,7 @@ bool IsProxy(const CNetAddr &addr) {
     return false;
 }
 
-static bool ConnectThroughProxy(const proxyType &proxy, const std::string& strDest, int port, SOCKET& hSocketRet, int nTimeout, bool *outProxyConnectionFailed)
+static bool ConnectThroughProxy(const proxyType& proxy, const std::string& strDest, int port, SOCKET& hSocketRet, int nTimeout, bool* outProxyConnectionFailed)
 {
     SOCKET hSocket = INVALID_SOCKET;
     // first connect to proxy server
@@ -571,7 +572,7 @@ static bool ConnectThroughProxy(const proxyType &proxy, const std::string& strDe
     return true;
 }
 
-bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout, bool *outProxyConnectionFailed)
+bool ConnectSocket(const CService& addrDest, SOCKET& hSocketRet, int nTimeout, bool* outProxyConnectionFailed)
 {
     proxyType proxy;
     if (outProxyConnectionFailed)
@@ -583,7 +584,7 @@ bool ConnectSocket(const CService &addrDest, SOCKET& hSocketRet, int nTimeout, b
         return ConnectSocketDirectly(addrDest, hSocketRet, nTimeout);
 }
 
-bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest, int portDefault, int nTimeout, bool *outProxyConnectionFailed)
+bool ConnectSocketByName(CService& addr, SOCKET& hSocketRet, const char* pszDest, int portDefault, int nTimeout, bool* outProxyConnectionFailed)
 {
     std::string strDest;
     int port = portDefault;

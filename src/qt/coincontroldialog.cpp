@@ -13,11 +13,11 @@
 #include "txmempool.h"
 #include "walletmodel.h"
 
-#include "wallet/coincontrol.h"
 #include "init.h"
 #include "policy/fees.h"
 #include "policy/policy.h"
 #include "validation.h" // For mempool
+#include "wallet/coincontrol.h"
 #include "wallet/wallet.h"
 
 #include <QApplication>
@@ -210,18 +210,14 @@ void CoinControlDialog::showMenu(const QPoint &point)
         if (item->text(COLUMN_TXHASH).length() == 64) // transaction hash is 64 characters (this means its a child node, so its not a parent node in tree mode)
         {
             copyTransactionHashAction->setEnabled(true);
-            if (model->isLockedCoin(uint256S(item->text(COLUMN_TXHASH).toStdString()), item->text(COLUMN_VOUT_INDEX).toUInt()))
-            {
+            if (model->isLockedCoin(uint256S(item->text(COLUMN_TXHASH).toStdString()), item->text(COLUMN_VOUT_INDEX).toUInt())) {
                 lockAction->setEnabled(false);
                 unlockAction->setEnabled(true);
-            }
-            else
-            {
+            } else {
                 lockAction->setEnabled(true);
                 unlockAction->setEnabled(false);
             }
-        }
-        else // this means click on parent node in tree mode -> disable all
+        } else // this means click on parent node in tree mode -> disable all
         {
             copyTransactionHashAction->setEnabled(false);
             lockAction->setEnabled(false);
@@ -390,12 +386,10 @@ void CoinControlDialog::viewItemChanged(QTreeWidgetItem* item, int column)
         if (ui->treeWidget->isEnabled()) // do not update on every click for (un)select all
             CoinControlDialog::updateLabels(model, this);
     }
-
     // TODO: Remove this temporary qt5 fix after Qt5.3 and Qt5.4 are no longer used.
     //       Fixed in Qt5.5 and above: https://bugreports.qt.io/browse/QTBUG-43473
 #if QT_VERSION >= 0x050000
-    else if (column == COLUMN_CHECKBOX && item->childCount() > 0)
-    {
+    else if (column == COLUMN_CHECKBOX && item->childCount() > 0) {
         if (item->checkState(COLUMN_CHECKBOX) == Qt::PartiallyChecked && item->child(0)->checkState(COLUMN_CHECKBOX) == Qt::PartiallyChecked)
             item->setCheckState(COLUMN_CHECKBOX, Qt::Checked);
     }
@@ -446,7 +440,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
     bool fWitness               = false;
 
     std::vector<COutPoint> vCoinControl;
-    std::vector<COutput>   vOutputs;
+    std::vector<COutput> vOutputs;
     coinControl->ListSelected(vCoinControl);
     model->getOutputs(vCoinControl, vOutputs);
 
@@ -455,8 +449,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         // when selected are spent elsewhere, like rpc or another computer
         uint256 txhash = out.tx->GetHash();
         COutPoint outpt(txhash, out.i);
-        if (model->isSpent(outpt))
-        {
+        if (model->isSpent(outpt)) {
             coinControl->UnSelect(outpt);
             continue;
         }
@@ -471,23 +464,18 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
         CTxDestination address;
         int witnessversion = 0;
         std::vector<unsigned char> witnessprogram;
-        if (out.tx->tx->vout[out.i].scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram))
-        {
+        if (out.tx->tx->vout[out.i].scriptPubKey.IsWitnessProgram(witnessversion, witnessprogram)) {
             nBytesInputs += (32 + 4 + 1 + (107 / WITNESS_SCALE_FACTOR) + 4);
             fWitness = true;
-        }
-        else if(ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey, address))
-        {
+        } else if (ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey, address)) {
             CPubKey pubkey;
             CKeyID *keyid = boost::get<CKeyID>(&address);
-            if (keyid && model->getPubKey(*keyid, pubkey))
-            {
+            if (keyid && model->getPubKey(*keyid, pubkey)) {
                 nBytesInputs += (pubkey.IsCompressed() ? 148 : 180);
-            }
-            else
+            } else
                 nBytesInputs += 148; // in all error cases, simply assume 148 here
-        }
-        else nBytesInputs += 148;
+        } else
+            nBytesInputs += 148;
     }
 
     // calculation
@@ -522,8 +510,7 @@ void CoinControlDialog::updateLabels(WalletModel *model, QDialog* dialog)
             if (nChange > 0 && nChange < MIN_CHANGE)
             {
                 CTxOut txout(nChange, (CScript)std::vector<unsigned char>(24, 0));
-                if (IsDust(txout, ::dustRelayFee))
-                {
+                if (IsDust(txout, ::dustRelayFee)) {
                     nPayFee += nChange;
                     nChange = 0;
                     if (CoinControlDialog::fSubtractFeeFromAmount)
@@ -616,7 +603,7 @@ void CoinControlDialog::updateView()
 
     int nDisplayUnit = model->getOptionsModel()->getDisplayUnit();
 
-    std::map<QString, std::vector<COutput> > mapCoins;
+    std::map<QString, std::vector<COutput>> mapCoins;
     model->listCoins(mapCoins);
 
     for (const std::pair<QString, std::vector<COutput>>& coins : mapCoins) {
@@ -657,8 +644,7 @@ void CoinControlDialog::updateView()
             // address
             CTxDestination outputAddress;
             QString sAddress = "";
-            if(ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey, outputAddress))
-            {
+            if (ExtractDestination(out.tx->tx->vout[out.i].scriptPubKey, outputAddress)) {
                 sAddress = QString::fromStdString(CBitcoinAddress(outputAddress).ToString());
 
                 // if listMode or change => show bitcoin address. In tree mode, address is not shown again for direct wallet address outputs
@@ -700,9 +686,8 @@ void CoinControlDialog::updateView()
             // vout index
             itemOutput->setText(COLUMN_VOUT_INDEX, QString::number(out.i));
 
-             // disable locked coins
-            if (model->isLockedCoin(txhash, out.i))
-            {
+            // disable locked coins
+            if (model->isLockedCoin(txhash, out.i)) {
                 COutPoint outpt(txhash, out.i);
                 coinControl->UnSelect(outpt); // just to be sure
                 itemOutput->setDisabled(true);

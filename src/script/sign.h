@@ -27,11 +27,12 @@ public:
     virtual const BaseSignatureChecker& Checker() const =0;
 
     /** Create a singular (non-script) signature. */
-    virtual bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const =0;
+    virtual bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const = 0;
 };
 
 /** A signature creator for transactions. */
-class TransactionSignatureCreator : public BaseSignatureCreator {
+class TransactionSignatureCreator : public BaseSignatureCreator
+{
     const CTransaction* txTo;
     unsigned int nIn;
     int nHashType;
@@ -39,12 +40,13 @@ class TransactionSignatureCreator : public BaseSignatureCreator {
     const TransactionSignatureChecker checker;
 
 public:
-    TransactionSignatureCreator(const CKeyStore* keystoreIn, const CTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn, int nHashTypeIn=SIGHASH_ALL);
+    TransactionSignatureCreator(const CKeyStore* keystoreIn, const CTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn, int nHashTypeIn = SIGHASH_ALL);
     const BaseSignatureChecker& Checker() const override { return checker; }
     bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const override;
 };
 
-class MutableTransactionSignatureCreator : public TransactionSignatureCreator {
+class MutableTransactionSignatureCreator : public TransactionSignatureCreator
+{
     CTransaction tx;
 
 public:
@@ -52,7 +54,8 @@ public:
 };
 
 /** A signature creator that just produces 72-byte empty signatures. */
-class DummySignatureCreator : public BaseSignatureCreator {
+class DummySignatureCreator : public BaseSignatureCreator
+{
 public:
     DummySignatureCreator(const CKeyStore* keystoreIn) : BaseSignatureCreator(keystoreIn) {}
     const BaseSignatureChecker& Checker() const override;
@@ -71,7 +74,7 @@ struct SignatureData {
 bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& scriptPubKey, SignatureData& sigdata);
 
 /** Produce a script signature for a transaction. */
-bool SignSignature(const CKeyStore &keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, const CAmount& amount, int nHashType);
+bool SignSignature(const CKeyStore& keystore, const CScript& fromPubKey, CMutableTransaction& txTo, unsigned int nIn, const CAmount& amount, int nHashType);
 bool SignSignature(const CKeyStore& keystore, const CTransaction& txFrom, CMutableTransaction& txTo, unsigned int nIn, int nHashType);
 
 /** Combine two script signatures using a generic signature checker, intelligently, possibly with OP_0 placeholders. */
