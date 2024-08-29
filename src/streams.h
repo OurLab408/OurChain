@@ -96,7 +96,7 @@ class CVectorWriter
      CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
      {
          ::SerializeMany(*this, std::forward<Args>(args)...);
-    }
+     }
     void write(const char* pch, size_t nSize)
     {
         assert(nPos <= vchData.size());
