@@ -109,7 +109,9 @@ def sign_P2PK_witness_input(script, txTo, inIdx, hashtype, value, key):
 
 
 class SegWitTest(BitcoinTestFramework):
-    def set_test_params(self):
+
+    def __init__(self):
+        super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 3
         self.extra_args = [["-whitelist=127.0.0.1"], ["-whitelist=127.0.0.1", "-acceptnonstdtxn=0"], ["-whitelist=127.0.0.1", "-vbparams=segwit:0:0"]]
@@ -1494,7 +1496,7 @@ class SegWitTest(BitcoinTestFramework):
 
         # Restart with the new binary
         self.stop_node(node_id)
-        self.start_node(node_id, extra_args=[])
+        self.nodes[node_id] = self.start_node(node_id, self.options.tmpdir)
         connect_nodes(self.nodes[0], node_id)
 
         sync_blocks(self.nodes)

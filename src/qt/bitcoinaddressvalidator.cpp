@@ -1,10 +1,10 @@
-// Copyright (c) 2011-2018 The Bitcoin Core developers
+// Copyright (c) 2011-2014 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <qt/bitcoinaddressvalidator.h>
+#include "bitcoinaddressvalidator.h"
 
-#include <key_io.h>
+#include "base58.h"
 
 /* Base58 characters are:
      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -64,15 +64,12 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input, int &po
     {
         int ch = input.at(idx).unicode();
 
-        if (((ch >= '0' && ch<='9') ||
-            (ch >= 'a' && ch<='z') ||
-            (ch >= 'A' && ch<='Z')) &&
-            ch != 'I' && ch != 'O') // Characters invalid in both Base58 and Bech32
-        {
+        if (((ch >= '0' && ch <= '9') ||
+                (ch >= 'a' && ch <= 'z') ||
+                (ch >= 'A' && ch <= 'Z')) &&
+            ch != 'l' && ch != 'I' && ch != '0' && ch != 'O') {
             // Alphanumeric and not a 'forbidden' character
-        }
-        else
-        {
+        } else {
             state = QValidator::Invalid;
         }
     }
@@ -89,9 +86,9 @@ QValidator::State BitcoinAddressCheckValidator::validate(QString &input, int &po
 {
     Q_UNUSED(pos);
     // Validate the passed Bitcoin address
-    if (IsValidDestinationString(input.toStdString())) {
+    CBitcoinAddress addr(input.toStdString());
+    if (addr.IsValid())
         return QValidator::Acceptable;
-    }
 
     return QValidator::Invalid;
 }

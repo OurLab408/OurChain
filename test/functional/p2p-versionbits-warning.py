@@ -28,7 +28,8 @@ class TestNode(NodeConnCB):
         pass
 
 class VersionBitsWarningTest(BitcoinTestFramework):
-    def set_test_params(self):
+    def __init__(self):
+        super().__init__()
         self.setup_clean_chain = True
         self.num_nodes = 1
 
@@ -111,7 +112,7 @@ class VersionBitsWarningTest(BitcoinTestFramework):
         # Empty out the alert file
         with open(self.alert_filename, 'w', encoding='utf8') as _:
             pass
-        self.start_nodes()
+        self.nodes = self.start_nodes(self.num_nodes, self.options.tmpdir, self.extra_args)
 
         # Connecting one block should be enough to generate an error.
         self.nodes[0].generate(1)
@@ -122,7 +123,7 @@ class VersionBitsWarningTest(BitcoinTestFramework):
         self.test_versionbits_in_alert_file()
 
         # Test framework expects the node to still be running...
-        self.start_nodes()
+        self.nodes = self.start_nodes(self.num_nodes, self.options.tmpdir, self.extra_args)
 
 if __name__ == '__main__':
     VersionBitsWarningTest().main()

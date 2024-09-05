@@ -106,7 +106,7 @@ def main():
   filename = None
   lines_by_file = {}
   for line in sys.stdin:
-    match = re.search('^\+\+\+\ (.*?/){%s}(\S*)' % args.p, line)
+    match = re.search(r'^\+\+\+\ (.*?/){%s}(\S*)' % args.p, line)
     if match:
       filename = match.group(2)
     if filename == None:
@@ -119,7 +119,7 @@ def main():
       if not re.match('^%s$' % args.iregex, filename, re.IGNORECASE):
         continue
 
-    match = re.search('^@@.*\+(\d+)(,(\d+))?', line)
+    match = re.search(r'^@@.*\+(\d+)(,(\d+))?', line)
     if match:
       start_line = int(match.group(1))
       line_count = 1
@@ -142,15 +142,20 @@ def main():
       command.append('-sort-includes')
     command.extend(lines)
     command.extend(['-style=file', '-fallback-style=none'])
-    p = subprocess.Popen(command,
-                         stdout=subprocess.PIPE,
-                         stderr=None,
-                         stdin=subprocess.PIPE,
-                         universal_newlines=True)
-    stdout, stderr = p.communicate()
-    if p.returncode != 0:
-      sys.exit(p.returncode)
 
+    try:
+      p = subprocess.Popen(command, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+      stdout, stderr = p.communicate()
+      if p.returncode != 0:
+        if b"error: unknown file type" in stderr or b"Configuration file(s) do(es) not support" in stderr:
+          print('Skip Formatting {}'.format(filename))
+          continue
+        else:
+          sys.exit(p.returncode)
+    except Exception as e:
+        continue
+      
     if not args.i:
       with open(filename, encoding="utf8") as f:
         code = f.readlines()

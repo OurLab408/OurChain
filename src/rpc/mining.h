@@ -5,12 +5,16 @@
 #ifndef BITCOIN_RPC_MINING_H
 #define BITCOIN_RPC_MINING_H
 
-#include <script/script.h>
+#include "script/script.h"
 
 #include <univalue.h>
 
 /** Generate blocks (mine) */
+#ifdef ENABLE_GPoW
+UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript, bool conservative = true);
+#else
 UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript);
+#endif
 
 /** Check bounds on a command line confirm target */
 unsigned int ParseConfirmTarget(const UniValue& value);

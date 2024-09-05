@@ -155,7 +155,7 @@ namespace tfm = tinyformat;
 #endif
 
 #ifdef __APPLE__
-// Workaround OSX linker warning: Xcode uses different default symbol
+// Workaround OSX linker warning: xcode uses different default symbol
 // visibilities for static libs vs executables (see issue #25)
 #   define TINYFORMAT_HIDDEN __attribute__((visibility("hidden")))
 #else
@@ -167,7 +167,8 @@ namespace tinyformat {
 class format_error: public std::runtime_error
 {
 public:
-    explicit format_error(const std::string &what): std::runtime_error(what) {
+    format_error(const std::string& what) : std::runtime_error(what)
+    {
     }
 };
 
@@ -495,31 +496,23 @@ namespace detail {
 class FormatArg
 {
     public:
-        FormatArg()
-             : m_value(nullptr),
-             m_formatImpl(nullptr),
-             m_toIntImpl(nullptr)
-         { }
+        FormatArg() {}
 
-        template<typename T>
-        explicit FormatArg(const T& value)
+        template <typename T>
+        FormatArg(const T& value)
             : m_value(static_cast<const void*>(&value)),
-            m_formatImpl(&formatImpl<T>),
-            m_toIntImpl(&toIntImpl<T>)
+              m_formatImpl(&formatImpl<T>),
+              m_toIntImpl(&toIntImpl<T>)
         { }
 
         void format(std::ostream& out, const char* fmtBegin,
                     const char* fmtEnd, int ntrunc) const
         {
-            assert(m_value);
-            assert(m_formatImpl);
             m_formatImpl(out, fmtBegin, fmtEnd, ntrunc, m_value);
         }
 
         int toInt() const
         {
-            assert(m_value);
-            assert(m_toIntImpl);
             return m_toIntImpl(m_value);
         }
 
@@ -592,7 +585,7 @@ inline const char* printFormatStringLiteral(std::ostream& out, const char* fmt)
 // Formatting options which can't be natively represented using the ostream
 // state are returned in spacePadPositive (for space padded positive numbers)
 // and ntrunc (for truncating conversions).  argIndex is incremented if
-// necessary to pull out variable width and precision.  The function returns a
+// necessary to pull out variable width and precision .  The function returns a
 // pointer to the character after the end of the current format spec.
 inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositive,
                                          int& ntrunc, const char* fmtStart,
@@ -720,27 +713,23 @@ inline const char* streamStateFromFormat(std::ostream& out, bool& spacePadPositi
             break;
         case 'X':
             out.setf(std::ios::uppercase);
-            // Falls through
         case 'x': case 'p':
             out.setf(std::ios::hex, std::ios::basefield);
             intConversion = true;
             break;
         case 'E':
             out.setf(std::ios::uppercase);
-            // Falls through
         case 'e':
             out.setf(std::ios::scientific, std::ios::floatfield);
             out.setf(std::ios::dec, std::ios::basefield);
             break;
         case 'F':
             out.setf(std::ios::uppercase);
-            // Falls through
         case 'f':
             out.setf(std::ios::fixed, std::ios::floatfield);
             break;
         case 'G':
             out.setf(std::ios::uppercase);
-            // Falls through
         case 'g':
             out.setf(std::ios::dec, std::ios::basefield);
             // As in boost::format, let stream decide float format.
@@ -878,25 +867,28 @@ class FormatListN : public FormatList
 {
     public:
 #ifdef TINYFORMAT_USE_VARIADIC_TEMPLATES
-        template<typename... Args>
-        explicit FormatListN(const Args&... args)
+        template <typename... Args>
+        FormatListN(const Args&... args)
             : FormatList(&m_formatterStore[0], N),
-            m_formatterStore { FormatArg(args)... }
+              m_formatterStore{FormatArg(args)...}
         { static_assert(sizeof...(args) == N, "Number of args must be N"); }
 #else // C++98 version
         void init(int) {}
-#       define TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR(n)       \
-                                                               \
-        template<TINYFORMAT_ARGTYPES(n)>                       \
-        explicit FormatListN(TINYFORMAT_VARARGS(n))            \
-            : FormatList(&m_formatterStore[0], n)              \
-        { assert(n == N); init(0, TINYFORMAT_PASSARGS(n)); }   \
-                                                               \
-        template<TINYFORMAT_ARGTYPES(n)>                       \
-        void init(int i, TINYFORMAT_VARARGS(n))                \
-        {                                                      \
-            m_formatterStore[i] = FormatArg(v1);               \
-            init(i+1 TINYFORMAT_PASSARGS_TAIL(n));             \
+#define TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR(n)    \
+                                                     \
+        template <TINYFORMAT_ARGTYPES(n)>            \
+        FormatListN(TINYFORMAT_VARARGS(n))           \
+            : FormatList(&m_formatterStore[0], n)    \
+        {                                            \
+            assert(n == N);                          \
+            init(0, TINYFORMAT_PASSARGS(n));         \
+        }                                            \
+                                                     \
+        template <TINYFORMAT_ARGTYPES(n)>            \
+        void init(int i, TINYFORMAT_VARARGS(n))      \
+        {                                            \
+            m_formatterStore[i] = FormatArg(v1);     \
+            init(i + 1 TINYFORMAT_PASSARGS_TAIL(n)); \
         }
 
         TINYFORMAT_FOREACH_ARGNUM(TINYFORMAT_MAKE_FORMATLIST_CONSTRUCTOR)

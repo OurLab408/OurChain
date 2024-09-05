@@ -12,7 +12,10 @@ import http.client
 import urllib.parse
 
 class HTTPBasicsTest (BitcoinTestFramework):
-    def set_test_params(self):
+
+    def __init__(self):
+        super().__init__()
+        self.setup_clean_chain = False
         self.num_nodes = 2
 
     def setup_chain(self):

@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2018 The Bitcoin Core developers
+// Copyright (c) 2009-2016 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -25,7 +25,7 @@ template<unsigned int BITS>
 class base_uint
 {
 protected:
-    static constexpr int WIDTH = BITS / 32;
+    enum { WIDTH = BITS / 32 };
     uint32_t pn[WIDTH];
 public:
 
@@ -54,7 +54,7 @@ public:
 
     base_uint(uint64_t b)
     {
-        static_assert(BITS/32 > 0 && BITS%32 == 0, "Template parameter BITS must be a positive multiple of 32.");
+        static_assert(BITS / 32 > 0 && BITS % 32 == 0, "Template parameter BITS must be a positive multiple of 32.");
 
         pn[0] = (unsigned int)b;
         pn[1] = (unsigned int)(b >> 32);
@@ -63,6 +63,14 @@ public:
     }
 
     explicit base_uint(const std::string& str);
+
+    bool operator!() const
+    {
+        for (int i = 0; i < WIDTH; i++)
+            if (pn[i] != 0)
+                return false;
+        return true;
+    }
 
     const base_uint operator~() const
     {
@@ -77,7 +85,7 @@ public:
         base_uint ret;
         for (int i = 0; i < WIDTH; i++)
             ret.pn[i] = ~pn[i];
-        ++ret;
+        ret++;
         return ret;
     }
 
@@ -223,11 +231,23 @@ public:
     friend inline bool operator<=(const base_uint& a, const base_uint& b) { return a.CompareTo(b) <= 0; }
     friend inline bool operator==(const base_uint& a, uint64_t b) { return a.EqualTo(b); }
     friend inline bool operator!=(const base_uint& a, uint64_t b) { return !a.EqualTo(b); }
+    friend uint256 Arith288ToUint256(base_uint<288>&);
+    friend void Arith288To320(base_uint<288>&, base_uint<320>&);
 
     std::string GetHex() const;
     void SetHex(const char* psz);
     void SetHex(const std::string& str);
     std::string ToString() const;
+
+    inline const unsigned char* begin() const
+    {
+        return (unsigned char*)&pn[0];
+    }
+
+    inline const unsigned char* end() const
+    {
+        return (unsigned char*)&pn[WIDTH];
+    }
 
     unsigned int size() const
     {
@@ -242,7 +262,7 @@ public:
 
     uint64_t GetLow64() const
     {
-        static_assert(WIDTH >= 2, "Assertion WIDTH >= 2 failed (WIDTH = BITS / 32). BITS is a template parameter.");
+        assert(WIDTH >= 2);
         return pn[0] | (uint64_t)pn[1] << 32;
     }
 };
@@ -282,7 +302,18 @@ public:
     friend arith_uint256 UintToArith256(const uint256 &);
 };
 
-uint256 ArithToUint256(const arith_uint256 &);
-arith_uint256 UintToArith256(const uint256 &);
+class arith_uint288 : public base_uint<288>
+{
+public:
+    arith_uint288& operator+=(uint256& b);
+    arith_uint288& operator/=(uint32_t b);
+    arith_uint288& operator/=(uint64_t b);
+    uint256& ToUint256(uint256& b); // for average, assume bit 256-319 = 0;
+    double getdouble() const;
+};
 
+uint256 ArithToUint256(const arith_uint256&);
+arith_uint256 UintToArith256(const uint256&);
+uint256 Arith288ToUint256(base_uint<288>&);
+void Arith288To320(base_uint<288>&, base_uint<320>&);
 #endif // BITCOIN_ARITH_UINT256_H
