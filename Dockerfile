@@ -21,9 +21,9 @@ RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && m
 RUN cd ~ && rm -rf rocksdb
 
 # git clone ourchain
-ARG REPO_URL=https://github.com/leon123858/OurChain.git
+ARG REPO_URL=https://github.com/OurLab408/OurChain.git
 ARG REPO_NAME=OurChain
-ARG REPO_BRANCH=main
+ARG REPO_BRANCH=master
 RUN cd ~ && mkdir Desktop && cd Desktop && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull
 WORKDIR /root/Desktop/ourchain
 

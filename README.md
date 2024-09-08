@@ -12,7 +12,7 @@ OurChain is a fork of Bitcoin Core that aims to provide a more efficient and aut
 
 ## Quick Start
 
-use `bash mytest.sh` to try basic contract rpc commands.
+After starting the OurChain node, you can use the `bash mytest.sh` command to try basic contract rpc commands.
 
 ## Dev By Docker
 
