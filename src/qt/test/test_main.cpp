@@ -44,10 +44,6 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
 
-#ifdef ENABLE_GPoW
-T nMaxTries;
-#endif
-
 extern void noui_connect();
 
 // This is all you need to run all the tests
