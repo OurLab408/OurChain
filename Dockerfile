@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:18.04
 
 # update package manager
 RUN apt-get update -y
@@ -17,7 +17,7 @@ RUN apt-get install autoconf automake -y
 
 #install rocksdb (constract db)
 RUN apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
-RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib && make install-shared
+RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib -j$(nproc --all) && make install-shared
 RUN cd ~ && rm -rf rocksdb
 
 # git clone ourchain
@@ -46,7 +46,7 @@ RUN mkdir ~/.bitcoin/
 RUN echo -e "server=1\nrpcuser=test\nrpcpassword=test\nrpcport=8332\nrpcallowip=0.0.0.0/0\nregtest=1" >> /root/.bitcoin/bitcoin.conf
 
 # compile
-RUN make -j8 && make install && ldconfig
+RUN make -j$(nproc --all) && make install && ldconfig
 
 # run (only for production)
 # ENTRYPOINT ["bitcoind", "--regtest", "-txindex"]
