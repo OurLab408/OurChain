@@ -7,7 +7,7 @@
 #include "base58.h"
 #include "chain.h"
 #include "consensus/validation.h"
-#include "contract/updateStrategy.h"
+#include "contract/updatepolicy.h"
 #include "core_io.h"
 #include "httpserver.h"
 #include "init.h"

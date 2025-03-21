@@ -1,4 +1,4 @@
-#include "contract/contractServer.h"
+#include "contract/server.h"
 #include "util.h"
 #include "validation.h"
 #include <atomic>

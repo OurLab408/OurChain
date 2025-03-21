@@ -1,4 +1,4 @@
-#include "contract/observer.h"
+#include "contract/state.h"
 
 ContractObserver::ContractObserver(ContractStateCache* cache)
 {

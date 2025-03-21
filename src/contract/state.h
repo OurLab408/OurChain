@@ -3,7 +3,7 @@
 
 #include "chain.h"
 #include "contract/cache.h"
-#include "contract/updateStrategy.h"
+#include "contract/updatepolicy.h"
 #include "primitives/transaction.h"
 #include "util.h"
 #include "validation.h"
