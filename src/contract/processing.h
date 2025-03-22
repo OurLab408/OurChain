@@ -4,7 +4,7 @@
 #include "contract/cache.h"
 #include "contract/contract.h"
 #include "contract/dbWrapper.h"
-#include "contract/observer.h"
+#include "contract/state.h"
 #include "primitives/transaction.h"
 
 #include "chain.h"
