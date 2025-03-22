@@ -72,7 +72,7 @@ bool EnsureWalletIsAvailable(CWallet* const pwallet, bool avoidException)
             RPC_METHOD_NOT_FOUND, "Method not found (wallet method is disabled because no wallet is loaded)");
     }
     throw JSONRPCError(RPC_WALLET_NOT_SPECIFIED,
-        "Wallet file not specified (must request wallet RPC through /wallet/<filename> uri-path).");
+                       "Wallet file not specified (must request wallet RPC through /wallet/<filename> uri-path).");
 }
 
 void EnsureWalletIsUnlocked(CWallet* const pwallet)
@@ -2376,10 +2376,10 @@ UniValue lockunspent(const JSONRPCRequest& request)
         const UniValue& o = output.get_obj();
 
         RPCTypeCheckObj(o,
-            {
-                {"txid", UniValueType(UniValue::VSTR)},
-                {"vout", UniValueType(UniValue::VNUM)},
-            });
+                        {
+                            {"txid", UniValueType(UniValue::VSTR)},
+                            {"vout", UniValueType(UniValue::VNUM)},
+                        });
 
         std::string txid = find_value(o, "txid").get_str();
         if (!IsHex(txid))
@@ -2830,19 +2830,19 @@ UniValue fundrawtransaction(const JSONRPCRequest& request)
             UniValue options = request.params[1];
 
             RPCTypeCheckObj(options,
-                {
-                    {"changeAddress", UniValueType(UniValue::VSTR)},
-                    {"changePosition", UniValueType(UniValue::VNUM)},
-                    {"includeWatching", UniValueType(UniValue::VBOOL)},
-                    {"lockUnspents", UniValueType(UniValue::VBOOL)},
-                    {"reserveChangeKey", UniValueType(UniValue::VBOOL)}, // DEPRECATED (and ignored), should be removed in 0.16 or so.
-                    {"feeRate", UniValueType()},                         // will be checked below
-                    {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
-                    {"replaceable", UniValueType(UniValue::VBOOL)},
-                    {"conf_target", UniValueType(UniValue::VNUM)},
-                    {"estimate_mode", UniValueType(UniValue::VSTR)},
-                },
-                true, true);
+                            {
+                                {"changeAddress", UniValueType(UniValue::VSTR)},
+                                {"changePosition", UniValueType(UniValue::VNUM)},
+                                {"includeWatching", UniValueType(UniValue::VBOOL)},
+                                {"lockUnspents", UniValueType(UniValue::VBOOL)},
+                                {"reserveChangeKey", UniValueType(UniValue::VBOOL)}, // DEPRECATED (and ignored), should be removed in 0.16 or so.
+                                {"feeRate", UniValueType()},                         // will be checked below
+                                {"subtractFeeFromOutputs", UniValueType(UniValue::VARR)},
+                                {"replaceable", UniValueType(UniValue::VBOOL)},
+                                {"conf_target", UniValueType(UniValue::VNUM)},
+                                {"estimate_mode", UniValueType(UniValue::VSTR)},
+                            },
+                            true, true);
 
             if (options.exists("changeAddress")) {
                 CBitcoinAddress address(options["changeAddress"].get_str());
@@ -2992,13 +2992,13 @@ UniValue bumpfee(const JSONRPCRequest& request)
     if (!request.params[1].isNull()) {
         UniValue options = request.params[1];
         RPCTypeCheckObj(options,
-            {
-                {"confTarget", UniValueType(UniValue::VNUM)},
-                {"totalFee", UniValueType(UniValue::VNUM)},
-                {"replaceable", UniValueType(UniValue::VBOOL)},
-                {"estimate_mode", UniValueType(UniValue::VSTR)},
-            },
-            true, true);
+                        {
+                            {"confTarget", UniValueType(UniValue::VNUM)},
+                            {"totalFee", UniValueType(UniValue::VNUM)},
+                            {"replaceable", UniValueType(UniValue::VBOOL)},
+                            {"estimate_mode", UniValueType(UniValue::VSTR)},
+                        },
+                        true, true);
 
         if (options.exists("confTarget") && options.exists("totalFee")) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "confTarget and totalFee options should not both be set. Please provide either a confirmation target for fee estimation or an explicit total fee for the transaction.");
@@ -3340,8 +3340,8 @@ UniValue dumpcontractmessage(const JSONRPCRequest& request)
     ReadLock r_lock(tmp_contract_db_mutex);
     // use zmq send to contract
     std::string buf;
-    auto msg = parseZmqMsg(true, address_str, args, "");
-    zmqPushMessage(msg, &buf);
+    auto msg = MakeZmqMsg(true, address_str, args, "");
+    SendZmq(msg, &buf);
     UniValue uv;
     const bool ok = uv.read(buf);
     r_lock.unlock();

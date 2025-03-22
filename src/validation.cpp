@@ -14,7 +14,7 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
-#include "contract/processing.h"
+#include "contract/state.h"
 #include "cuckoocache.h"
 #include "fs.h"
 #include "hash.h"
@@ -2504,11 +2504,11 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
             }
             contractStateCacheMtx.unlock();
         }
-        ContractObserver observer(contractStateCache);
-        if (!observer.onChainStateSet(chainActive, chainparams.GetConsensus())) {
+        ContractState contract_state(contractStateCache);
+        if (!contract_state.SyncState(chainActive, chainparams.GetConsensus())) {
             return false;
         }
-        // should be called after onChainStateSet
+        
         LogPrintf("ActivateBestChain\n");
     }
 

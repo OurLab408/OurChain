@@ -1,23 +1,22 @@
 #include "contract/state.h"
 
-ContractObserver::ContractObserver(ContractStateCache* cache)
+ContractState::ContractState(ContractStateCache* cache)
 {
     this->cache = cache;
-    this->updateStrategyFactory = UpdateStrategyFactory();
 }
 
-bool ContractObserver::onChainStateSet(CChain& chainActive, const Consensus::Params consensusParams)
+bool ContractState::SyncState(CChain& chainActive, const Consensus::Params consensusParams)
 {
     int curHeight = 0;
     {
         LOCK(cs_main);
-        auto curUpdateStrategy = updateStrategyFactory.createUpdateStrategy(chainActive, cache);
-        if (curUpdateStrategy->getName() == UpdateStrategyType::UpdateStrategyTypeUnDo) {
+        UpdatePolicy *curUpdatePolicy = SelectUpdatePolicy(chainActive, cache);
+        if (curUpdatePolicy->getType() == UpdatePolicyType::UpdatePolicy_DoNothing) {
             return true;
         }
-        auto snapshot = cache->getSnapShot();
-        if (!curUpdateStrategy->UpdateSnapShot(*cache, *snapshot, chainActive, consensusParams)) {
-            LogPrintf("snapshot: update\n");
+        SnapShot *snapshot = cache->getSnapShot();
+        if (!curUpdatePolicy->UpdateSnapShot(*cache, *snapshot, chainActive, consensusParams)) {
+            LogPrintf("snapshot: update error\n");
             return false;
         }
         curHeight = cache->getBlockCache()->getHeighestBlock().blockHeight;
@@ -33,18 +32,16 @@ bool ContractObserver::onChainStateSet(CChain& chainActive, const Consensus::Par
     return true;
 }
 
-bool ContractObserver::isSaveCheckPointNow(int height)
+bool ContractState::isSaveCheckPointNow(int height)
 {
     if (height == 0)
         return false;
     return true;
 }
 
-bool ContractObserver::isClearCheckPointNow(int height)
+bool ContractState::isClearCheckPointNow(int height)
 {
-    if (height == 0)
-        return false;
-    if (height % 5 == 0)
+    if (height > 0 && height % 5 == 0)
         return true;
     return false;
 }

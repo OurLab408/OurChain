@@ -1,5 +1,5 @@
-#ifndef CONTRACT_OBSERVER_H
-#define CONTRACT_OBSERVER_H
+#ifndef CONTRACT_STATE_H
+#define CONTRACT_STATE_H
 
 #include "chain.h"
 #include "contract/cache.h"
@@ -8,19 +8,18 @@
 #include "util.h"
 #include "validation.h"
 
-class ContractObserver
+class ContractState
 {
 public:
-    ContractObserver(ContractStateCache* cache);
+    ContractState(ContractStateCache* cache);
     // 當區塊鏈狀態改變時觸發, 用於更新合約狀態快照
-    bool onChainStateSet(CChain& chainActive, const Consensus::Params consensusParams);
+    bool SyncState(CChain& chainActive, const Consensus::Params consensusParams);
 
 private:
     ContractStateCache* cache;
-    UpdateStrategyFactory updateStrategyFactory;
 
     bool isSaveCheckPointNow(int height);
     bool isClearCheckPointNow(int height);
 };
 
-#endif // CONTRACT_OBSERVER_H
+#endif // CONTRACT_STATE_H
