@@ -1,11 +1,11 @@
 #ifndef CONTRACT_DB_WRAPPER_H
 #define CONTRACT_DB_WRAPPER_H
 
-#include "util.h"
-#include <boost/thread/shared_mutex.hpp>
 #include <rocksdb/db.h>
+#include <boost/thread/shared_mutex.hpp>
 #include <string>
 #include <vector>
+#include "util.h"
 
 #include <boost/thread/shared_mutex.hpp>
 #include <shared_mutex>
@@ -22,7 +22,7 @@ struct CheckPointInfo {
 class ContractDBWrapper
 {
 private:
-    rocksdb::DB* db;
+    rocksdb::DB *db;
     rocksdb::Status mystatus;
     rocksdb::WriteOptions writeOptions;
 
@@ -45,7 +45,7 @@ public:
     // set critical save (directly write to disk)
     void setCriticalSave();
     // get iterator, for custom operation on database
-    rocksdb::Iterator* getIterator();
+    rocksdb::Iterator *getIterator();
     // connect contract DB
     ContractDBWrapper(std::string name);
     // connect read only contract DB (mode should be "readOnly")

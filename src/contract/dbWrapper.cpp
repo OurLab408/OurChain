@@ -1,6 +1,6 @@
 #include "contract/dbWrapper.h"
-#include "rocksdb/utilities/backup_engine.h"
 #include <boost/filesystem.hpp>
+#include "rocksdb/utilities/backup_engine.h"
 
 std::shared_mutex tmp_contract_db_mutex;
 
@@ -42,20 +42,11 @@ ContractDBWrapper::~ContractDBWrapper()
     db = nullptr;
 }
 
-rocksdb::Status ContractDBWrapper::getStatus()
-{
-    return mystatus;
-}
-bool ContractDBWrapper::isOk()
-{
-    return mystatus.ok();
-}
+rocksdb::Status ContractDBWrapper::getStatus() { return mystatus; }
+bool ContractDBWrapper::isOk() { return mystatus.ok(); }
 // set critical save
-void ContractDBWrapper::setCriticalSave()
-{
-    writeOptions.sync = true;
-}
-rocksdb::Iterator* ContractDBWrapper::getIterator()
+void ContractDBWrapper::setCriticalSave() { writeOptions.sync = true; }
+rocksdb::Iterator *ContractDBWrapper::getIterator()
 {
     return db->NewIterator(rocksdb::ReadOptions());
 }
@@ -80,15 +71,17 @@ void ContractDBWrapper::deleteState(std::string key)
 void ContractDBWrapper::clearAllStates()
 {
     // use delete range to clear all states
-    mystatus = db->DeleteRange(rocksdb::WriteOptions(), rocksdb::Slice(), rocksdb::Slice());
+    mystatus = db->DeleteRange(
+        rocksdb::WriteOptions(), rocksdb::Slice(), rocksdb::Slice());
     assert(mystatus.ok());
 }
 
 void ContractDBWrapper::saveDuplicateState(fs::path path, std::string metadata)
 {
-    rocksdb::BackupEngine* backup_engine;
+    rocksdb::BackupEngine *backup_engine;
     rocksdb::BackupEngineOptions backup_engine_options(path.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
+    mystatus = rocksdb::BackupEngine::Open(
+        rocksdb::Env::Default(), backup_engine_options, &backup_engine);
     assert(mystatus.ok());
     backup_engine->CreateNewBackupWithMetadata(db, metadata);
     delete backup_engine;
@@ -107,9 +100,10 @@ void ContractDBWrapper::saveTmpState()
     TryCreateDirectories(path);
     WriteLock lock(tmp_contract_db_mutex);
     // restore from cur checkPoint
-    rocksdb::BackupEngine* backup_engine;
+    rocksdb::BackupEngine *backup_engine;
     rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
+    mystatus = rocksdb::BackupEngine::Open(
+        rocksdb::Env::Default(), backup_engine_options, &backup_engine);
     assert(mystatus.ok());
     backup_engine->RestoreDBFromLatestBackup(path.string(), path.string());
     lock.unlock();
@@ -120,9 +114,10 @@ void ContractDBWrapper::saveTmpState()
 std::vector<CheckPointInfo> ContractDBWrapper::findCheckPointList()
 {
     std::vector<CheckPointInfo> checkPointList;
-    rocksdb::BackupEngine* backup_engine;
+    rocksdb::BackupEngine *backup_engine;
     rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
+    mystatus = rocksdb::BackupEngine::Open(
+        rocksdb::Env::Default(), backup_engine_options, &backup_engine);
     assert(mystatus.ok());
     std::vector<rocksdb::BackupInfo> backup_info;
     backup_engine->GetBackupInfo(&backup_info);
@@ -141,14 +136,16 @@ bool ContractDBWrapper::restoreCheckPoint(int targetBackupId)
     mystatus = db->Close();
     assert(mystatus.ok());
     // restore from target checkPoint
-    rocksdb::BackupEngine* backup_engine;
+    rocksdb::BackupEngine *backup_engine;
     rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    rocksdb::Status status = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
+    rocksdb::Status status = rocksdb::BackupEngine::Open(
+        rocksdb::Env::Default(), backup_engine_options, &backup_engine);
     if (!status.ok()) {
         return false;
     }
     fs::path path = this->curPath;
-    auto result = backup_engine->RestoreDBFromBackup(targetBackupId, path.string(), path.string());
+    auto result = backup_engine->RestoreDBFromBackup(
+        targetBackupId, path.string(), path.string());
     if (!result.ok()) {
         return false;
     }
@@ -162,9 +159,10 @@ bool ContractDBWrapper::restoreCheckPoint(int targetBackupId)
 void ContractDBWrapper::removeOldCheckPoint(int maxCheckPointCount)
 {
     // rocksdb backup limit recent checkpoint
-    rocksdb::BackupEngine* backup_engine;
+    rocksdb::BackupEngine *backup_engine;
     rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    rocksdb::Status status = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
+    rocksdb::Status status = rocksdb::BackupEngine::Open(
+        rocksdb::Env::Default(), backup_engine_options, &backup_engine);
     assert(status.ok());
     backup_engine->PurgeOldBackups(maxCheckPointCount);
 }

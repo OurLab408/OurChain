@@ -11,12 +11,13 @@
 class ContractState
 {
 public:
-    ContractState(ContractStateCache* cache);
+    ContractState(ContractStateCache *cache);
     // 當區塊鏈狀態改變時觸發, 用於更新合約狀態快照
-    bool SyncState(CChain& chainActive, const Consensus::Params consensusParams);
+    bool SyncState(CChain &chainActive,
+        const Consensus::Params consensusParams);
 
 private:
-    ContractStateCache* cache;
+    ContractStateCache *cache;
 
     bool isSaveCheckPointNow(int height);
     bool isClearCheckPointNow(int height);

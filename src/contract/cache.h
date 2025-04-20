@@ -18,10 +18,10 @@ public:
     void clear();
     // duplicate sanpshot to checkPoint folder
     void saveCheckPoint(std::string tipBlockHash);
-    ContractDBWrapper* getDBWrapper();
+    ContractDBWrapper *getDBWrapper();
 
 private:
-    ContractDBWrapper* dbWrapper;
+    ContractDBWrapper *dbWrapper;
 };
 
 // 用來追蹤對合約模塊來說的當前區塊鏈狀態
@@ -53,7 +53,7 @@ public:
     void removeBlockIndex(int blockHeight);
 
 private:
-    ContractDBWrapper* dbWrapper;
+    ContractDBWrapper *dbWrapper;
     std::string intToKey(int num)
     {
         std::string key;
@@ -63,7 +63,7 @@ private:
         }
         return key;
     }
-    int keyToInt(const std::string& key)
+    int keyToInt(const std::string &key)
     {
         int num = 0;
         for (size_t i = 0; i < sizeof(int); ++i) {
@@ -79,11 +79,11 @@ public:
     ContractStateCache();
     ~ContractStateCache();
     // 當前合約快照
-    SnapShot* getSnapShot();
+    SnapShot *getSnapShot();
     void clearSnapShot();
     // 合約快照所追蹤的區塊鏈狀態(最高區塊高度)
-    bool getFirstBlockCache(BlockCache::blockIndex& blockIndex);
-    BlockCache* getBlockCache();
+    bool getFirstBlockCache(BlockCache::blockIndex &blockIndex);
+    BlockCache *getBlockCache();
     // 更新合約狀態追蹤的區塊鏈狀態
     void pushBlock(BlockCache::blockIndex blockIndex);
     // 更新合約狀態追蹤的區塊鏈狀態
@@ -91,8 +91,10 @@ public:
     // 保存合約狀態快照(checkPoint)
     void saveCheckPoint();
     // 恢復合約狀態快照到目標 checkPoint
-    bool restoreCheckPoint(std::string tipBlockHash, std::vector<CheckPointInfo> checkPointList);
-    // clear old checkPoint in checkPoint folder(保留幾個 block 內的 check point)
+    bool restoreCheckPoint(std::string tipBlockHash,
+        std::vector<CheckPointInfo> checkPointList);
+    // clear old checkPoint in checkPoint folder(保留幾個 block 內的 check
+    // point)
     void clearCheckPoint(int maxCheckPointCount);
     // get checkPoint list
     std::vector<CheckPointInfo> getCheckPointList();
@@ -100,8 +102,8 @@ public:
     fs::path getContractPath(std::string name);
 
 private:
-    BlockCache* blockCache;
-    SnapShot* snapShot;
+    BlockCache *blockCache;
+    SnapShot *snapShot;
 };
 
 #endif // CONTRACT_CACHE_H
