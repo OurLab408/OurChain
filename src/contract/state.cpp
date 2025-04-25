@@ -1,21 +1,21 @@
 #include "contract/state.h"
 
-ContractState::ContractState(ContractStateCache *cache) { this->cache = cache; }
+ContractState::ContractState(ContractStateCache* cache)
+{
+    this->cache = cache;
+}
 
-bool ContractState::SyncState(CChain &chainActive,
-    const Consensus::Params consensusParams)
+bool ContractState::SyncState(CChain& chainActive, const Consensus::Params consensusParams)
 {
     int curHeight = 0;
     {
         LOCK(cs_main);
         UpdatePolicy *curUpdatePolicy = SelectUpdatePolicy(chainActive, cache);
-        if (curUpdatePolicy->getType() ==
-            UpdatePolicyType::UpdatePolicy_DoNothing) {
+        if (curUpdatePolicy->getType() == UpdatePolicyType::UpdatePolicy_DoNothing) {
             return true;
         }
         SnapShot *snapshot = cache->getSnapShot();
-        if (!curUpdatePolicy->UpdateSnapShot(
-                cache, *snapshot, chainActive, consensusParams)) {
+        if (!curUpdatePolicy->UpdateSnapShot(*cache, *snapshot, chainActive, consensusParams)) {
             LogPrintf("snapshot: update error\n");
             return false;
         }

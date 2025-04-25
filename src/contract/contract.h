@@ -22,14 +22,20 @@ public:
     uint256 address;               //!< contract address
     std::vector<std::string> args; //!< passed arguments
 
-    Contract() { SetNull(); }
+    Contract()
+    {
+        SetNull();
+    }
 
-    ~Contract() { SetNull(); }
+    ~Contract()
+    {
+        SetNull();
+    }
 
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream &s, Operation ser_action)
+    inline void SerializationOp(Stream& s, Operation ser_action)
     {
         READWRITE(this->action);
         READWRITE(code);
@@ -45,7 +51,10 @@ public:
         args.clear();
     }
 
-    bool IsNull() const { return (action == 0); }
+    bool IsNull() const
+    {
+        return (action == 0);
+    }
 };
 
 #endif // BITCOIN_CONTRACT_CONTRACT_H

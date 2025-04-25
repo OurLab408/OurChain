@@ -1,7 +1,4 @@
-BasedOnStyle: Chromium
 Language: Cpp
-
-# Formatting Preferences
 AccessModifierOffset: -4
 AlignAfterOpenBracket: false
 AlignEscapedNewlinesLeft: true
@@ -9,17 +6,19 @@ AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false
 AllowShortFunctionsOnASingleLine: All
-AllowShortIfStatementsOnASingleLine: false  # Unified with Chromium Style
+AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
-AllowShortCaseLabelsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: false
-AlwaysBreakTemplateDeclarations: true  # Important for readability in C++
-BinPackParameters: false  # Avoids unnecessary argument packing
-BreakBeforeBinaryOperators: None
-BreakBeforeBraces: Linux  # Preferred style
+AlwaysBreakTemplateDeclarations: true
+BinPackParameters: false
+BreakBeforeBinaryOperators: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterFunction: true
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 80  # Enforces 80-character line limit
+ColumnLimit: 0
 CommentPragmas: '^ IWYU pragma:'
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
@@ -27,37 +26,29 @@ ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 DisableFormat: false
-FixNamespaceComments: true  # Helps maintain structured namespaces
 IndentCaseLabels: false
 IndentFunctionDeclarationAfterType: false
 IndentWidth: 4
 KeepEmptyLinesAtTheStartOfBlocks: false
-MaxEmptyLinesToKeep: 3  # Unified with Chromium style
+MaxEmptyLinesToKeep: 2
 NamespaceIndentation: None
-
-# Formatting Penalties
-PenaltyBreakBeforeFirstCallParameter: 1000000  # Avoid breaking before first argument
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: false
+PenaltyBreakBeforeFirstCallParameter: 1
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
 PenaltyBreakString: 1000
 PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 200
-
-# Pointer and Reference Alignment
-PointerAlignment: Right  # Keeps pointer aligned with type (e.g., `int* ptr;`)
-ReferenceAlignment: Pointer
-
-# Space & Indentation Rules
-SpaceAfterCStyleCast: true
+PointerAlignment: Left
 SpaceBeforeAssignmentOperators: true
-SpaceBeforeParens: ControlStatementsExceptForEachMacros
+SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
 SpacesInContainerLiterals: true
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-
-# Tabs & Indentation
-TabWidth: 4
+Standard: Cpp11
+TabWidth: 8
 UseTab: Never
