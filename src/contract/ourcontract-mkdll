@@ -1,13 +1,27 @@
 #!/bin/bash
+set -e
 
-if [ $# != 2 ]; then
+if [ $# -ne 2 ]; then
     echo "usage: ourcontract-mkdll [CONTRACTS DIR] [CONTRACT]"
+    exit 1
+fi
+
+CONTRACT_DIR="$1/$2"
+CODE_CPP="$CONTRACT_DIR/code.cpp"
+CODE_O="$CONTRACT_DIR/code.o"
+CODE_SO="$CONTRACT_DIR/code.so"
+
+if [ -f "$CODE_SO" ]; then
+    echo "The shared object file already exists. Skipping compilation."
 else
-    if [ -f "$1/$2/code.so" ]; then
-        echo "The shared object file already exists. Skipping compilation."
-    else
-        g++ -fPIC -g -c -Wall -o "$1/$2/code.o" "$1/$2/code.cpp"
-        g++ -shared -Wl,-soname,"$2/code.so" -o "$1/$2/code.so" "$1/$2/code.o" -lssl -lcrypto
-        rm -f "$1/$2/code.o"
-    fi
+    # Compile contract source
+    g++ -fPIC -g -Wall -c -o "$CODE_O" "$CODE_CPP"
+
+    # Link shared object
+    g++ -shared -Wl,-soname,"code.so" \
+        -o "$CODE_SO" "$CODE_O" \
+        -lssl -lcrypto
+
+    # Clean up
+    rm -f "$CODE_O"
 fi

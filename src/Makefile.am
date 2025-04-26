@@ -7,6 +7,7 @@ DIST_SUBDIRS = secp256k1 univalue
 AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS) $(ROCKSDB_LDFLAGS)
 AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS) $(ROCKSDB_CPPFLAGS)
+AM_CPPFLAGS += -fvisibility=hidden
 EXTRA_LIBRARIES =
 
 if EMBEDDED_UNIVALUE
@@ -33,7 +34,7 @@ LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBGPOW=OurChain/libgpow.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
-LIBOURCONTRACT=contract/libourcontract.la
+LIBOURCONTRACT=contract/libourcontract.a
 
 if ENABLE_ZMQ
 LIBBITCOIN_ZMQ=libbitcoin_zmq.a
@@ -61,8 +62,9 @@ EXTRA_LIBRARIES += \
   $(LIBBITCOIN_ZMQ) \
   $(LIBGPOW)
 
-lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS) $(LIBOURCONTRACT)
+lib_LTLIBRARIES = $(LIBBITCOINCONSENSUS)
 
+noinst_LTLIBRARIES = $(LIBOURCONTRACT)
 bin_PROGRAMS =
 noinst_PROGRAMS =
 TESTS =
@@ -111,7 +113,6 @@ BITCOIN_CORE_H = \
   contract/dbWrapper.h \
   contract/state.h \
   contract/updatepolicy.h \
-  contract/ourcontract.h \
   contract/server.h \
   core_io.h \
   core_memusage.h \
@@ -212,7 +213,6 @@ libbitcoin_server_a_SOURCES = \
   contract/dbWrapper.cpp \
   contract/state.cpp \
   contract/updatepolicy.cpp \
-  contract/libourcontract.cpp \
   contract/server.cpp \
   httprpc.cpp \
   httpserver.cpp \
@@ -389,13 +389,11 @@ libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
 # ourcontract library
-include_HEADERS += contract/ourcontract.h json/json.hpp
-contract_libourcontract_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract -I$(top_srcdir)/$(subdir)/json
-contract_libourcontract_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-contract_libourcontract_la_SOURCES = \
+contract_libourcontract_a_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract -I$(top_srcdir)/$(subdir)/json $(BITCOIN_INCLUDES)
+contract_libourcontract_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+contract_libourcontract_a_SOURCES = \
   contract/libourcontract.cpp \
   contract/ourcontract.h
-contract_libourcontract_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
 #
 
 # GPoW library
@@ -423,25 +421,28 @@ bitcoind_SOURCES = bitcoind.cpp
 bitcoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 bitcoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 bitcoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+bitcoind_LDFLAGS += -Wl,--export-dynamic
+bitcoind_LDFLAGS += -Wl,--undefined=print
 
 if TARGET_WINDOWS
 bitcoind_SOURCES += bitcoind-res.rc
 endif
 
 bitcoind_LDADD = \
-  $(LIBBITCOIN_SERVER) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBUNIVALUE) \
-  $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_WALLET) \
-  $(LIBBITCOIN_ZMQ) \
-  $(LIBGPOW) \
-  $(LIBBITCOIN_CONSENSUS) \
-  $(LIBBITCOIN_CRYPTO) \
-  $(LIBLEVELDB) \
-  $(LIBLEVELDB_SSE42) \
-  $(LIBMEMENV) \
-  $(LIBSECP256K1)
+    $(LIBBITCOIN_SERVER) \
+    $(LIBBITCOIN_COMMON) \
+    $(LIBUNIVALUE) \
+    $(LIBBITCOIN_UTIL) \
+    $(LIBBITCOIN_WALLET) \
+    $(LIBBITCOIN_ZMQ) \
+    $(LIBGPOW) \
+    $(LIBBITCOIN_CONSENSUS) \
+    $(LIBBITCOIN_CRYPTO) \
+    $(LIBLEVELDB) \
+    $(LIBLEVELDB_SSE42) \
+    $(LIBMEMENV) \
+    $(LIBSECP256K1) \
+    $(LIBOURCONTRACT)
 
 bitcoind_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS)
 
@@ -484,20 +485,6 @@ bitcoin_tx_LDADD = \
   $(LIBSECP256K1)
 
 bitcoin_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS) $(GMP_LIBS)
-#
-
-# ourcontract-rt binary #
-# ourcontract_rt_SOURCES = \
-#   contract/ourcontract-rt.cpp \
-#   contract/ourcontract.h
-# ourcontract_rt_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/$(subdir)/contract -I$(top_srcdir)/$(subdir)/json
-# ourcontract_rt_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-# ourcontract_rt_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-# 
-# ourcontract_rt_LDADD = \
-#   $(LIBOURCONTRACT)
-# 
-# ourcontract_rt_LDADD += -ldl
 #
 
 # bitcoinconsensus library #
