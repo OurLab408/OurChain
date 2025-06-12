@@ -11,16 +11,19 @@ CODE_CPP="$CONTRACT_DIR/code.cpp"
 CODE_O="$CONTRACT_DIR/code.o"
 CODE_SO="$CONTRACT_DIR/code.so"
 
+INCLUDE_DIR="$HOME/OurChain/src/contract/"
+
 if [ -f "$CODE_SO" ]; then
     echo "The shared object file already exists. Skipping compilation."
 else
     # Compile contract source
-    g++ -fPIC -g -Wall -c -o "$CODE_O" "$CODE_CPP"
-
+    g++ -I"$INCLUDE_DIR" -fPIC -g -Wall -c -o "$CODE_O" "$CODE_CPP"
+    
     # Link shared object
-    g++ -shared -Wl,-soname,"code.so" \
-        -o "$CODE_SO" "$CODE_O" \
-        -lssl -lcrypto
+    g++ -shared \
+    -Wl,-soname,code.so \
+    -o "$CODE_SO" "$CODE_O" \
+    -lssl -lcrypto
 
     # Clean up
     rm -f "$CODE_O"

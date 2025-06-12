@@ -39,6 +39,7 @@ bench_bench_bitcoin_LDADD = \
   $(LIBGPOW) \
   $(LIBBITCOIN_CONSENSUS) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBCONTRACTCORE) \
   $(LIBLEVELDB) \
   $(LIBLEVELDB_SSE42) \
   $(LIBMEMENV) \
