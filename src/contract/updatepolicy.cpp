@@ -1,4 +1,5 @@
 #include "contract/updatepolicy.h"
+#include "contract/server.h"
 #include <boost/asio.hpp>
 #include <future>
 #include <stack>
@@ -31,7 +32,7 @@ void SendZmq(const std::string& message, std::string* buf)
 {
     zmq::context_t context(1);
     zmq::socket_t pusher(context, zmq::socket_type::req);
-    pusher.connect("tcp://127.0.0.1:5559");
+    pusher.connect(strprintf("tcp://127.0.0.1:%d", server->getZmqPushPort()));
     // send message
     zmq::message_t zmq_message(message.size());
     memcpy(zmq_message.data(), message.data(), message.size());

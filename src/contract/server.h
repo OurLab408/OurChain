@@ -21,10 +21,16 @@ public:
     bool stop();
     bool interrupt();
 
+    int getZmqPullPort();
+    int getZmqPushPort();
+
 private:
     int numThreads;
     vector<thread> threadPool;
     thread proxyThreadInstance;
+
+    int zmqPullPort;
+    int zmqPushPort;
 
     void workerThread();
     void proxyThread();

@@ -127,6 +127,8 @@ ContractServer::ContractServer()
     numThreads = CONTRACT_SERVER_THREADS;
     threadPool.reserve(numThreads);
     proxyThreadInstance = thread(&ContractServer::proxyThread, this);
+    zmqPullPort = gArgs.GetArg("-zmqpullerport", 5560);
+    zmqPushPort = gArgs.GetArg("-zmqpusherport", 5559);
 }
 
 ContractServer::~ContractServer()
@@ -158,7 +160,7 @@ void ContractServer::workerThread()
     RenameThread("contract-worker");
     context_t context(1);
     zmq::socket_t puller(context, zmq::socket_type::rep);
-    puller.connect("tcp://127.0.0.1:5560");
+    puller.connect(strprintf("tcp://127.0.0.1:%d", zmqPullPort));
     puller.set(zmq::sockopt::rcvtimeo, 2000);
     while (true) {
         zmq::message_t message;
@@ -275,8 +277,8 @@ void ContractServer::proxyThread()
     context_t context(1);
     zmq::socket_t frontend(context, zmq::socket_type::router);
     zmq::socket_t backend(context, zmq::socket_type::dealer);
-    frontend.bind("tcp://*:5559");
-    backend.bind("tcp://*:5560");
+    frontend.bind(strprintf("tcp://*:%d", zmqPushPort));
+    backend.bind(strprintf("tcp://*:%d", zmqPullPort));
     zmq::proxy(frontend, backend, nullptr);
     // close sockets
     frontend.close();
@@ -309,6 +311,16 @@ bool ContractServer::interrupt()
     // stop the worker threads
     stopFlag.store(true);
     return true;
+}
+
+int ContractServer::getZmqPullPort()
+{
+    return zmqPullPort;
+}
+
+int ContractServer::getZmqPushPort()
+{
+    return zmqPushPort;
 }
 
 bool contractServerInit()

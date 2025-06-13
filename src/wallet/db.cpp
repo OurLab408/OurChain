@@ -92,7 +92,7 @@ bool CDBEnv::Open(const fs::path& pathIn)
     dbenv->set_flags(DB_TXN_WRITE_NOSYNC, 1);
     dbenv->log_set_config(DB_LOG_AUTO_REMOVE, 1);
     int ret = dbenv->open(strPath.c_str(),
-                         DB_CREATE |
+                             DB_CREATE |
                              DB_INIT_LOCK |
                              DB_INIT_LOG |
                              DB_INIT_MPOOL |
