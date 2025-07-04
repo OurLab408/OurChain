@@ -12,7 +12,6 @@
 
 #include "amount.h"
 #include "coins.h"
-#include "contract/cache.h"
 #include "fs.h"
 #include "policy/feerate.h"
 #include "protocol.h" // For CMessageHeader::MessageStartChars
@@ -182,8 +181,6 @@ extern CAmount maxTxFee;
 /** If the tip is older than this (in seconds), the node is considered to be in initial block download. */
 extern int64_t nMaxTipAge;
 extern bool fEnableReplacement;
-/** contract state object. */
-extern ContractStateCache* contractStateCache;
 
 /** Block hash whose ancestors we will assume to have valid scripts without checking them. */
 extern uint256 hashAssumeValid;
@@ -319,9 +316,6 @@ BIP9Stats VersionBitsTipStatistics(const Consensus::Params& params, Consensus::D
 
 /** Get the block height at which the BIP9 deployment switched into the state for the block building on the current tip. */
 int VersionBitsTipStateSinceHeight(const Consensus::Params& params, Consensus::DeploymentPos pos);
-
-/** process contract and build contract tx */
-// CTransactionRef ProcessContractTx(const Contract &cont, CCoinsViewCache& inputs);
 
 /** Apply the effects of this transaction on the UTXO set represented by view */
 void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight);

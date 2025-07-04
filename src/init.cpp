@@ -54,8 +54,6 @@
 #include "OurChain/gpowserver.h"
 #endif
 
-#include "contract/server.h"
-
 #ifndef WIN32
 #include <signal.h>
 #endif
@@ -173,7 +171,6 @@ void Interrupt(boost::thread_group& threadGroup)
     if (g_connman)
         g_connman->Interrupt();
     threadGroup.interrupt_all();
-    interruptContractServer();
 }
 
 void Shutdown()
@@ -195,7 +192,6 @@ void Shutdown()
     StopREST();
     StopRPC();
     StopHTTPServer();
-    stopContractServer();
 #ifdef ENABLE_WALLET
     for (CWalletRef pwallet : vpwallets) {
         pwallet->Flush(false);
@@ -743,10 +739,6 @@ bool AppInitServers(boost::thread_group& threadGroup)
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST())
         return false;
     if (!StartHTTPServer())
-        return false;
-    if (!contractServerInit())
-        return false;
-    if (!startContractServer())
         return false;
     return true;
 }

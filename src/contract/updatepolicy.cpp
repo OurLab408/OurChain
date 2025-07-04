@@ -1,241 +1,155 @@
 #include "contract/updatepolicy.h"
+#include "contract/contractdb.h"
+#include "processing.h"
+#include "validation.h"
 #include <boost/asio.hpp>
 #include <future>
 #include <stack>
 #include <sys/wait.h>
-#include <zmq.hpp>
-
-static fs::path contracts_dir;
+#include <algorithm>
 
 const static fs::path& GetContractsDir()
 {
-    if (!contracts_dir.empty()) return contracts_dir;
-
-    contracts_dir = GetDataDir() / "contracts";
-    fs::create_directories(contracts_dir);
-
+    static fs::path contracts_dir = []{
+        fs::path dir = GetDataDir() / "contracts";
+        fs::create_directories(dir);
+        return dir;
+    }();
     return contracts_dir;
 }
 
-std::string MakeZmqMsg(bool isPure, const std::string& address, vector<string> parameters, std::string preTxid)
+static bool ProcessBlockStack(std::stack<CBlockIndex*>& blockstack, ContractDB& cache, boost::asio::thread_pool& pool, const Consensus::Params& consensusParams)
 {
-    json j;
-    j["isPure"] = isPure;
-    j["address"] = address;
-    j["parameters"] = parameters;
-    j["preTxid"] = preTxid;
-    return j.dump();
-}
-
-void SendZmq(const std::string& message, std::string* buf)
-{
-    zmq::context_t context(1);
-    zmq::socket_t pusher(context, zmq::socket_type::req);
-    pusher.connect("tcp://127.0.0.1:5559");
-    // send message
-    zmq::message_t zmq_message(message.size());
-    memcpy(zmq_message.data(), message.data(), message.size());
-    if (!pusher.send(zmq_message, zmq::send_flags::none)) {
-        LogPrintf("send message error\n");
-    }
-    // receive response
-    zmq::message_t response;
-    if (!pusher.recv(response, zmq::recv_flags::none)) {
-        LogPrintf("receive response error\n");
-    }
-    std::string recv_msg(static_cast<char*>(response.data()), response.size());
-    LogPrintf("Contract Received response: %s\n", recv_msg.c_str());
-    if (buf != nullptr) {
-        *buf = recv_msg;
-    }
-    pusher.close();
-}
-
-static bool ProcessContracts(std::stack<CBlockIndex*> blockstack, ContractStateCache& cache, const Consensus::Params consensusParams)
-{
-    while (blockstack.size() > 0) {
-        auto tmpBlock = blockstack.top();
+    while (!blockstack.empty()) {
+        auto tmpBlockIndex {blockstack.top()};
         blockstack.pop();
-        CBlock* block = new CBlock();
-        if (!ReadBlockFromDisk(*block, tmpBlock, consensusParams)) {
+        
+        std::unique_ptr<CBlock> block(new CBlock());
+        if (!ReadBlockFromDisk(*block, tmpBlockIndex, consensusParams)) {
             return false;
         }
-        // init tp
-        boost::asio::thread_pool pool(4);
-        // put task to thread pool
+
         for (const CTransactionRef& tx : block->vtx) {
-            if (tx.get()->contract.action == contract_action::ACTION_NEW) {
+            if (tx.get()->contract.action != ACTION_NONE) {
                 boost::asio::post(pool, [tx, &cache]() {
-                    auto contract = tx.get()->contract;
-                    // contract address
-                    fs::path new_dir = GetContractsDir() / contract.address.GetHex();
-                    fs::create_directories(new_dir);
-                    std::ofstream contract_code(new_dir.string() + "/code.cpp");
-                    contract_code.write(contract.code.c_str(), contract.code.size());
-                    contract_code.close();
-                    // compile contract
-                    int pid, status;
-                    pid = fork();
-                    if (pid == 0) {
-                        int fd = open((GetContractsDir().string() + "/err").c_str(),
-                            O_WRONLY | O_APPEND | O_CREAT,
-                            0664);
-                        dup2(fd, STDERR_FILENO);
-                        close(fd);
-                        execlp("ourcontract-mkdll",
-                            "ourcontract-mkdll",
-                            GetContractsDir().string().c_str(),
-                            contract.address.GetHex().c_str(),
-                            NULL);
-                        exit(EXIT_FAILURE);
+                    const auto& contract = tx.get()->contract;
+                    if (!ExecuteContract(contract, tx, cache)) {
+                        LogPrintf("Contract execution failed: %s\n", contract.address.GetHex());
                     }
-                    waitpid(pid, &status, 0);
-                    if (WIFEXITED(status) == false || WEXITSTATUS(status) != 0) {
-                        LogPrintf("compile contract %s error\n", contract.address.GetHex());
-                    }
-                    // Execute contract
-                    string preTxid = tx.get()->GetHash().GetHex();
-                    SendZmq(MakeZmqMsg(false, contract.address.GetHex(), contract.args, preTxid), nullptr);
-                });
-            } else if (tx.get()->contract.action == contract_action::ACTION_CALL) {
-                boost::asio::post(pool, [tx, &cache]() {
-                    auto contract = tx.get()->contract;
-                    string preTxid = tx.get()->GetHash().GetHex();
-                    SendZmq(MakeZmqMsg(false, contract.address.GetHex(), contract.args, preTxid), nullptr);
                 });
             }
         }
-        pool.join();
-        delete block;
     }
+    return true; 
+}
+
+std::unique_ptr<UpdatePolicy> SelectUpdatePolicy(CChain& chainActive, ContractDB& cache)
+{
+    auto tip {cache.getTip()};
+    if (!tip.isValid()) {
+        return std::unique_ptr<UpdatePolicy>(new Rebuild());
+    }
+
+    if (chainActive.Tip()->GetBlockHash().ToString() == tip.hash) {
+        return std::unique_ptr<UpdatePolicy>(new DoNothing());
+    }
+    
+    if (tip.height < chainActive.Height()) {
+        return std::unique_ptr<UpdatePolicy>(new Forward());
+    }
+
+    return std::unique_ptr<UpdatePolicy>(new Rollback());
+}
+
+bool DoNothing::UpdateSnapShot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
+{
     return true;
 }
 
-UpdatePolicy* SelectUpdatePolicy(CChain& chainActive, ContractStateCache* cache)
+bool Rebuild::UpdateSnapShot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
 {
-    int curHeight = chainActive.Height();
-    uint256 curHash = chainActive.Tip()->GetBlockHash();
-    BlockCache::blockIndex firstBlock;
-    /* Return false if highest block height = -1  */
-    if (!cache->getFirstBlockCache(firstBlock)) {
-        return new Rebuild();
+    auto tip {cache.getTip()};
+    if (tip.isValid()) {
+        try {
+            cache.clearAllState();
+        } catch (const std::runtime_error& e) {
+            LogPrintf("CRITICAL: Rebuild failed during clear contract db's state: %s. Return false.\n", e.what());
+            return false;
+        }
     }
 
-    int cacheHeight = firstBlock.blockHeight;
-    uint256 cacheHash = firstBlock.blockHash;
-    if (curHash == cacheHash && curHeight == cacheHeight) {
-        return new DoNothing();
+    auto blockstack {std::stack<CBlockIndex*>()};
+    for (CBlockIndex* pindex = chainActive.Tip(); pindex != nullptr; pindex = pindex->pprev) {
+        blockstack.push(pindex);
     }
-    if (cacheHeight < curHeight) {
-        return new Forward();
+    
+    boost::asio::thread_pool pool(4);
+    if (!ProcessBlockStack(blockstack, cache, pool, consensusParams)) {
+        return false;
     }
+    pool.join();
+    
+    cache.setTip(chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash().ToString());
 
-    return new Rollback();
-}
-
-bool DoNothing::UpdateSnapShot(ContractStateCache& cache, SnapShot& snapshot, CChain& chainActive, const Consensus::Params consensusParams)
-{
-    // Default is do nothing
     return true;
 }
 
-bool Rebuild::UpdateSnapShot(ContractStateCache& cache, SnapShot& snapshot, CChain& chainActive, const Consensus::Params consensusParams)
+bool Forward::UpdateSnapShot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
 {
-    cache.getSnapShot()->clear();
-    cache.getBlockCache()->clear();
-    auto blockstack = std::stack<CBlockIndex*>();
-    for (CBlockIndex* pindex = chainActive.Tip(); pindex != nullptr; pindex = pindex->pprev) {
-        int height = pindex->nHeight;
-        uint256 hash = pindex->GetBlockHash();
-        cache.pushBlock(BlockCache::blockIndex(hash, height));
+    auto tip {cache.getTip()};
+    // Verify that the chain is consistent.
+    CBlockIndex* cached_tip_index = chainActive[tip.height];
+    if (!cached_tip_index || cached_tip_index->GetBlockHash().ToString() != tip.hash) {
+         // The cache's tip is not on the main chain. A reorg/rollback is needed.
+        return Rollback().UpdateSnapShot(cache, chainActive, consensusParams);
+    }
+
+    auto blockstack {std::stack<CBlockIndex*>()};
+    // Find the common ancestor and stack up the new blocks to be processed.
+    for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->nHeight > tip.height; pindex = pindex->pprev) {
         blockstack.push(pindex);
     }
-    // process all contracts in blockstack
-    return ProcessContracts(blockstack, cache, consensusParams);
-}
-
-bool Forward::UpdateSnapShot(ContractStateCache& cache, SnapShot& snapshot, CChain& chainActive, const Consensus::Params consensusParams)
-{
-    auto blockstack = std::stack<CBlockIndex*>();
-    auto tmpBlockIndex = std::stack<BlockCache::blockIndex>();
-    BlockCache::blockIndex firstBlock;
-    if (!cache.getFirstBlockCache(firstBlock)) {
+    
+    boost::asio::thread_pool pool(4);
+    if (!ProcessBlockStack(blockstack, cache, pool, consensusParams)) {
         return false;
     }
-    for (CBlockIndex* pindex = chainActive.Tip(); pindex != nullptr; pindex = pindex->pprev) {
-        // push block index to cache
-        int height = pindex->nHeight;
-        uint256 hash = pindex->GetBlockHash();
-        if (height == firstBlock.blockHeight && hash == firstBlock.blockHash) {
-            // find pre chain state
-            while (tmpBlockIndex.size() > 0) {
-                BlockCache::blockIndex tmpBlock = tmpBlockIndex.top();
-                tmpBlockIndex.pop();
-                cache.pushBlock(tmpBlock);
-            }
-            break;
-        }
-        if (height < firstBlock.blockHeight) {
-            // release memory
-            while (blockstack.size() > 0) {
-                blockstack.pop();
-            }
-            // cannot find pre chain state, rollback
-            Rollback algo;
-            return algo.UpdateSnapShot(cache, snapshot, chainActive, consensusParams);
-        }
-        tmpBlockIndex.push(BlockCache::blockIndex(hash, height));
-        blockstack.push(pindex);
-    }
-    return ProcessContracts(blockstack, cache, consensusParams);
+    pool.join();
+
+    cache.setTip(chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash().ToString());
+
+    return true;
 }
 
-bool Rollback::UpdateSnapShot(ContractStateCache& cache, SnapShot& snapshot, CChain& chainActive, const Consensus::Params consensusParams)
+bool Rollback::UpdateSnapShot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
 {
-    BlockCache::blockIndex firstBlock;
-    if (!cache.getFirstBlockCache(firstBlock)) {
-        return false;
-    }
-    auto checkPointInfoList = cache.getCheckPointList();
-    std::vector<std::string> checkPointList;
-    for (auto it = checkPointInfoList.begin(); it != checkPointInfoList.end(); it++) {
-        checkPointList.push_back(it->tipBlockHash);
-    }
-    for (CBlockIndex* pindex = chainActive.Tip(); pindex != nullptr; pindex = pindex->pprev) {
-        int height = pindex->nHeight;
-        uint256 hash = pindex->GetBlockHash();
+    // Find the highest block hash on the main chain that is also a valid checkpoint.
+    std::vector<CheckpointInfo> checkPointInfoList {cache.listCheckpoints()};
+    CBlockIndex* pindex {chainActive.Tip()};
+    
+    while(pindex) {
+        const auto& hashStr = pindex->GetBlockHash().ToString();
+        auto it = std::find_if(checkPointInfoList.begin(), checkPointInfoList.end(), 
+            [&](const CheckpointInfo& info){ return info.hash == hashStr; });
 
-        if (height == firstBlock.blockHeight) {
-            if (hash == firstBlock.blockHash) {
-                // Checkpoint exist
-                if (std::find(checkPointList.begin(), checkPointList.end(), hash.ToString()) != checkPointList.end()) {
-                    // restore checkpoint
-                    if (!cache.restoreCheckPoint(hash.ToString(), checkPointInfoList)) {
-                        LogPrintf("rollback error can not continue in checkPoint \n");
-                        assert(false);
-                    }
-                    Forward algo;
-                    return algo.UpdateSnapShot(cache, snapshot, chainActive, consensusParams);
-                }
-            }
-            cache.popBlock();
-            if (!cache.getFirstBlockCache(firstBlock)) {
-                // block is empty now
-                Rebuild algo;
-                return algo.UpdateSnapShot(cache, snapshot, chainActive, consensusParams);
-            }
-        } else {
-            // cache index should not bigger than chain index
-            while (firstBlock.blockHeight >= height) {
-                cache.popBlock();
-                if (!cache.getFirstBlockCache(firstBlock)) {
-                    // block is empty now
-                    Rebuild algo;
-                    return algo.UpdateSnapShot(cache, snapshot, chainActive, consensusParams);
-                }
+        if (it != checkPointInfoList.end()) {
+            // Found a valid checkpoint on the main chain. Restore to it.
+            try {
+                cache.restoreToCheckpoint(it->backupid);
+                cache.setTip(it->height, it->hash);
+                cache.clearAllState();
+                // After restoring, we need to move forward to the active chain's tip.
+                return Forward().UpdateSnapShot(cache, chainActive, consensusParams);
+            } catch (const std::runtime_error& e) {
+                LogPrintf("CRITICAL: Rollback failed during restore to checkpoint %s: %s. Forcing rebuild.\n", it->hash, e.what());
+                // If restore fails, the state is uncertain. A full rebuild is the only safe option.
+                return Rebuild().UpdateSnapShot(cache, chainActive, consensusParams);
             }
         }
+        pindex = pindex->pprev;
     }
-    Rebuild algo;
-    return algo.UpdateSnapShot(cache, snapshot, chainActive, consensusParams);
+
+    // If no valid checkpoint is found on the active chain, we must rebuild from scratch.
+    LogPrintf("Rollback required, but no valid checkpoint found on the active chain. Forcing rebuild.\n");
+    return Rebuild().UpdateSnapShot(cache, chainActive, consensusParams);
 }

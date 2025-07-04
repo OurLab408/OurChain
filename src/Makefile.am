@@ -110,11 +110,9 @@ BITCOIN_CORE_H = \
   consensus/consensus.h \
   consensus/tx_verify.h \
   contract/processing.h \
-  contract/cache.h \
+  contract/contractdb.h \
   contract/dbWrapper.h \
-  contract/state.h \
   contract/updatepolicy.h \
-  contract/server.h \
   core_io.h \
   core_memusage.h \
   cuckoocache.h \

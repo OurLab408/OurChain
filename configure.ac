@@ -707,7 +707,15 @@ fi
 LEVELDB_CPPFLAGS=
 LIBLEVELDB=
 LIBMEMENV=
+
+AC_MSG_NOTICE([Using embedded LevelDB])
 AM_CONDITIONAL([EMBEDDED_LEVELDB],[true])
+
+LEVELDB_CPPFLAGS="-I\$(top_srcdir)/src/leveldb/include -I\$(top_builddir)/src/leveldb/include"
+LIBLEVELDB="leveldb/libleveldb.a"
+LIBMEMENV="leveldb/libmemenv.a"
+LIBLEVELDB_SSE42="leveldb/libleveldb_sse42.a"
+
 AC_SUBST(LEVELDB_CPPFLAGS)
 AC_SUBST(LIBLEVELDB)
 AC_SUBST(LIBMEMENV)
@@ -1251,7 +1259,7 @@ AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
 AC_SUBST(PROTOBUF_LIBS)
 AC_SUBST(QR_LIBS)
-AC_CONFIG_FILES([Makefile src/Makefile doc/man/Makefile share/setup.nsi share/qt/Info.plist test/config.ini])
+AC_CONFIG_FILES([Makefile src/Makefile src/contract/Makefile doc/man/Makefile share/setup.nsi share/qt/Info.plist test/config.ini])
 AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/split-debug.sh])
 AC_CONFIG_FILES([doc/Doxyfile])
 AC_CONFIG_LINKS([test/functional/test_runner.py:test/functional/test_runner.py])
