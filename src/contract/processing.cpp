@@ -33,7 +33,6 @@ static bool call_mkdll(const uint256& contract)
     fflush(stderr);
 
     pid_t pid = fork();
-    pid = fork();
 
     if (pid < 0) {
         LogPrintf("CRITICAL: fork() failed: %s\n", strerror(errno));
