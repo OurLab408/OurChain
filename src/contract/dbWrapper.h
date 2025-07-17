@@ -99,14 +99,6 @@ public:
      */
     virtual void clearAll();
 
-    /**
-     * @brief Efficiently gets the last key-value pair from the database.
-     * @param key [out] The last key is stored here if found.
-     * @param value [out] The last value is stored here if found.
-     * @return True on success, or false if the database is empty.
-     */
-    virtual bool tryGetLast(std::string& key, std::string& value) const;
-
     // --- Checkpoint Management ---
 
     /**

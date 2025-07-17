@@ -28,13 +28,18 @@ libcontract_core_a_SOURCES = \
     contractdb.cpp \
     dbWrapper.cpp \
     updatepolicy.cpp \
+    contractserver.cpp \
     processing.h \
     contractdb.h \
     dbWrapper.h \
     updatepolicy.h \
+    contractserver.h \
+    threadsafe_queue.h \
     contract.h
 
+bin_SCRIPTS = ourcontract-mkdll
+
 # Distribute necessary non-source files
-EXTRA_DIST = ourcontract-mkdll contract_api.h
+EXTRA_DIST = ourcontract-mkdll.in contract_api.h
 
 CLEANFILES = $(noinst_LIBRARIES)

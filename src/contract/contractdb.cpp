@@ -69,24 +69,11 @@ std::vector<CheckpointInfo> ContractDB::listCheckpoints() const {
 
 bool ContractDB::syncToChain(CChain& chainActive, const Consensus::Params& consensusParams)
 {   
-    {
-        std::unique_ptr<UpdatePolicy> curUpdatePolicy {SelectUpdatePolicy(chainActive, *this)};
+    std::unique_ptr<UpdatePolicy> curUpdatePolicy {SelectUpdatePolicy(chainActive, *this)};
 
-        if (curUpdatePolicy->getType() == UpdatePolicyType::UpdatePolicy_DoNothing) {
-            return true;
-        }
-
-        if (!curUpdatePolicy->UpdateSnapShot(*this, chainActive, consensusParams)) {
-            LogPrintf("snapshot: update error\n");
-            return false;
-        }
-
-        if (currentTip.isValid())
-            saveCheckpoint();
-        
-        int currentCheckpointCount = listCheckpoints().size();
-        if (currentCheckpointCount > 10)
-            purgeOldCheckpoints(6);
+    if (!curUpdatePolicy->UpdateSnapshot(*this, chainActive, consensusParams)) {
+        LogPrintf("snapshot: update error\n");
+        return false;
     }
 
     return true;

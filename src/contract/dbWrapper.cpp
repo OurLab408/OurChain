@@ -111,19 +111,6 @@ void ContractDBWrapper::clearAll() {
     }
 }
 
-bool ContractDBWrapper::tryGetLast(std::string& key, std::string& value) const {
-    std::unique_ptr<rocksdb::Iterator> it(db->NewIterator(rocksdb::ReadOptions()));
-    
-    it->SeekToLast();
-    if (!it->Valid()) {
-        return false;
-    }
-    
-    key = it->key().ToString();
-    value = it->value().ToString();
-    return true;
-}
-
 // --- Checkpoint Management ---
 
 void ContractDBWrapper::saveCheckpoint(const int height, const std::string& hash) {

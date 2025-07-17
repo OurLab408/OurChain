@@ -16,6 +16,7 @@
 #include "checkpoints.h"
 #include "compat/sanity.h"
 #include "consensus/validation.h"
+#include "contract/contractserver.h"
 #include "fs.h"
 #include "httprpc.h"
 #include "httpserver.h"
@@ -170,6 +171,7 @@ void Interrupt(boost::thread_group& threadGroup)
     InterruptTorControl();
     if (g_connman)
         g_connman->Interrupt();
+    ContractServer::getInstance().interrupt();
     threadGroup.interrupt_all();
 }
 
@@ -201,6 +203,8 @@ void Shutdown()
     UnregisterValidationInterface(peerLogic.get());
     peerLogic.reset();
     g_connman.reset();
+
+    ContractServer::getInstance().shutdown();
 
     StopTorControl();
     UnregisterNodeSignals(GetNodeSignals());
@@ -1633,6 +1637,14 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // ********************************************************* Step 11: start node
+    
+    LogPrintf("Starting Contract Execution Server...\n");
+    try {
+        ContractServer::getInstance().start(threadGroup); 
+        LogPrintf("Contract Server is running.\n");
+    } catch (const std::exception& e) {
+        return InitError(strprintf("Failed to start Contract Server: %s\n", e.what()));
+    }
 
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());
