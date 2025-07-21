@@ -3315,6 +3315,7 @@ UniValue callcontract(const JSONRPCRequest& request)
     return wtx.GetHash().GetHex();
 }
 
+/*
 UniValue dumpcontractmessage(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() < 2) {
@@ -3352,6 +3353,7 @@ UniValue dumpcontractmessage(const JSONRPCRequest& request)
     }
     return uv;
 }
+*/
 
 extern UniValue abortrescan(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue dumpprivkey(const JSONRPCRequest& request); // in rpcdump.cpp
@@ -3421,7 +3423,7 @@ static const CRPCCommand commands[] =
         {"wallet", "removeprunedfunds", &removeprunedfunds, true, {"txid"}},
         {"wallet", "deploycontract", &deploycontract, false, {"filename", "initializer"}},
         {"wallet", "callcontract", &callcontract, false, {"txid", "function"}},
-        {"wallet", "dumpcontractmessage", &dumpcontractmessage, true, {"txid", "function"}},
+        //{"wallet", "dumpcontractmessage", &dumpcontractmessage, true, {"txid", "function"}},
 
         {"generating", "generate", &generate, true, {"nblocks", "maxtries"}},
 };

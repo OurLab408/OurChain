@@ -16,6 +16,7 @@
 #include "checkpoints.h"
 #include "compat/sanity.h"
 #include "consensus/validation.h"
+#include "contract/contractserver.h"
 #include "fs.h"
 #include "httprpc.h"
 #include "httpserver.h"
@@ -53,8 +54,6 @@
 #ifdef ENABLE_GPoW
 #include "OurChain/gpowserver.h"
 #endif
-
-#include "contract/server.h"
 
 #ifndef WIN32
 #include <signal.h>
@@ -172,8 +171,8 @@ void Interrupt(boost::thread_group& threadGroup)
     InterruptTorControl();
     if (g_connman)
         g_connman->Interrupt();
+    ContractServer::getInstance().interrupt();
     threadGroup.interrupt_all();
-    interruptContractServer();
 }
 
 void Shutdown()
@@ -195,7 +194,6 @@ void Shutdown()
     StopREST();
     StopRPC();
     StopHTTPServer();
-    stopContractServer();
 #ifdef ENABLE_WALLET
     for (CWalletRef pwallet : vpwallets) {
         pwallet->Flush(false);
@@ -205,6 +203,8 @@ void Shutdown()
     UnregisterValidationInterface(peerLogic.get());
     peerLogic.reset();
     g_connman.reset();
+
+    ContractServer::getInstance().shutdown();
 
     StopTorControl();
     UnregisterNodeSignals(GetNodeSignals());
@@ -743,10 +743,6 @@ bool AppInitServers(boost::thread_group& threadGroup)
     if (gArgs.GetBoolArg("-rest", DEFAULT_REST_ENABLE) && !StartREST())
         return false;
     if (!StartHTTPServer())
-        return false;
-    if (!contractServerInit())
-        return false;
-    if (!startContractServer())
         return false;
     return true;
 }
@@ -1641,6 +1637,14 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     // ********************************************************* Step 11: start node
+    
+    LogPrintf("Starting Contract Execution Server...\n");
+    try {
+        ContractServer::getInstance().start(threadGroup); 
+        LogPrintf("Contract Server is running.\n");
+    } catch (const std::exception& e) {
+        return InitError(strprintf("Failed to start Contract Server: %s\n", e.what()));
+    }
 
     //// debug print
     LogPrintf("mapBlockIndex.size() = %u\n", mapBlockIndex.size());

@@ -14,7 +14,7 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
-#include "contract/state.h"
+#include "contract/contractdb.h"
 #include "cuckoocache.h"
 #include "fs.h"
 #include "hash.h"
@@ -100,10 +100,6 @@ static void CheckBlockIndex(const Consensus::Params& consensusParams);
 CScript COINBASE_FLAGS;
 
 const std::string strMessageMagic = "Bitcoin Signed Message:\n";
-
-// Contract State
-ContractStateCache* contractStateCache;
-mutex contractStateCacheMtx;
 
 // Internal stuff
 namespace {
@@ -2519,19 +2515,11 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     }
 
     {
-        if (contractStateCache == nullptr) {
-            contractStateCacheMtx.lock();
-            if (contractStateCache == nullptr) {
-                contractStateCache = new ContractStateCache();
-            }
-            contractStateCacheMtx.unlock();
-        }
-        ContractState contract_state(contractStateCache);
-        if (!contract_state.SyncState(chainActive, chainparams.GetConsensus())) {
+        LOCK(cs_main);
+        ContractDB& contractcache = ContractDB::getInstance();
+        if (!contractcache.syncToChain(chainActive, chainparams.GetConsensus())) {
             return false;
         }
-        
-        LogPrintf("ActivateBestChain\n");
     }
 
     return true;

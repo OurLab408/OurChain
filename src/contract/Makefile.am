@@ -24,19 +24,22 @@ noinst_LIBRARIES = libcontract_core.a
 # --- Sources for the Core Contract Library ---
 # (Fundamental functions needed by bitcoind etc.)
 libcontract_core_a_SOURCES = \
-    state.cpp \
     processing.cpp \
-    cache.cpp \
+    contractdb.cpp \
     dbWrapper.cpp \
     updatepolicy.cpp \
-    server.cpp \
-    state.h \
+    contractserver.cpp \
     processing.h \
-    cache.h \
+    contractdb.h \
     dbWrapper.h \
     updatepolicy.h \
-    server.h \
+    contractserver.h \
+    threadsafe_queue.h \
     contract.h
 
+bin_SCRIPTS = ourcontract-mkdll
+
 # Distribute necessary non-source files
-EXTRA_DIST = ourcontract-mkdll contract_api.h
+EXTRA_DIST = ourcontract-mkdll.in contract_api.h
+
+CLEANFILES = $(noinst_LIBRARIES)

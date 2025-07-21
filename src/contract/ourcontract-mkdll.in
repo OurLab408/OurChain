@@ -11,7 +11,7 @@ CODE_CPP="$CONTRACT_DIR/code.cpp"
 CODE_O="$CONTRACT_DIR/code.o"
 CODE_SO="$CONTRACT_DIR/code.so"
 
-INCLUDE_DIR="$HOME/OurChain/src/contract/"
+INCLUDE_DIR="@OURCONTRACT_INCLUDE_DIR@"
 
 if [ -f "$CODE_SO" ]; then
     echo "The shared object file already exists. Skipping compilation."

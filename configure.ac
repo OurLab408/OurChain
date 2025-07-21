@@ -707,7 +707,9 @@ fi
 LEVELDB_CPPFLAGS=
 LIBLEVELDB=
 LIBMEMENV=
+
 AM_CONDITIONAL([EMBEDDED_LEVELDB],[true])
+
 AC_SUBST(LEVELDB_CPPFLAGS)
 AC_SUBST(LIBLEVELDB)
 AC_SUBST(LIBMEMENV)
@@ -1228,6 +1230,11 @@ ROCKSDB_LDFLAGS="$LDFLAGS -L/usr/local/lib -lrocksdb -lstdc++ -lm -lz -lbz2 -lsn
 AC_SUBST(ROCKSDB_CPPFLAGS)
 AC_SUBST(ROCKSDB_LDFLAGS)
 
+abs_top_srcdir=$(cd "$srcdir" && pwd)
+OURCONTRACT_INCLUDE_DIR="$abs_top_srcdir/src"
+AC_MSG_NOTICE([OurContract include directory set to: $OURCONTRACT_INCLUDE_DIR])
+AC_SUBST(OURCONTRACT_INCLUDE_DIR)
+
 AC_SUBST(RELDFLAGS)
 AC_SUBST(ERROR_CXXFLAGS)
 AC_SUBST(HARDENED_CXXFLAGS)
@@ -1251,7 +1258,8 @@ AC_SUBST(EVENT_PTHREADS_LIBS)
 AC_SUBST(ZMQ_LIBS)
 AC_SUBST(PROTOBUF_LIBS)
 AC_SUBST(QR_LIBS)
-AC_CONFIG_FILES([Makefile src/Makefile doc/man/Makefile share/setup.nsi share/qt/Info.plist test/config.ini])
+AC_CONFIG_FILES([Makefile src/Makefile src/contract/Makefile doc/man/Makefile share/setup.nsi share/qt/Info.plist test/config.ini])
+AC_CONFIG_FILES([src/contract/ourcontract-mkdll:src/contract/ourcontract-mkdll.in], [chmod +x src/contract/ourcontract-mkdll])
 AC_CONFIG_FILES([contrib/devtools/split-debug.sh],[chmod +x contrib/devtools/split-debug.sh])
 AC_CONFIG_FILES([doc/Doxyfile])
 AC_CONFIG_LINKS([test/functional/test_runner.py:test/functional/test_runner.py])

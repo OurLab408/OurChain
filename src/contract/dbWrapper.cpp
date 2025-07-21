@@ -1,170 +1,186 @@
 #include "contract/dbWrapper.h"
-#include "rocksdb/utilities/backup_engine.h"
-#include <boost/filesystem.hpp>
+#include <stdexcept>
 
-std::shared_mutex tmp_contract_db_mutex;
+// --- Private Helper Functions ---
 
-ContractDBWrapper::ContractDBWrapper(std::string name)
+// Returns the full path for a database or a related directory
+fs::path ContractDBWrapper::getDBPath(const std::string& name) {
+    return (GetDataDir() / "contracts" / name);
+}
+
+rocksdb::BackupEngine* ContractDBWrapper::getBackupEngine() const {
+    if (!backupEngine_) {
+        TryCreateDirectories(checkpointPath);
+        rocksdb::BackupEngine* be_ptr;
+        rocksdb::BackupEngineOptions backup_options(checkpointPath.string());
+        rocksdb::Status s = rocksdb::BackupEngine::Open(
+            rocksdb::Env::Default(), 
+            backup_options, 
+            &be_ptr
+        );
+        if (!s.ok()) {
+            throw std::runtime_error("Failed to open backup engine: " + s.ToString());
+        }
+        backupEngine_.reset(be_ptr);
+    }
+    return backupEngine_.get();
+}
+
+// --- Constructors & Destructor ---
+
+ContractDBWrapper::ContractDBWrapper(const std::string& name)
+    : checkpointPath(getDBPath("checkpoints"))
 {
+    fs::path path = getDBPath(name);
+    TryCreateDirectories(path);
+
+    this->dbPath = path.string();
+
     rocksdb::Options options;
     options.create_if_missing = true;
-    fs::path path = getContractDBPath(name);
-    TryCreateDirectories(path);
-    mystatus = rocksdb::DB::Open(options, path.string(), &db);
-    assert(mystatus.ok());
-    this->curPath = path.string();
+    
+    rocksdb::DB* raw_db_ptr;
+    rocksdb::Status s = rocksdb::DB::Open(options, path.string(), &raw_db_ptr);
+
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to open/create database '" + path.string() + "': " + s.ToString());
+    }
+    
+    db.reset(raw_db_ptr);
 }
 
-ContractDBWrapper::ContractDBWrapper(std::string name, std::string mode)
-{
-    assert(mode == "readOnly");
-    fs::path path;
+std::unique_ptr<ContractDBWrapper> ContractDBWrapper::OpenForReadOnly(const std::string& name) {
     rocksdb::Options options;
-    path = getContractDBPath(name);
-    if (mode == "readOnly") {
-        options.IncreaseParallelism();
-        options.OptimizeLevelStyleCompaction();
-        mystatus = rocksdb::DB::OpenForReadOnly(options, path.string(), &db);
+    options.IncreaseParallelism();
+    options.OptimizeLevelStyleCompaction();
+
+    fs::path path = getDBPath(name);
+    
+    rocksdb::DB* raw_db_ptr;
+    rocksdb::Status s = rocksdb::DB::OpenForReadOnly(options, path.string(), &raw_db_ptr);
+
+    if (!s.ok()) {
+        // If opening read-only fails, throw an exception immediately.
+        throw std::runtime_error("Failed to open database for read-only '" + path.string() + "': " + s.ToString());
     }
-    if (!mystatus.ok()) {
-        TryCreateDirectories(path);
-        rocksdb::Options newOptions;
-        newOptions.create_if_missing = true;
-        mystatus = rocksdb::DB::Open(newOptions, path.string(), &db);
-    }
-    assert(mystatus.ok());
-    this->curPath = path.string();
+    
+    auto wrapper = std::unique_ptr<ContractDBWrapper>(new ContractDBWrapper());
+    wrapper->db.reset(raw_db_ptr);
+    wrapper->dbPath = path.string();
+    
+    return wrapper;
 }
 
-ContractDBWrapper::~ContractDBWrapper()
-{
-    delete db;
-    db = nullptr;
-}
+// --- Public API ---
 
-rocksdb::Status ContractDBWrapper::getStatus()
-{
-    return mystatus;
-}
-bool ContractDBWrapper::isOk()
-{
-    return mystatus.ok();
-}
-// set critical save
-void ContractDBWrapper::setCriticalSave()
-{
+void ContractDBWrapper::enableSyncWrites() {
     writeOptions.sync = true;
 }
-rocksdb::Iterator* ContractDBWrapper::getIterator()
-{
-    return db->NewIterator(rocksdb::ReadOptions());
+
+bool ContractDBWrapper::getState(const std::string& key, std::string& value) const {
+    rocksdb::Status s = db->Get(rocksdb::ReadOptions(), key, &value);
+
+    if (s.ok()) {
+        return true; // Found, 'value' has been populated.
+    }
+    if (s.IsNotFound()) {
+        return false; // Not found.
+    }
+    // For other types of errors, throw an exception.
+    throw std::runtime_error("Failed to get state for key '" + key + "': " + s.ToString());
 }
 
-std::string ContractDBWrapper::getState(std::string key)
-{
-    std::string value;
-    mystatus = db->Get(rocksdb::ReadOptions(), key, &value);
-    return value;
+void ContractDBWrapper::setState(const std::string& key, const std::string& value) {
+    rocksdb::Status s = db->Put(writeOptions, key, value);
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to set state for key '" + key + "': " + s.ToString());
+    }
 }
 
-void ContractDBWrapper::setState(std::string key, std::string value)
-{
-    mystatus = db->Put(rocksdb::WriteOptions(), key, value);
+void ContractDBWrapper::deleteState(const std::string& key) {
+    rocksdb::Status s = db->Delete(writeOptions, key);
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to delete state for key '" + key + "': " + s.ToString());
+    }
 }
 
-void ContractDBWrapper::deleteState(std::string key)
-{
-    mystatus = db->Delete(rocksdb::WriteOptions(), key);
+void ContractDBWrapper::clearAll() {
+    rocksdb::Status s = db->DeleteRange(writeOptions, db->DefaultColumnFamily(), rocksdb::Slice(), rocksdb::Slice());
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to clear all states: " + s.ToString());
+    }
 }
 
-void ContractDBWrapper::clearAllStates()
-{
-    // use delete range to clear all states
-    mystatus = db->DeleteRange(rocksdb::WriteOptions(), rocksdb::Slice(), rocksdb::Slice());
-    assert(mystatus.ok());
+// --- Checkpoint Management ---
+
+void ContractDBWrapper::saveCheckpoint(const int height, const std::string& hash) {
+    WriteLock lock(backup_mutex_);
+    json metadata;
+    metadata["hash"] = hash;
+    metadata["height"] = height;
+
+    // Use the helper to get the engine, then perform the operation.
+    rocksdb::Status s = getBackupEngine()->CreateNewBackupWithMetadata(db.get(), metadata.dump());
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to save checkpoint: " + s.ToString());
+    }
 }
 
-void ContractDBWrapper::saveDuplicateState(fs::path path, std::string metadata)
-{
-    rocksdb::BackupEngine* backup_engine;
-    rocksdb::BackupEngineOptions backup_engine_options(path.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
-    assert(mystatus.ok());
-    backup_engine->CreateNewBackupWithMetadata(db, metadata);
-    delete backup_engine;
+void ContractDBWrapper::restoreToCheckpoint(int targetBackupId) {
+    WriteLock lock(backup_mutex_); // Exclusive lock for a destructive operation
+
+    db->Close();
+    db.reset();
+
+    rocksdb::BackupEngine* backupEngine = getBackupEngine();
+    rocksdb::Status s = backupEngine->RestoreDBFromBackup(targetBackupId, this->dbPath, this->dbPath);
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to restore from backup ID " + std::to_string(targetBackupId) + ": " + s.ToString());
+    }
+    // If restore was successful, reopen the database.
+    rocksdb::DB* raw_db_ptr;
+    s = rocksdb::DB::Open(rocksdb::Options(), this->dbPath, &raw_db_ptr);
+    if(!s.ok()) {
+        throw std::runtime_error("Failed to reopen database after restore: " + s.ToString());
+    }
+    db.reset(raw_db_ptr);
 }
 
-// save contract checkPoint
-void ContractDBWrapper::saveCheckPoint(std::string tipBlockHash)
-{
-    TryCreateDirectories(CheckPointPath);
-    saveDuplicateState(CheckPointPath, tipBlockHash);
+void ContractDBWrapper::purgeOldCheckpoints(int numCheckpointsToKeep) {
+    WriteLock lock(backup_mutex_); // Exclusive lock needed to delete backups
+
+    // Use the helper to get the engine
+    rocksdb::Status s = getBackupEngine()->PurgeOldBackups(numCheckpointsToKeep);
+    if (!s.ok()) {
+        throw std::runtime_error("Failed to purge old backups: " + s.ToString());
+    }
 }
 
-void ContractDBWrapper::saveTmpState()
-{
-    fs::path path = getContractDBPath("tmp");
-    TryCreateDirectories(path);
-    WriteLock lock(tmp_contract_db_mutex);
-    // restore from cur checkPoint
-    rocksdb::BackupEngine* backup_engine;
-    rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
-    assert(mystatus.ok());
-    backup_engine->RestoreDBFromLatestBackup(path.string(), path.string());
-    lock.unlock();
-    delete backup_engine;
-}
+std::vector<CheckpointInfo> ContractDBWrapper::listCheckpoints() const { 
+    ReadLock lock(backup_mutex_); // Shared lock is sufficient to list info
 
-// find check point list
-std::vector<CheckPointInfo> ContractDBWrapper::findCheckPointList()
-{
-    std::vector<CheckPointInfo> checkPointList;
-    rocksdb::BackupEngine* backup_engine;
-    rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    mystatus = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
-    assert(mystatus.ok());
+    // Handle case where backup dir might not exist yet before trying to open it
+    if (!fs::exists(checkpointPath)) {
+        return {}; // Return an empty vector
+    }
+    
     std::vector<rocksdb::BackupInfo> backup_info;
-    backup_engine->GetBackupInfo(&backup_info);
-    for (auto it = backup_info.begin(); it != backup_info.end(); it++) {
-        CheckPointInfo info;
-        info.tipBlockHash = it->app_metadata;
-        info.id = it->backup_id;
-        checkPointList.push_back(info);
+    // Use the helper to get the engine
+    getBackupEngine()->GetBackupInfo(&backup_info);
+    
+    std::vector<CheckpointInfo> result;
+    result.reserve(backup_info.size());
+    for (const auto& it : backup_info) {
+        CheckpointInfo info;
+        try {
+            json metadata = json::parse(it.app_metadata);
+            info.hash = metadata.at("hash").get<std::string>();
+            info.height = metadata.at("height").get<int>();
+            info.backupid = it.backup_id;
+            result.push_back(info);
+        } catch (const json::exception& e) {
+            continue; // Safely ignore checkpoints with old/malformed metadata
+        }
     }
-    delete backup_engine;
-    return checkPointList;
-}
-
-bool ContractDBWrapper::restoreCheckPoint(int targetBackupId)
-{
-    mystatus = db->Close();
-    assert(mystatus.ok());
-    // restore from target checkPoint
-    rocksdb::BackupEngine* backup_engine;
-    rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    rocksdb::Status status = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
-    if (!status.ok()) {
-        return false;
-    }
-    fs::path path = this->curPath;
-    auto result = backup_engine->RestoreDBFromBackup(targetBackupId, path.string(), path.string());
-    if (!result.ok()) {
-        return false;
-    }
-    delete backup_engine;
-    // reopen db
-    mystatus = rocksdb::DB::Open(rocksdb::Options(), path.string(), &db);
-    assert(mystatus.ok());
-    return true;
-}
-
-void ContractDBWrapper::removeOldCheckPoint(int maxCheckPointCount)
-{
-    // rocksdb backup limit recent checkpoint
-    rocksdb::BackupEngine* backup_engine;
-    rocksdb::BackupEngineOptions backup_engine_options(CheckPointPath.string());
-    rocksdb::Status status = rocksdb::BackupEngine::Open(rocksdb::Env::Default(), backup_engine_options, &backup_engine);
-    assert(status.ok());
-    backup_engine->PurgeOldBackups(maxCheckPointCount);
+    return result;
 }

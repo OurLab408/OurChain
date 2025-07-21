@@ -35,4 +35,4 @@ mining 1
 ./src/bitcoin-cli callcontract "$contract_address" "abc"
 mining 2
 # stop OurChain
-./src/bitcoin-cli stop
+./src/bitcoin-cli --regtest stop
