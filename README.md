@@ -10,6 +10,10 @@ OurChain is a fork of Bitcoin Core that aims to provide a more efficient and aut
 - OurContract: a new smart contract system that is based on the Bitcoin architecture.
 - PT (PowerTimestamp): a global event ordering system that is based on OurChain.
 
+## Installation
+
+Read [Installation Guide](https://hackmd.io/Bo8C0LogQfmq_eSuOExr0w?view)
+
 ## Quick Start
 
 After starting the OurChain node, you can use the `bash mytest.sh` command to try basic contract rpc commands.
