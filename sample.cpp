@@ -1,6 +1,6 @@
 #include <string>
 #include "json/json.hpp"
-#include "contract/contract_api.h"
+#include "contract/libourcontract/ourcontract.h"
 
 using json = nlohmann::json;
 
