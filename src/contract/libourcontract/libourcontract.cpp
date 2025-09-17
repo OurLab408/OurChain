@@ -1,4 +1,10 @@
-#include "ourcontract.h"
+#include "contract/libourcontract/ourcontract.h"
+#include <functional>
+#include <mutex>
+#include <stack>
+#include <dlfcn.h>
+#include <stdexcept>
+#include "util.h"
 
 
 bool call_contract(char *contract_id,

@@ -402,7 +402,7 @@ bitcoind_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 bitcoind_LDFLAGS += -Wl,--export-dynamic
 
 contract_api_sources = \
-    contract/libourcontract.cpp
+    contract/libourcontract/libourcontract.cpp
 
 bitcoind_SOURCES = \
   bitcoind.cpp \

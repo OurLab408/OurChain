@@ -40,6 +40,6 @@ libcontract_core_a_SOURCES = \
 bin_SCRIPTS = ourcontract-mkdll
 
 # Distribute necessary non-source files
-EXTRA_DIST = ourcontract-mkdll.in contract_api.h
+EXTRA_DIST = ourcontract-mkdll.in
 
 CLEANFILES = $(noinst_LIBRARIES)

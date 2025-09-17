@@ -20,13 +20,7 @@ Read [doc/dev-docker.md](doc/dev-docker.md).
 
 ## OurContract
 
-Read [doc/ourcontractV2.md](doc/ourcontractV2.md).
-
-## related projects
-
-- [OurChain Agent](https://github.com/leon123858/ourchain-agent): A service that provides a REST API for OurChain. It supports mobile applications using RPC commands to interact with OurChain without running an OurChain node.
-- [OurChain Admin Web](https://github.com/leon123858/ourChain-frontend/tree/main/ourchain-web-cli): A simple web application based on OurChain Agent that provides a user interface for OurChain. It allows users to deploy contracts, call contracts, and check contract status.
-- [AID Type3 Demo](https://github.com/leon123858/aid/tree/main/demo/t3): An identity system that provide a demo implementation based on OurChain.
+Read [doc/ourcontract.md](doc/ourcontract.md).
 
 ## License
 
