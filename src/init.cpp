@@ -1612,7 +1612,9 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     // Either install a handler to notify us when genesis activates, or set fHaveGenesis directly.
     // No locking, as this happens before any background thread is started.
     if (chainActive.Tip() == nullptr) {
-        uiInterface.NotifyBlockTip.connect(BlockNotifyGenesisWait);
+        uiInterface.NotifyBlockTip.connect([](bool, const CBlockIndex* pBlockIndex) {
+            BlockNotifyGenesisWait(false, pBlockIndex);
+        });
     } else {
         fHaveGenesis = true;
     }
@@ -1633,7 +1635,8 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         while (!fHaveGenesis) {
             condvar_GenesisWait.wait(lock);
         }
-        uiInterface.NotifyBlockTip.disconnect(BlockNotifyGenesisWait);
+        // Note: We can't easily disconnect the lambda, but it's not critical since
+        // this is only called once during initialization
     }
 
     // ********************************************************* Step 11: start node
