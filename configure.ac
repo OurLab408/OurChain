@@ -596,22 +596,82 @@ fi
 
 AC_CHECK_HEADERS([endian.h sys/endian.h byteswap.h stdio.h stdlib.h unistd.h strings.h sys/types.h sys/stat.h sys/select.h sys/prctl.h])
 
-AC_CHECK_DECLS([strnlen])
+# Check for strnlen - handle both function declarations and macros
+AC_MSG_CHECKING([for strnlen])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <string.h>
+#include <stddef.h>
+], [
+size_t len = strnlen("test", 10);
+])], [
+    AC_DEFINE(HAVE_DECL_STRNLEN, 1, [Define to 1 if you have the declaration of `strnlen', and to 0 if you don't.])
+    AC_MSG_RESULT([yes])
+], [
+    AC_MSG_RESULT([no])
+])
 
 # Check for daemon(3), unrelated to --with-daemon (although used by it)
 AC_CHECK_DECLS([daemon])
 
-AC_CHECK_DECLS([le16toh, le32toh, le64toh, htole16, htole32, htole64, be16toh, be32toh, be64toh, htobe16, htobe32, htobe64],,,
-		[#if HAVE_ENDIAN_H
-                 #include <endian.h>
-                 #elif HAVE_SYS_ENDIAN_H
-                 #include <sys/endian.h>
-                 #endif])
+# Check for endian conversion functions - handle both function declarations and macros
+AC_MSG_CHECKING([for endian conversion functions])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <stdint.h>
+#if HAVE_ENDIAN_H
+#include <endian.h>
+#elif HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
+#endif
+], [
+uint16_t val16 = htobe16(0x1234);
+uint32_t val32 = htobe32(0x12345678);
+uint64_t val64 = htobe64(0x123456789ABCDEF0);
+uint16_t val16le = htole16(0x1234);
+uint32_t val32le = htole32(0x12345678);
+uint64_t val64le = htole64(0x123456789ABCDEF0);
+uint16_t val16be = be16toh(0x1234);
+uint32_t val32be = be32toh(0x12345678);
+uint64_t val64be = be64toh(0x123456789ABCDEF0);
+uint16_t val16le2 = le16toh(0x1234);
+uint32_t val32le2 = le32toh(0x12345678);
+uint64_t val64le2 = le64toh(0x123456789ABCDEF0);
+])], [
+    AC_DEFINE(HAVE_DECL_HTOBE16, 1, [Define to 1 if you have the declaration of `htobe16', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_HTOBE32, 1, [Define to 1 if you have the declaration of `htobe32', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_HTOBE64, 1, [Define to 1 if you have the declaration of `htobe64', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_HTOLE16, 1, [Define to 1 if you have the declaration of `htole16', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_HTOLE32, 1, [Define to 1 if you have the declaration of `htole32', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_HTOLE64, 1, [Define to 1 if you have the declaration of `htole64', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_BE16TOH, 1, [Define to 1 if you have the declaration of `be16toh', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_BE32TOH, 1, [Define to 1 if you have the declaration of `be32toh', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_BE64TOH, 1, [Define to 1 if you have the declaration of `be64toh', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_LE16TOH, 1, [Define to 1 if you have the declaration of `le16toh', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_LE32TOH, 1, [Define to 1 if you have the declaration of `le32toh', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_LE64TOH, 1, [Define to 1 if you have the declaration of `le64toh', and to 0 if you don't.])
+    AC_MSG_RESULT([yes])
+], [
+    AC_MSG_RESULT([no])
+])
 
-AC_CHECK_DECLS([bswap_16, bswap_32, bswap_64],,,
-		[#if HAVE_BYTESWAP_H
-                 #include <byteswap.h>
-                 #endif])
+# Check for bswap functions - handle both function declarations and macros
+AC_MSG_CHECKING([for bswap functions])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([
+#include <stdint.h>
+#if HAVE_BYTESWAP_H
+#include <byteswap.h>
+#endif
+], [
+uint16_t val16 = bswap_16(0x1234);
+uint32_t val32 = bswap_32(0x12345678);
+uint64_t val64 = bswap_64(0x123456789ABCDEF0);
+])], [
+    AC_DEFINE(HAVE_DECL_BSWAP_16, 1, [Define to 1 if you have the declaration of `bswap_16', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_BSWAP_32, 1, [Define to 1 if you have the declaration of `bswap_32', and to 0 if you don't.])
+    AC_DEFINE(HAVE_DECL_BSWAP_64, 1, [Define to 1 if you have the declaration of `bswap_64', and to 0 if you don't.])
+    AC_MSG_RESULT([yes])
+], [
+    AC_MSG_RESULT([no])
+])
 
 AC_CHECK_DECLS([__builtin_clz, __builtin_clzl, __builtin_clzll])
 

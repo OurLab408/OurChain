@@ -12,6 +12,7 @@
 
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/stringize.hpp>
+#include <cstdint>
 
 // Simple micro-benchmarking framework; API mostly matches a subset of the Google Benchmark
 // framework (see https://github.com/google/benchmark)
