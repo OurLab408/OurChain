@@ -1,11 +1,10 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
+
+# Use non-root user for security
+RUN groupadd -r ourchain && useradd -r -g ourchain ourchain
 
 # update package manager
 RUN apt-get update -y
-
-# install dev tools (only for development)
-RUN apt-get install vim gdb -y
-RUN apt-get install software-properties-common -y
 
 # install git
 RUN apt-get install git -y
@@ -15,17 +14,17 @@ RUN apt-get install build-essential libtool autotools-dev pkg-config bsdmainutil
 RUN apt-get install libevent-dev libboost-all-dev libssl-dev libdb++-dev -y
 RUN apt-get install autoconf automake -y
 
-#install rocksdb (constract db)
+#install rocksdb (contract db)
 RUN apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
-RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib && make install-shared
+RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib -j$(nproc --all) && make install-shared
 RUN cd ~ && rm -rf rocksdb
 
 # git clone ourchain
-ARG REPO_URL=https://github.com/leon123858/OurChain.git
+ARG REPO_URL=https://github.com/OurLab408/OurChain.git
 ARG REPO_NAME=OurChain
-ARG REPO_BRANCH=main
-RUN cd ~ && mkdir Desktop && cd Desktop && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull
-WORKDIR /root/Desktop/ourchain
+ARG REPO_BRANCH=master
+RUN cd ~ && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull --rebase
+WORKDIR /root/ourchain
 
 # install bitcoin optional dependencies
 RUN apt-get install libzmq3-dev -y
@@ -33,20 +32,35 @@ RUN apt-get install libzmq3-dev -y
 # install ourchain dependencies
 RUN apt-get install libgmp-dev -y
 
-
-EXPOSE 22
-EXPOSE 8332
-
 # init
-RUN ~/Desktop/ourchain/autogen.sh
-RUN ~/Desktop/ourchain/configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
+RUN ~/ourchain/autogen.sh
+RUN ~/ourchain/configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
 
 # set config
 RUN mkdir ~/.bitcoin/
 RUN echo -e "server=1\nrpcuser=test\nrpcpassword=test\nrpcport=8332\nrpcallowip=0.0.0.0/0\nregtest=1" >> /root/.bitcoin/bitcoin.conf
 
 # compile
-RUN make -j8 && make install && ldconfig
+RUN make -j$(nproc --all) && make install && ldconfig
 
-# run (only for production)
+# Clean up build dependencies to reduce image size
+RUN apt-get remove -y build-essential libtool autotools-dev pkg-config bsdmainutils python3-dev
+RUN apt-get remove -y libevent-dev libboost-all-dev libssl-dev libdb++-dev autoconf automake
+RUN apt-get remove -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
+RUN apt-get remove -y libzmq3-dev libgmp-dev git
+RUN apt-get autoremove -y && apt-get clean
+
+# Change ownership to ourchain user
+RUN chown -R ourchain:ourchain /root/ourchain /root/.bitcoin
+
+# Switch to non-root user
+USER ourchain
+
+EXPOSE 8332
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD bitcoin-cli getblockchaininfo || exit 1
+
+# Production entry point
 ENTRYPOINT ["bitcoind", "--regtest", "-txindex"]

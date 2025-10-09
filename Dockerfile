@@ -1,10 +1,10 @@
-FROM ubuntu:18.04
+FROM ubuntu:24.04
 
 # update package manager
 RUN apt-get update -y
 
 # install dev tools (only for development)
-RUN apt-get install vim gdb -y
+RUN apt-get install vim gdb curl wget -y
 RUN apt-get install software-properties-common -y
 
 # install git
@@ -15,7 +15,7 @@ RUN apt-get install build-essential libtool autotools-dev pkg-config bsdmainutil
 RUN apt-get install libevent-dev libboost-all-dev libssl-dev libdb++-dev -y
 RUN apt-get install autoconf automake -y
 
-#install rocksdb (constract db)
+#install rocksdb (contract db)
 RUN apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
 RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib -j$(nproc --all) && make install-shared
 RUN cd ~ && rm -rf rocksdb
@@ -24,8 +24,8 @@ RUN cd ~ && rm -rf rocksdb
 ARG REPO_URL=https://github.com/OurLab408/OurChain.git
 ARG REPO_NAME=OurChain
 ARG REPO_BRANCH=master
-RUN cd ~ && mkdir Desktop && cd Desktop && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull
-WORKDIR /root/Desktop/ourchain
+RUN cd ~ && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull --rebase
+WORKDIR /root/ourchain
 
 # install bitcoin optional dependencies
 RUN apt-get install libzmq3-dev -y
@@ -38,8 +38,8 @@ EXPOSE 22
 EXPOSE 8332
 
 # init
-RUN ~/Desktop/ourchain/autogen.sh
-RUN ~/Desktop/ourchain/configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
+RUN ~/ourchain/autogen.sh
+RUN ~/ourchain/configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
 
 # set config
 RUN mkdir ~/.bitcoin/
@@ -48,5 +48,5 @@ RUN echo -e "server=1\nrpcuser=test\nrpcpassword=test\nrpcport=8332\nrpcallowip=
 # compile
 RUN make -j$(nproc --all) && make install && ldconfig
 
-# run (only for production)
-# ENTRYPOINT ["bitcoind", "--regtest", "-txindex"]
+# Development mode - start with bash for interactive use
+CMD ["/bin/bash"]
