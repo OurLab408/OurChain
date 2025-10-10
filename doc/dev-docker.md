@@ -1,125 +1,164 @@
-# dev by docker
+# OurChain Development with Docker
 
-## environment
+## Prerequisites
 
-- ref: https://www.docker.com/ install docker
-- ref: https://www.docker.com/products/docker-desktop/ install docker desktop
-- ref: https://code.visualstudio.com/ install vscode
-- ref: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers install vscode container plugin
+Before starting, ensure you have the following installed:
 
-## first time setup
+- [Docker](https://www.docker.com/) - Container platform
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) - Docker GUI (recommended)
+- [VS Code](https://code.visualstudio.com/) - Code editor
+- [Remote Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) - VS Code extension for container development
 
-in project root
+## First Time Setup
+
+Navigate to the project root directory and run:
 
 ```bash
-# install image (don't want cache => `docker build --no-cache -t our-chain .`)
+# Build the development image (use --no-cache for clean build)
 docker build -t our-chain .
-# generate container from image and run
+
+# Run development container (interactive mode)
 docker run --name our-chain -it our-chain
-# when you want to use OurChain rpc outside container, you need to expose port 8332
+
+# For RPC access from outside container, expose port 8332
 docker run --name our-chain -it -p 8332:8332 our-chain
 ```
 
-use below command in container, you can interact with OurChain Node
+## Basic OurChain Commands
+
+Once inside the container, you can interact with the OurChain node:
 
 ```bash
 # Start OurChain Node
 ./src/bitcoind --regtest --daemon -txindex
+
 # Stop OurChain Node
 ./src/bitcoin-cli stop
+
 # Get help
 ./src/bitcoin-cli help
+
 # Get embedded address's balance
 ./src/bitcoin-cli getbalance
-# mining 1 block for myself
+
+# Mining 1 block for myself
 ./src/bitcoin-cli generate 1
-# deploy contract (can check info in ~/.bitcoin/regtest/contracts)
-./src/bitcoin-cli deploycontract ~/Desktop/ourchain/sample.cpp
-# call contract
-./src/bitcoin-cli callcontract "contract address when deploy" "arg1" "arg2" ...
-# get contract message, this command is "pure", it will not change the state of the contract
-./src/bitcoin-cli dumpcontractmessage "contract address" ""
+
+# Deploy contract (check info in ~/.bitcoin/regtest/contracts)
+./src/bitcoin-cli deploycontract ./sample.cpp
+
+# Call contract
+./src/bitcoin-cli callcontract "contract_address" "arg1" "arg2" ...
+
+# Get contract message (read-only, doesn't change state)
+./src/bitcoin-cli dumpcontractmessage "contract_address" ""
 ```
 
-can use `bash ./mytest.sh` run contract commands
+**Quick Test**: Use `bash ./mytest.sh` to run the complete contract test suite.
 
-important path in container
+## Important Paths in Container
 
-- in `/root/Desktop/ourchain` you can find the project
-- in `/root/.bitcoin/bitcoin.conf` you can find the bitcoin config
-- in `/root/.bitcoin/regtest/contracts` you can find the OurContract info
+- **Project directory**: `/root/ourchain` - Main OurChain source code
+- **Bitcoin config**: `/root/.bitcoin/bitcoin.conf` - Node configuration
+- **Contract data**: `/root/.bitcoin/regtest/contracts` - Deployed contract information
 
-## restart container
+## Container Management
 
 ```bash
-# list container ID
+# List all containers
 docker container ls -a
-# restart container
-docker start [CONTAINER ID]
+
+# Restart existing container
+docker start our-chain
+
+# Attach to running container
+docker exec -it our-chain /bin/bash
+
+# Stop container
+docker stop our-chain
 ```
 
-## deploy container
+## Production Deployment
 
-1. add command `ENTRYPOINT ["bitcoind", "--regtest", "-txindex"]` in dockerfile
-2. use `docker build -t our-chain .` create image
+For production deployment, use the optimized production Dockerfile:
 
-## file edit and execute
+```bash
+# Build production image
+docker build -f Dockerfile.prod -t our-chain-prod .
 
-### edit
-
-- Open VS Code
-- In the leftmost row of icons, click Remote Explorer
-- After pressing the correct Container, press Attach to Container in the icon that appears
-- Then a new VS Code will be automatically opened, and the green part in the lower left corner will display the Image ID of the Container.
-- In the leftmost row of icons, click Explorer
-- Select the path where ourchain is located and open it
-
-### execute
-
-- Select Terminal > New Terminal from the top toolbar of VS Code or use the shortcut key [Ctrl+Shift+`] to open the Terminal
-- You can also use docker desktop to open the Terminal inside the container
-
-## setup gdb and smart hint in vscode
-
-Make sure that vscode in the container has the following plug-ins installed, and no conflicting plug-ins are installed.
-
-- ms-vscode.cmake-tools
-- ms-vscode.cpptools
-- ms-vscode.cpptools-extension-pack
-- ms-vscode.cpptools-themes
-- twxs.cmake
-
-use `code --list-extensions` can check installed extensions
-
-At this time, you should be able to use debugger and smart prompts with the files in `.vscode`
-
-In addition, the following parameters can be set in `c_cpp_properties` as appropriate.
-
-The example is using clang to compile with the gnu17 standard on an arm chip.
-
-```
-// compiler spec
-"cStandard": "gnu17",
-"cppStandard": "gnu++17",
-// compiler name
-"intelliSenseMode": "clang-arm64"
+# Run production container (auto-starts bitcoind)
+docker run -d -p 8332:8332 --name our-chain-prod our-chain-prod
 ```
 
-## bitcoin core coding style
+## VS Code Development Setup
 
-use below command to format code
+### Connect to Container
 
+1. Open VS Code
+2. Click **Remote Explorer** in the left sidebar
+3. Find your container and click **Attach to Container**
+4. VS Code will open a new window connected to the container
+5. Open the project folder: `/root/ourchain`
+
+### Terminal Access
+
+- **VS Code Terminal**: `Ctrl+Shift+`` (backtick) or Terminal > New Terminal
+- **Docker Desktop**: Use the terminal feature in Docker Desktop GUI
+- **Command Line**: `docker exec -it our-chain /bin/bash`
+
+## VS Code Extensions & Debugging
+
+### Required Extensions
+
+Install these VS Code extensions for optimal C++ development:
+
+- `ms-vscode.cmake-tools` - CMake support
+- `ms-vscode.cpptools` - C/C++ IntelliSense
+- `ms-vscode.cpptools-extension-pack` - Complete C++ toolkit
+- `ms-vscode.cpptools-themes` - Syntax highlighting
+- `twxs.cmake` - CMake language support
+
+**Check installed extensions**: `code --list-extensions`
+
+### C++ Configuration
+
+For proper IntelliSense and debugging, configure `c_cpp_properties.json`:
+
+```json
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "cStandard": "gnu20",
+            "cppStandard": "gnu++20",
+            "intelliSenseMode": "gcc-arm64",
+            "compilerPath": "/usr/bin/gcc"
+        }
+    ]
+}
 ```
+
+**Note**: Updated to C++20 standard to match the current build configuration.
+
+## Code Formatting
+
+Format your code according to Bitcoin Core standards:
+
+```bash
+# Format the last commit
 git diff -U0 HEAD~1.. | ./contrib/devtools/clang-format-diff.py -p1 -i -v
+
+# Format specific files
+./contrib/devtools/clang-format-diff.py -p1 -i -v < file.diff
 ```
 
-you can format 1 commit before HEAD.
+## Configuration
 
-## sample bitcoin.conf
+### Default bitcoin.conf
 
-If you need customized configuration, you can modify the configuration yourself in the configuration file under `.bitcoin`. The following is the default configuration.
+The container comes with a pre-configured `bitcoin.conf`:
 
-```
+```ini
 server=1
 rpcuser=test
 rpcpassword=test
@@ -128,17 +167,41 @@ rpcallowip=0.0.0.0/0
 regtest=1
 ```
 
-## Reference release script
+**Location**: `/root/.bitcoin/bitcoin.conf`
 
-To use docker buildx for multi-platform publishing, please make sure to use a docker account with permissions
+### Custom Configuration
+
+To modify settings, edit the configuration file directly or create a new one with your preferred settings.
+
+## Multi-Platform Release
+
+For publishing to Docker Hub with multi-platform support:
 
 ```bash
+# Pull latest changes
 git pull
-docker buildx build --no-cache -t our-chain -f ./Dockerfile.prod --platform linux/amd64 .
+
+# Build for multiple platforms
+docker buildx build --no-cache -t our-chain -f ./Dockerfile.prod --platform linux/amd64,linux/arm64 .
+
+# Tag and push to Docker Hub
 docker tag our-chain your_docker_hub_id/our-chain
 docker push your_docker_hub_id/our-chain
 ```
 
-## delete container
+**Note**: Requires Docker Hub account with appropriate permissions.
 
-use GUI in docker desktop
+## Cleanup
+
+### Remove Containers
+
+```bash
+# Stop and remove container
+docker stop our-chain
+docker rm our-chain
+
+# Remove image
+docker rmi our-chain
+```
+
+**Alternative**: Use Docker Desktop GUI for container management.
