@@ -1,4 +1,4 @@
-#include "contract/dbWrapper.h"
+#include "dbWrapper.h"
 #include <stdexcept>
 
 // --- Private Helper Functions ---

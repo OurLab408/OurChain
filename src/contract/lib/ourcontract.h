@@ -21,14 +21,19 @@
 
 #include <string>
 #include <vector>
+#include "json/json.hpp"
+
+using json = nlohmann::json;
 
 #define PUBLIC __attribute__((visibility("default")))
 
 extern "C" {
-    
-PUBLIC bool call_contract(char *contract_id, char *func_name, const std::vector<std::string> &vec);
+    PUBLIC void print(const char *s);
+    PUBLIC json& get_state(const std::string& contract_address);
+}
 
-PUBLIC void print(const char *s);
-
+// C++ linkage functions (outside extern "C")
+extern "C++" {
+PUBLIC void print(const std::string& s);
 }
 #endif // OURCONTRACT_H
