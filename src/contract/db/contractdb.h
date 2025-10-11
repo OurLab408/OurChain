@@ -53,8 +53,6 @@ public:
     void setTip(const int height, const std::string hash);
     BlockInfo getTip() const;
 
-    void setContractState(const uint256& address, const json& state);
-    json getContractState(const uint256& address) const;
     void clearAllState();
 
     // --- State Buffer Management ---

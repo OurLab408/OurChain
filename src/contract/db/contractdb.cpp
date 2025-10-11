@@ -37,13 +37,6 @@ ContractDB::BlockInfo ContractDB::getTip() const {
     return currentTip;
 }
 
-void ContractDB::setContractState(const uint256& address, const json& state) {
-    snapshot->setState(address, state);
-}
-
-json ContractDB::getContractState(const uint256& address) const {
-    return snapshot->getState(address);
-}
 
 
 void ContractDB::clearAllState() { 
