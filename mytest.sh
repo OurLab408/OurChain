@@ -32,7 +32,17 @@ contract_address=$(deploycontract ./sample.cpp)
 echo "contract: $contract_address"
 # call smart contract
 mining 1
-./src/bitcoin-cli callcontract "$contract_address" "abc"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "1"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "3"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "5"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "7"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "9"
+./src/bitcoin-cli callcontract "$contract_address" "decrement" "30"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "11"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "13"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "15"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "17"
+./src/bitcoin-cli callcontract "$contract_address" "increment" "19"
 mining 2
 # stop OurChain
 ./src/bitcoin-cli --regtest stop

@@ -1,5 +1,5 @@
-#include "contract/contractdb.h"
-#include "contract/updatepolicy.h"
+#include "contractdb.h"
+#include "../updatepolicy.h"
 #include "validation.h"
 
 void Snapshot::setState(const uint256& address, const json& state) {
@@ -37,16 +37,39 @@ ContractDB::BlockInfo ContractDB::getTip() const {
     return currentTip;
 }
 
-void ContractDB::setContractState(const uint256& address, const json& state) {
-    snapshot->setState(address, state);
-}
 
-json ContractDB::getContractState(const uint256& address) const {
-    return snapshot->getState(address);
-}
 
 void ContractDB::clearAllState() { 
     snapshot->clearAll();
+}
+
+// --- State Buffer Implementation (Your Design) ---
+
+json& ContractDB::getState(const uint256& address) {
+    std::lock_guard<std::mutex> lock(buffer_mutex_);
+    
+    std::string address_str = address.GetHex();
+    
+    // Lazy loading: if not in buffer, load from DB
+    if (state_buffer_.find(address_str) == state_buffer_.end()) {
+        json db_state = snapshot->getState(address);
+        state_buffer_[address_str] = (db_state.is_null()) ? json::object() : db_state;
+    }
+    
+    return state_buffer_[address_str];
+}
+
+void ContractDB::commitBuffer() {
+    std::lock_guard<std::mutex> lock(buffer_mutex_);
+    
+    // Batch write all buffer states to DB sequentially
+    for (const auto& [address_str, state] : state_buffer_) {
+        uint256 address = uint256S(address_str);
+        snapshot->setState(address, state);
+    }
+    
+    // Clear buffer after committing
+    state_buffer_.clear();
 }
 
 void ContractDB::saveCheckpoint() {

@@ -1,6 +1,6 @@
 #include "chainparams.h"
 #include "contract/contractserver.h"
-#include "contract/contractdb.h"
+#include "db/contractdb.h"
 #include "validation.h"
 #include "contract/processing.h"
 #include <future>
@@ -101,6 +101,10 @@ void ContractServer::processSingleBlock(CBlockIndex* pindex)
         }
     }
     LogPrintf("ContractServer: Block %d processed.\n", pindex->nHeight);
+
+    // Commit state buffer to database atomically after block processing
+    cache.commitBuffer();
+    LogPrintf("ContractServer: All contract states committed to database.\n");
 
     // Now that the block is fully processed, it's safe to update the tip
     // and handle checkpoint logic.

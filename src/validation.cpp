@@ -14,7 +14,7 @@
 #include "consensus/merkle.h"
 #include "consensus/tx_verify.h"
 #include "consensus/validation.h"
-#include "contract/contractdb.h"
+#include "contract/db/contractdb.h"
 #include "cuckoocache.h"
 #include "fs.h"
 #include "hash.h"

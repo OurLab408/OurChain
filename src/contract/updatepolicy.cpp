@@ -1,5 +1,5 @@
 #include "contract/updatepolicy.h"
-#include "contract/contractdb.h"
+#include "db/contractdb.h"
 #include "contract/contractserver.h"
 #include "processing.h"
 #include "validation.h"

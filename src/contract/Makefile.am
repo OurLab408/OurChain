@@ -25,13 +25,13 @@ noinst_LIBRARIES = libcontract_core.a
 # (Fundamental functions needed by bitcoind etc.)
 libcontract_core_a_SOURCES = \
     processing.cpp \
-    contractdb.cpp \
-    dbWrapper.cpp \
+    db/contractdb.cpp \
+    db/dbWrapper.cpp \
     updatepolicy.cpp \
     contractserver.cpp \
     processing.h \
-    contractdb.h \
-    dbWrapper.h \
+    db/contractdb.h \
+    db/dbWrapper.h \
     updatepolicy.h \
     contractserver.h \
     threadsafe_queue.h \
