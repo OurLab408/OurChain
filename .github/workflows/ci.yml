@@ -2,23 +2,23 @@ name: CI - Build and Test
 
 on:
   push:
-    branches: [ main, master, feature/ci-setup ]
+    branches: [ main, master, feature/ci-setup, feature/uat ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, feature/uat ]
   workflow_dispatch:
 
 jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch full history for git diff to work
         submodules: recursive
-    
+
     - name: Analyze changes
       id: analyze
       run: |
@@ -36,10 +36,10 @@ jobs:
             CHANGED_FILES=$(git diff --name-only --cached)
           fi
         fi
-        
+
         echo "Changed files:"
         echo "$CHANGED_FILES"
-        
+
         # Check if any code files changed
         if echo "$CHANGED_FILES" | grep -E '(Dockerfile|depends/|configure\.ac|Makefile\.am)' > /dev/null; then
           echo "change_type=dependencies" >> $GITHUB_OUTPUT
@@ -54,7 +54,7 @@ jobs:
           echo "needs_build=false" >> $GITHUB_OUTPUT
           echo "📚 Documentation only - skipping build"
         fi
-    
+
     - name: Check coding style
       if: steps.analyze.outputs.change_type != 'docs'
       run: |
@@ -82,15 +82,15 @@ jobs:
           fi
         fi
         echo "✅ Coding style check passed"
-    
+
     - name: Skip build for documentation changes
       if: steps.analyze.outputs.needs_build == 'false'
       run: |
         echo "⚡ Documentation-only changes detected"
         echo "✅ Skipping build - no compilation needed"
         echo "🚀 CI completed in ~30 seconds instead of 20+ minutes!"
-    
-    
+
+
     - name: Cache dependencies
       if: steps.analyze.outputs.needs_build == 'true'
       uses: actions/cache@v4
@@ -102,23 +102,23 @@ jobs:
         key: ourchain-deps-${{ runner.os }}-${{ hashFiles('Dockerfile') }}
         restore-keys: |
           ourchain-deps-${{ runner.os }}-
-    
+
     - name: Install dependencies
       if: steps.analyze.outputs.needs_build == 'true'
       run: |
         echo "🔧 Installing OurChain build dependencies..."
         sudo apt-get update
-        
+
         # Core build tools
         sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config bsdmainutils python3
-        
+
         # OurChain specific dependencies (matching Dockerfile)
         sudo apt-get install -y libevent-dev libboost-all-dev libsqlite3-dev libzmq3-dev libgmp-dev
         sudo apt-get install -y libssl-dev libdb++-dev
-        
+
         # RocksDB dependencies (for OurChain's contract system)
         sudo apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
-        
+
         # Build RocksDB from source only if not cached
         if ! pkg-config --exists rocksdb; then
           echo "🔨 Building RocksDB from source..."
@@ -129,12 +129,12 @@ jobs:
         else
           echo "✅ RocksDB already cached"
         fi
-        
+
         # Additional dependencies for OurChain
         sudo apt-get install -y libminiupnpc-dev
-        
+
         echo "✅ All OurChain dependencies installed"
-    
+
     - name: Cache build artifacts
       if: steps.analyze.outputs.needs_build == 'true'
       uses: actions/cache@v4
@@ -151,12 +151,12 @@ jobs:
         key: ourchain-build-${{ runner.os }}-${{ hashFiles('**/*.cpp', '**/*.h', 'configure.ac', 'Makefile.am') }}
         restore-keys: |
           ourchain-build-${{ runner.os }}-
-    
+
     - name: Build and test OurChain
       if: steps.analyze.outputs.needs_build == 'true'
       run: |
         echo "🔨 Building OurChain..."
-        
+
         # Configure and build (only if not cached)
         if [ ! -f config.log ]; then
           echo "🔧 Running autogen and configure..."
@@ -165,20 +165,20 @@ jobs:
         else
           echo "✅ Build configuration already cached"
         fi
-        
+
         # Compile (incremental build)
         echo "🔨 Compiling..."
         make -j$(nproc)
-        
+
         # Test if binaries exist and are executable
         ls -la src/bitcoind src/bitcoin-cli src/bitcoin-tx
-        
+
         # Test binary versions (safe commands that don't trigger chain params)
         src/bitcoind --version
         src/bitcoin-cli --version
-        
+
         echo "✅ OurChain compilation successful - all binaries built and working"
-    
+
     - name: Build success
       run: |
         echo "🚀 Build completed successfully!"
