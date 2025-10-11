@@ -3,10 +3,12 @@
 
 #include "chain.h"
 #include "primitives/transaction.h"
-#include "contract/dbWrapper.h"
+#include "contract/db/dbWrapper.h"
 #include "json/json.hpp"
 
 #include <memory>
+#include <unordered_map>
+#include <mutex>
 
 using json = nlohmann::json;
 
@@ -55,6 +57,10 @@ public:
     json getContractState(const uint256& address) const;
     void clearAllState();
 
+    // --- State Buffer Management ---
+    json& getState(const uint256& address);
+    void commitBuffer();
+
     void saveCheckpoint();
     void restoreToCheckpoint(int targetId);
     void purgeOldCheckpoints(int numToKeep);
@@ -68,6 +74,10 @@ private:
     BlockInfo currentTip;
 
     std::unique_ptr<Snapshot> snapshot;
+    
+    // In-memory state buffer (your design)
+    mutable std::mutex buffer_mutex_;
+    std::unordered_map<std::string, json> state_buffer_;
 };
 
 #endif

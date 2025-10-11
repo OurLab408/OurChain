@@ -87,20 +87,23 @@ static void call_rt(ContractDB &cache,
         throw std::runtime_error("Failed to load contract: " + std::string(dlerror()));
     
     DlHandle handle_ptr(handle, &dlclose);
-    using ContractMainFunc = int (*)(const std::vector<std::string>&, json&);
+    using ContractMainFunc = int (*)(const std::vector<std::string>&);
     ContractMainFunc contract_main = (ContractMainFunc)dlsym(handle_ptr.get(), "contract_main");
 
     if (!contract_main)
         throw std::runtime_error("Failed to load symbol 'contract_main': " + std::string(dlerror()));
 
-    json state = cache.getContractState(contract);
-    int ret = contract_main(args, state);
+    // Build contract args with contract address as args[0] (C-style)
+    std::vector<std::string> contract_args;
+    contract_args.push_back(contract.GetHex());  // args[0] = contract address
+    contract_args.insert(contract_args.end(), args.begin(), args.end());  // append user args
+    
+    // Contract gets state reference directly via get_state() API
+    int ret = contract_main(contract_args);
 
-    if (ret != 0)
+    if (ret != 0) {
         throw std::runtime_error("Contract execution failed with exit code: " + std::to_string(ret));
-
-    if (state != nullptr)
-        cache.setContractState(contract, state);
+    }
 }
 
 void ExecuteContract(const Contract& contract, const CTransactionRef& curTx, ContractDB& cache)
