@@ -1,6 +1,6 @@
 *.tar.gz
 src/ourcontract-rt
-.vscode/*.vc.*
+.vscode/
 
 .idea/
 
