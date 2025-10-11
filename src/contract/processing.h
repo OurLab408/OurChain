@@ -6,6 +6,6 @@
 #include "primitives/transaction.h"
 #include "contract/db/contractdb.h"
 
-void ExecuteContract(const Contract& contract, const CTransactionRef& curTx, ContractDB& cache);
+void ExecuteContract(const Contract& contract, const CTransactionRef& current_tx, ContractDB& contract_db);
 
 #endif // CONTRACT_PROCESSING_H

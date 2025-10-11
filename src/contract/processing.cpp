@@ -27,7 +27,7 @@ const static fs::path& GetContractsDir()
     return contracts_dir;
 }
 
-static void call_mkdll(const uint256& contract)
+static void CompileContract(const uint256& contract)
 {
     fflush(stdout);
     fflush(stderr);
@@ -72,10 +72,10 @@ static void call_mkdll(const uint256& contract)
 
 using DlHandle = std::unique_ptr<void, int (*)(void*)>;
 
-static void call_rt(ContractDB &cache,
+static void ExecuteContractImpl(ContractDB &contract_db,
     const uint256 &contract,
     const std::vector<std::string> &args,
-    const CTransactionRef &curTx)
+    const CTransactionRef &current_tx)
 {
     auto contractPath = GetDataDir() / "contracts" / contract.GetHex() / "code.so";
     if (!fs::exists(contractPath)) {
@@ -99,14 +99,14 @@ static void call_rt(ContractDB &cache,
     contract_args.insert(contract_args.end(), args.begin(), args.end());  // append user args
     
     // Contract gets state reference directly via get_state() API
-    int ret = contract_main(contract_args);
+    int exit_code = contract_main(contract_args);
 
-    if (ret != 0) {
-        throw std::runtime_error("Contract execution failed with exit code: " + std::to_string(ret));
+    if (exit_code != 0) {
+        throw std::runtime_error("Contract execution failed with exit code: " + std::to_string(exit_code));
     }
 }
 
-void ExecuteContract(const Contract& contract, const CTransactionRef& curTx, ContractDB& cache)
+void ExecuteContract(const Contract& contract, const CTransactionRef& current_tx, ContractDB& contract_db)
 {
     if (contract.action == contract_action::ACTION_NEW) {
         fs::path new_dir = GetContractsDir() / contract.address.GetHex();
@@ -114,8 +114,8 @@ void ExecuteContract(const Contract& contract, const CTransactionRef& curTx, Con
         std::ofstream contract_code(new_dir.string() + "/code.cpp");
         contract_code.write(contract.code.c_str(), contract.code.size());
         contract_code.close();
-        call_mkdll(contract.address);
+        CompileContract(contract.address);
     } else if (contract.action == contract_action::ACTION_CALL) {
-        call_rt(cache, contract.address, contract.args, curTx);
+        ExecuteContractImpl(contract_db, contract.address, contract.args, current_tx);
     }
 }
