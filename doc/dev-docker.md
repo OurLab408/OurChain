@@ -33,12 +33,14 @@ use below command in container, you can interact with OurChain Node
 ./src/bitcoin-cli getbalance
 # mining 1 block for myself
 ./src/bitcoin-cli generate 1
-# deploy contract (can check info in ~/.bitcoin/regtest/contracts)
-./src/bitcoin-cli deploycontract ~/Desktop/ourchain/sample.cpp
-# call contract
-./src/bitcoin-cli callcontract "contract address when deploy" "arg1" "arg2" ...
-# get contract message, this command is "pure", it will not change the state of the contract
-./src/bitcoin-cli dumpcontractmessage "contract address" ""
+# Deploy contract (check info in ~/.bitcoin/regtest/contracts)
+./src/bitcoin-cli deploycontract ./src/test/test_contract.cpp
+
+# Call contract
+./src/bitcoin-cli callcontract "contract_address" "arg1" "arg2" ...
+
+# Get contract message (read-only, doesn't change state)
+./src/bitcoin-cli dumpcontractmessage "contract_address" ""
 ```
 
 can use `bash ./mytest.sh` run contract commands

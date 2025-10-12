@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(contrib/|depends/|src/leveldb/|src/secp256k1/|src/univalue/)
+      - id: end-of-file-fixer
+        exclude: ^(contrib/|depends/|src/leveldb/|src/secp256k1/|src/univalue/)
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+        exclude: ^(contrib/|depends/|src/leveldb/|src/secp256k1/|src/univalue/)
+
+  - repo: https://github.com/psf/black
+    rev: 23.7.0
+    hooks:
+      - id: black
+        files: \.py$
+        exclude: ^(contrib/|depends/|src/leveldb/|src/secp256k1/|src/univalue/)
+
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        entry: clang-format
+        language: system
+        files: \.(cpp|h)$
+        args: ["-i", "--style=file:src/.clang-format"]
+        exclude: ^(contrib/|depends/|src/leveldb/|src/secp256k1/|src/univalue/)

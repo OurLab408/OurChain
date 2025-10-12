@@ -28,7 +28,7 @@ sleep 5
 ./src/bitcoin-cli getbalance
 mining 11
 # deploy contract
-contract_address=$(deploycontract ./sample.cpp)
+contract_address=$(deploycontract ./src/test/test_contract.cpp)
 echo "contract: $contract_address"
 # call smart contract
 mining 1

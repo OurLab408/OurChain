@@ -19,17 +19,17 @@
 #ifndef OURCONTRACT_H
 #define OURCONTRACT_H
 
+#include "json/json.hpp"
 #include <string>
 #include <vector>
-#include "json/json.hpp"
 
 using json = nlohmann::json;
 
 #define PUBLIC __attribute__((visibility("default")))
 
 extern "C" {
-    PUBLIC void print(const char *s);
-    PUBLIC json& get_state(const std::string& contract_address);
+PUBLIC void print(const char* s);
+PUBLIC json& get_state(const std::string& contract_address);
 }
 
 // C++ linkage functions (outside extern "C")
