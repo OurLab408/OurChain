@@ -45,7 +45,7 @@ Once inside the container, you can interact with the OurChain node:
 ./src/bitcoin-cli generate 1
 
 # Deploy contract (check info in ~/.bitcoin/regtest/contracts)
-./src/bitcoin-cli deploycontract ./sample.cpp
+./src/bitcoin-cli deploycontract ./src/test/test_contract.cpp
 
 # Call contract
 ./src/bitcoin-cli callcontract "contract_address" "arg1" "arg2" ...

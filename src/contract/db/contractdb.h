@@ -2,20 +2,20 @@
 #define CONTRACT_DB_H
 
 #include "chain.h"
-#include "primitives/transaction.h"
 #include "contract/db/dbWrapper.h"
+#include "primitives/transaction.h"
 #include "json/json.hpp"
 
 #include <memory>
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
 
 using json = nlohmann::json;
 
-class Snapshot: public ContractDBWrapper
+class Snapshot : public ContractDBWrapper
 {
 public:
-    explicit Snapshot(const std::string& name): ContractDBWrapper(name) {}
+    explicit Snapshot(const std::string& name) : ContractDBWrapper(name) {}
     virtual ~Snapshot() override = default;
 
     Snapshot(const Snapshot&) = delete;
@@ -31,7 +31,8 @@ public:
  * underlying data store (Snapshot) and its versioning (BlockInfo). This class
  * serves as the primary Facade for all external interactions.
  */
-class ContractDB {
+class ContractDB
+{
 public:
     struct BlockInfo {
         int height = -1;
@@ -45,7 +46,7 @@ public:
 
     // --- Singleton Access ---
     static ContractDB& getInstance();
-    
+
     ContractDB(const ContractDB&) = delete;
     ContractDB& operator=(const ContractDB&) = delete;
 
@@ -72,7 +73,7 @@ private:
     BlockInfo currentTip;
 
     std::unique_ptr<Snapshot> snapshot;
-    
+
     // In-memory state buffer (your design)
     mutable std::mutex buffer_mutex_;
     std::unordered_map<std::string, json> state_buffer_;

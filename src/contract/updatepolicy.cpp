@@ -1,14 +1,14 @@
 #include "contract/updatepolicy.h"
-#include "db/contractdb.h"
 #include "contract/contractserver.h"
+#include "db/contractdb.h"
 #include "processing.h"
 #include "validation.h"
-#include <stack>
 #include <algorithm>
+#include <stack>
 
 const static fs::path& GetContractsDir()
 {
-    static fs::path contracts_dir = []{
+    static fs::path contracts_dir = [] {
         fs::path dir = GetDataDir() / "contracts";
         fs::create_directories(dir);
         return dir;
@@ -30,11 +30,11 @@ static bool ProcessBlockStack(std::stack<CBlockIndex*>& blockstack)
 
 std::unique_ptr<UpdatePolicy> SelectUpdatePolicy(CChain& chainActive, ContractDB& cache)
 {
-    auto tip {cache.getTip()};
+    auto tip{cache.getTip()};
     if (!tip.isValid()) {
         return std::unique_ptr<UpdatePolicy>(new Rebuild());
     }
-    
+
     if (tip.height < chainActive.Height() && tip.hash == (chainActive[tip.height])->GetBlockHash().ToString()) {
         return std::unique_ptr<UpdatePolicy>(new Forward());
     }
@@ -44,11 +44,11 @@ std::unique_ptr<UpdatePolicy> SelectUpdatePolicy(CChain& chainActive, ContractDB
 
 bool Rebuild::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
 {
-    auto blockstack {std::stack<CBlockIndex*>()};
+    auto blockstack{std::stack<CBlockIndex*>()};
     for (CBlockIndex* pindex = chainActive.Tip(); pindex != nullptr; pindex = pindex->pprev) {
         blockstack.push(pindex);
     }
-    
+
     if (!ProcessBlockStack(blockstack)) {
         return false;
     }
@@ -58,13 +58,13 @@ bool Rebuild::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Conse
 
 bool Forward::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams)
 {
-    auto tip {cache.getTip()};
-    auto blockstack {std::stack<CBlockIndex*>()};
+    auto tip{cache.getTip()};
+    auto blockstack{std::stack<CBlockIndex*>()};
     // Find the common ancestor and stack up the new blocks to be processed.
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->nHeight > tip.height; pindex = pindex->pprev) {
         blockstack.push(pindex);
     }
-    
+
     if (!ProcessBlockStack(blockstack)) {
         return false;
     }
@@ -88,13 +88,13 @@ bool Rollback::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Cons
 
     try {
         // Find the highest block hash on the main chain that is also a valid checkpoint.
-        std::vector<CheckpointInfo> checkPointInfoList {cache.listCheckpoints()};
-        CBlockIndex* pindex {chainActive.Tip()};
-        
+        std::vector<CheckpointInfo> checkPointInfoList{cache.listCheckpoints()};
+        CBlockIndex* pindex{chainActive.Tip()};
+
         while (pindex) {
             const auto& hashStr = pindex->GetBlockHash().ToString();
-            auto it = std::find_if(checkPointInfoList.begin(), checkPointInfoList.end(), 
-                [&](const CheckpointInfo& info){ return info.hash == hashStr; });
+            auto it = std::find_if(checkPointInfoList.begin(), checkPointInfoList.end(),
+                                   [&](const CheckpointInfo& info) { return info.hash == hashStr; });
 
             if (it != checkPointInfoList.end()) {
                 // Found a valid checkpoint on the main chain. Restore to it.

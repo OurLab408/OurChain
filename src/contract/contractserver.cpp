@@ -1,36 +1,41 @@
-#include "chainparams.h"
 #include "contract/contractserver.h"
+#include "chainparams.h"
+#include "contract/processing.h"
 #include "db/contractdb.h"
 #include "validation.h"
-#include "contract/processing.h"
 #include <future>
 #include <vector>
 
-ContractServer& ContractServer::getInstance() {
+ContractServer& ContractServer::getInstance()
+{
     static ContractServer instance;
     return instance;
 }
 
 ContractServer::ContractServer() : transactionPool_(THREAD_NUM) {}
 
-ContractServer::~ContractServer() {
+ContractServer::~ContractServer()
+{
     if (!stop_flag_.load()) {
         shutdown();
     }
 }
 
-void ContractServer::start(boost::thread_group& threadGroup) {
+void ContractServer::start(boost::thread_group& threadGroup)
+{
     LogPrintf("ContractServer: Starting consumer thread...\n");
     // The consumer thread is now created and managed by the application's main thread group.
     threadGroup.create_thread([this]() { this->consumerLoop(); });
 }
 
-void ContractServer::submitBlock(CBlockIndex* pindex) {
+void ContractServer::submitBlock(CBlockIndex* pindex)
+{
     if (stop_flag_.load()) return;
     blockQueue_.push(pindex);
 }
 
-void ContractServer::shutdown() {
+void ContractServer::shutdown()
+{
     // Use a lock to prevent race conditions if shutdown/interrupt are called concurrently
     static std::mutex shutdown_mutex;
     std::lock_guard<std::mutex> lock(shutdown_mutex);
@@ -45,7 +50,8 @@ void ContractServer::shutdown() {
     transactionPool_.join();
 }
 
-void ContractServer::interrupt() {
+void ContractServer::interrupt()
+{
     static std::mutex shutdown_mutex;
     std::lock_guard<std::mutex> lock(shutdown_mutex);
 
@@ -54,7 +60,7 @@ void ContractServer::interrupt() {
     LogPrintf("ContractServer: Interrupting immediately...\n");
     stop_flag_.store(true);
     blockQueue_.push(nullptr);
-    
+
     // Forcibly stop all tasks in the pool.
     transactionPool_.stop();
 }
@@ -95,9 +101,9 @@ void ContractServer::processSingleBlock(CBlockIndex* pindex)
 
         try {
             future.get();
-        } catch(const std::exception& e) {
-            LogPrintf("ERROR: Contract execution failed for tx %s: %s\n", 
-                        tx->GetHash().ToString(), e.what());
+        } catch (const std::exception& e) {
+            LogPrintf("ERROR: Contract execution failed for tx %s: %s\n",
+                      tx->GetHash().ToString(), e.what());
         }
     }
     LogPrintf("ContractServer: Block %d processed.\n", pindex->nHeight);
@@ -109,7 +115,7 @@ void ContractServer::processSingleBlock(CBlockIndex* pindex)
     // Now that the block is fully processed, it's safe to update the tip
     // and handle checkpoint logic.
     cache.setTip(pindex->nHeight, pindex->GetBlockHash().ToString());
-    
+
     const int CHECKPOINT_INTERVAL = 100;
     const int CHECKPOINTS_TO_KEEP = 10;
     if (pindex->nHeight > 0 && pindex->nHeight % CHECKPOINT_INTERVAL == 0) {
@@ -119,7 +125,8 @@ void ContractServer::processSingleBlock(CBlockIndex* pindex)
     }
 }
 
-void ContractServer::consumerLoop() {
+void ContractServer::consumerLoop()
+{
     RenameThread("contract-consumer");
     LogPrintf("ContractServer: Consumer loop started.\n");
     auto& cache = ContractDB::getInstance();
@@ -136,24 +143,26 @@ void ContractServer::consumerLoop() {
         if (stop_flag_.load() || pindex == nullptr) {
             continue;
         }
-        
+
         processSingleBlock(pindex);
     }
     LogPrintf("ContractServer: Consumer loop finished.\n");
 }
 
-void ContractServer::pauseAndClearQueue() {
+void ContractServer::pauseAndClearQueue()
+{
     std::unique_lock<std::mutex> lock(server_mutex_);
-    LogPrintf("ContractServer: Pausing and clearing queue...\n"); 
+    LogPrintf("ContractServer: Pausing and clearing queue...\n");
     paused_.store(true);
     blockQueue_.clear();
-    transactionPool_.join(); 
+    transactionPool_.join();
     LogPrintf("ContractServer: Paused and transaction pool idle.\n");
 }
 
-void ContractServer::resume() {
+void ContractServer::resume()
+{
     std::unique_lock<std::mutex> lock(server_mutex_);
     LogPrintf("ContractServer: Resuming...\n");
     paused_.store(false);
-    cv_paused_.notify_one(); 
+    cv_paused_.notify_one();
 }

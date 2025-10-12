@@ -56,37 +56,37 @@ While the system prevents database-level race conditions, **you must implement c
 - Without synchronization, concurrent reads/writes to the same state can cause lost updates
 - The in-memory buffer only prevents database corruption, not logical race conditions
 
-**Example 1: Simple mutex from [`sample.cpp`](/sample.cpp):**
+**Example 1: Simple mutex from [`test_contract.cpp`](/src/test/test_contract.cpp):**
 ```cpp
 std::mutex contract_mutex;  // Global mutex for this contract
 
 extern "C" int contract_main(const std::vector<std::string> args) {
     std::lock_guard<std::mutex> lock(contract_mutex);  // Lock critical section
-    
+
     // Get operation type from args (C-style: args[0]=contract_name, args[1]=operation, args[2]=amount)
     std::string contract_name = args[0];
     std::string operation = (args.size() >= 2) ? args[1] : "increment";
     int amount = (args.size() >= 3) ? std::stoi(args[2]) : 1;
-    
+
     // Get state reference - contract gets its own state buffer using contract address
     json& state_ref = get_state(contract_name);
-    
+
     // Initialize state if empty
     if (state_ref.is_null() || state_ref.empty()) {
         state_ref = json::object();
         state_ref["counter"] = 0;
         state_ref["operations"] = json::array();
     }
-    
+
     // Modify state by reference - clean and simple!
     int current_counter = state_ref["counter"];
-    
+
     if (operation == "increment") {
         state_ref["counter"] = current_counter + amount;
         state_ref["operations"].push_back("increment+" + std::to_string(amount));
         print("Contract: " + contract_name + " Incremented counter by " + std::to_string(amount) + " to " + std::to_string(current_counter + amount));
     }
-    
+
     // Unlock happens automatically when lock goes out of scope
     return 0;
 }
@@ -98,13 +98,13 @@ CMonitor<int> monitor;  // Priority-based monitor
 
 extern "C" int contract_main(const std::vector<std::string>& args) {
     json& state = get_state(args[0]);
-    
+
     monitor.acquire(std::stoi(args[1]));  // args[1] is the priority level
-    
+
     // Critical section protected by priority-based locking
     int counter = state.value("counter", 0);
     state["counter"] = counter + 1;
-    
+
     monitor.release();
     return 0;
 }
@@ -118,7 +118,7 @@ extern "C" int contract_main(const std::vector<std::string>& args) {
 
 ### 2. Writing a Basic Contract
 
-You can use the C++ standard library and helper functions defined inside your own `code.cpp`. Here's a complete example from [`sample.cpp`](/sample.cpp):
+You can use the C++ standard library and helper functions defined inside your own `code.cpp`. Here's a complete example from [`test_contract.cpp`](/src/test/test_contract.cpp):
 
 ```cpp
 #include <string>
@@ -132,25 +132,25 @@ std::mutex contract_mutex;
 
 extern "C" int contract_main(const std::vector<std::string> args) {
     std::lock_guard<std::mutex> lock(contract_mutex);
-    
+
     // Get operation type from args (C-style: args[0]=contract_name, args[1]=operation, args[2]=amount)
     std::string contract_name = args[0];
     std::string operation = (args.size() >= 2) ? args[1] : "increment";
     int amount = (args.size() >= 3) ? std::stoi(args[2]) : 1;
-    
+
     // Get state reference - contract gets its own state buffer using contract address
     json& state_ref = get_state(contract_name);
-    
+
     // Initialize state if empty
     if (state_ref.is_null() || state_ref.empty()) {
         state_ref = json::object();
         state_ref["counter"] = 0;
         state_ref["operations"] = json::array();
     }
-    
+
     // Modify state by reference - clean and simple!
     int current_counter = state_ref["counter"];
-    
+
     if (operation == "increment") {
         state_ref["counter"] = current_counter + amount;
         state_ref["operations"].push_back("increment+" + std::to_string(amount));
@@ -164,7 +164,7 @@ extern "C" int contract_main(const std::vector<std::string> args) {
         state_ref["operations"].push_back("set=" + std::to_string(amount));
         print("Contract: " + contract_name + " Set counter to " + std::to_string(amount));
     }
-    
+
     return 0;
 }
 ```
@@ -189,11 +189,11 @@ using json = nlohmann::json;
 
 CMonitor<int> monitor;
 
-extern "C" int contract_main(const std::vector<std::string>& args) 
+extern "C" int contract_main(const std::vector<std::string>& args)
 {
     // Get contract state using the contract address (args[0])
     json& state = get_state(args[0]);
-    
+
     monitor.acquire(std::stoi(args[1]));  // args[1] is the priority level
 
     // read counter from persistent JSON state
@@ -238,7 +238,7 @@ void print(const char* s) {
     // Write to dedicated contract.log file with timestamp
     std::stringstream ss;
     ss << "[CONTRACT] " << s;
-    
+
     // Write to contract.log in contracts directory
     fs::path contract_log_path = GetDataDir() / "contracts" / "contract.log";
     std::ofstream log_file(contract_log_path, std::ios::app);
@@ -246,14 +246,14 @@ void print(const char* s) {
         auto now = std::chrono::system_clock::now();
         auto time_t = std::chrono::system_clock::to_time_t(now);
         auto tm = *std::localtime(&time_t);
-        
+
         char timestamp[64];
         std::strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", &tm);
-        
+
         log_file << "[" << timestamp << "] " << ss.str() << std::endl;
         log_file.close();
     }
-    
+
     // Contract logs are written only to contract.log
 }
 
@@ -335,7 +335,7 @@ bool call_contract(char* contract_id, char* func_name, const std::vector<std::st
 Allows contracts to call other contracts (for advanced use cases).
 
 For more details, see:
-* Test contract: [`sample.cpp`](/sample.cpp)
+* Test contract: [`test_contract.cpp`](/src/test/test_contract.cpp)
 * API header: [`ourcontract.h`](/src/contract/lib/ourcontract.h)
 * API implementation: [`libourcontract.cpp`](/src/contract/lib/libourcontract.cpp)
 
