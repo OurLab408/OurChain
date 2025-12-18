@@ -45,7 +45,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(vchCryptedKey);
         READWRITE(vchSalt);
         READWRITE(nDerivationMethod);
@@ -63,7 +64,7 @@ public:
     }
 };
 
-typedef std::vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
+typedef std::vector<unsigned char, secure_allocator<unsigned char>> CKeyingMaterial;
 
 namespace wallet_crypto {
 class TestCrypter;
@@ -78,11 +79,11 @@ private:
     std::vector<unsigned char, secure_allocator<unsigned char>> vchIV;
     bool fKeySet;
 
-    int BytesToKeySHA512AES(const std::vector<unsigned char>& chSalt, const SecureString& strKeyData, int count, unsigned char *key,unsigned char *iv) const;
+    int BytesToKeySHA512AES(const std::vector<unsigned char>& chSalt, const SecureString& strKeyData, int count, unsigned char* key, unsigned char* iv) const;
 
 public:
-    bool SetKeyFromPassphrase(const SecureString &strKeyData, const std::vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod);
-    bool Encrypt(const CKeyingMaterial& vchPlaintext, std::vector<unsigned char> &vchCiphertext) const;
+    bool SetKeyFromPassphrase(const SecureString& strKeyData, const std::vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod);
+    bool Encrypt(const CKeyingMaterial& vchPlaintext, std::vector<unsigned char>& vchCiphertext) const;
     bool Decrypt(const std::vector<unsigned char>& vchCiphertext, CKeyingMaterial& vchPlaintext) const;
     bool SetKey(const CKeyingMaterial& chNewKey, const std::vector<unsigned char>& chNewIV);
 
@@ -155,8 +156,8 @@ public:
 
     bool Lock();
 
-    virtual bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
-    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
+    virtual bool AddCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret);
+    bool AddKeyPubKey(const CKey& key, const CPubKey& pubkey) override;
     bool HaveKey(const CKeyID& address) const override
     {
         {
@@ -167,8 +168,8 @@ public:
         }
         return false;
     }
-    bool GetKey(const CKeyID &address, CKey& keyOut) const override;
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const override;
+    bool GetKey(const CKeyID& address, CKey& keyOut) const override;
+    bool GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut) const override;
     void GetKeys(std::set<CKeyID>& setAddress) const override
     {
         if (!IsCrypted()) {
@@ -187,7 +188,7 @@ public:
      * Wallet status (encrypted, locked) changed.
      * Note: Called without locks held.
      */
-    boost::signals2::signal<void (CCryptoKeyStore* wallet)> NotifyStatusChanged;
+    boost::signals2::signal<void(CCryptoKeyStore* wallet)> NotifyStatusChanged;
 };
 
 #endif // BITCOIN_WALLET_CRYPTER_H

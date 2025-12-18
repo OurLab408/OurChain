@@ -8,14 +8,15 @@
 #include "random.h"
 #include "util.h"
 
+#include <algorithm>
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
 #include <leveldb/filter_policy.h>
 #include <memenv.h>
 #include <stdint.h>
-#include <algorithm>
 
-class CBitcoinLevelDBLogger : public leveldb::Logger {
+class CBitcoinLevelDBLogger : public leveldb::Logger
+{
 public:
     // This code is adapted from posix_logger.h, which is why it is using vsprintf.
     // Please do not do this in normal code
@@ -178,7 +179,6 @@ std::vector<unsigned char> CDBWrapper::CreateObfuscateKey() const
     unsigned char buff[OBFUSCATE_KEY_NUM_BYTES];
     GetRandBytes(buff, OBFUSCATE_KEY_NUM_BYTES);
     return std::vector<unsigned char>(&buff[0], &buff[OBFUSCATE_KEY_NUM_BYTES]);
-
 }
 
 bool CDBWrapper::IsEmpty()
@@ -209,7 +209,7 @@ void HandleError(const leveldb::Status& status)
     throw dbwrapper_error("Unknown database error");
 }
 
-const std::vector<unsigned char>& GetObfuscateKey(const CDBWrapper &w)
+const std::vector<unsigned char>& GetObfuscateKey(const CDBWrapper& w)
 {
     return w.obfuscate_key;
 }

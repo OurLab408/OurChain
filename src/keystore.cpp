@@ -14,7 +14,7 @@ bool CKeyStore::AddKey(const CKey& key)
     return AddKeyPubKey(key, key.GetPubKey());
 }
 
-bool CBasicKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) const
+bool CBasicKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut) const
 {
     CKey key;
     if (!GetKey(address, key)) {
@@ -30,7 +30,7 @@ bool CBasicKeyStore::GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut) con
     return true;
 }
 
-bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey &pubkey)
+bool CBasicKeyStore::AddKeyPubKey(const CKey& key, const CPubKey& pubkey)
 {
     LOCK(cs_KeyStore);
     mapKeys[pubkey.GetID()] = key;
@@ -53,21 +53,20 @@ bool CBasicKeyStore::HaveCScript(const CScriptID& hash) const
     return mapScripts.count(hash) > 0;
 }
 
-bool CBasicKeyStore::GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const
+bool CBasicKeyStore::GetCScript(const CScriptID& hash, CScript& redeemScriptOut) const
 {
     LOCK(cs_KeyStore);
     ScriptMap::const_iterator mi = mapScripts.find(hash);
-    if (mi != mapScripts.end())
-    {
+    if (mi != mapScripts.end()) {
         redeemScriptOut = (*mi).second;
         return true;
     }
     return false;
 }
 
-static bool ExtractPubKey(const CScript &dest, CPubKey& pubKeyOut)
+static bool ExtractPubKey(const CScript& dest, CPubKey& pubKeyOut)
 {
-    //TODO: Use Solver to extract this?
+    // TODO: Use Solver to extract this?
     CScript::const_iterator pc = dest.begin();
     opcodetype opcode;
     std::vector<unsigned char> vch;
@@ -81,7 +80,7 @@ static bool ExtractPubKey(const CScript &dest, CPubKey& pubKeyOut)
     return true;
 }
 
-bool CBasicKeyStore::AddWatchOnly(const CScript &dest)
+bool CBasicKeyStore::AddWatchOnly(const CScript& dest)
 {
     LOCK(cs_KeyStore);
     setWatchOnly.insert(dest);
@@ -91,7 +90,7 @@ bool CBasicKeyStore::AddWatchOnly(const CScript &dest)
     return true;
 }
 
-bool CBasicKeyStore::RemoveWatchOnly(const CScript &dest)
+bool CBasicKeyStore::RemoveWatchOnly(const CScript& dest)
 {
     LOCK(cs_KeyStore);
     setWatchOnly.erase(dest);
@@ -101,7 +100,7 @@ bool CBasicKeyStore::RemoveWatchOnly(const CScript &dest)
     return true;
 }
 
-bool CBasicKeyStore::HaveWatchOnly(const CScript &dest) const
+bool CBasicKeyStore::HaveWatchOnly(const CScript& dest) const
 {
     LOCK(cs_KeyStore);
     return setWatchOnly.count(dest) > 0;

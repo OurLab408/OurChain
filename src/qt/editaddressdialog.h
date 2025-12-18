@@ -10,7 +10,7 @@
 class AddressTableModel;
 
 namespace Ui {
-    class EditAddressDialog;
+class EditAddressDialog;
 }
 
 QT_BEGIN_NAMESPACE
@@ -34,11 +34,11 @@ public:
     explicit EditAddressDialog(Mode mode, QWidget* parent);
     ~EditAddressDialog();
 
-    void setModel(AddressTableModel *model);
+    void setModel(AddressTableModel* model);
     void loadRow(int row);
 
     QString getAddress() const;
-    void setAddress(const QString &address);
+    void setAddress(const QString& address);
 
 public Q_SLOTS:
     void accept();
@@ -46,10 +46,10 @@ public Q_SLOTS:
 private:
     bool saveCurrentRow();
 
-    Ui::EditAddressDialog *ui;
-    QDataWidgetMapper *mapper;
+    Ui::EditAddressDialog* ui;
+    QDataWidgetMapper* mapper;
     Mode mode;
-    AddressTableModel *model;
+    AddressTableModel* model;
 
     QString address;
 };

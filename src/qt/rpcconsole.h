@@ -10,16 +10,16 @@
 
 #include "net.h"
 
-#include <QWidget>
 #include <QCompleter>
 #include <QThread>
+#include <QWidget>
 
 class ClientModel;
 class PlatformStyle;
 class RPCTimerInterface;
 
 namespace Ui {
-    class RPCConsole;
+class RPCConsole;
 }
 
 QT_BEGIN_NAMESPACE
@@ -28,7 +28,7 @@ class QItemSelection;
 QT_END_NAMESPACE
 
 /** Local Bitcoin RPC console. */
-class RPCConsole: public QWidget
+class RPCConsole : public QWidget
 {
     Q_OBJECT
 
@@ -42,7 +42,7 @@ public:
         return RPCParseCommandLine(strResult, strCommand, true, pstrFilteredOut);
     }
 
-    void setClientModel(ClientModel *model);
+    void setClientModel(ClientModel* model);
 
     enum MessageClass {
         MC_ERROR,
@@ -60,8 +60,8 @@ public:
     };
 
 protected:
-    virtual bool eventFilter(QObject* obj, QEvent *event);
-    void keyPressEvent(QKeyEvent *);
+    virtual bool eventFilter(QObject* obj, QEvent* event);
+    void keyPressEvent(QKeyEvent*);
 
 private Q_SLOTS:
     void on_lineEdit_returnPressed();
@@ -72,9 +72,9 @@ private Q_SLOTS:
     void on_sldGraphRange_valueChanged(int value);
     /** update traffic statistics */
     void updateTrafficStats(quint64 totalBytesIn, quint64 totalBytesOut);
-    void resizeEvent(QResizeEvent *event);
-    void showEvent(QShowEvent *event);
-    void hideEvent(QHideEvent *event);
+    void resizeEvent(QResizeEvent* event);
+    void showEvent(QShowEvent* event);
+    void hideEvent(QHideEvent* event);
     /** Show custom context menu on Peers tab */
     void showPeersTableContextMenu(const QPoint& point);
     /** Show custom context menu on Bans tab */
@@ -90,7 +90,7 @@ public Q_SLOTS:
     void fontSmaller();
     void setFontSize(int newSize);
     /** Append the message to the message widget */
-    void message(int category, const QString &message, bool html = false);
+    void message(int category, const QString& message, bool html = false);
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
     /** Set network state shown in the UI */
@@ -104,7 +104,7 @@ public Q_SLOTS:
     /** Scroll console view to end */
     void scrollToEnd();
     /** Handle selection of peer in peers list */
-    void peerSelected(const QItemSelection &selected, const QItemSelection &deselected);
+    void peerSelected(const QItemSelection& selected, const QItemSelection& deselected);
     /** Handle selection caching before update */
     void peerLayoutAboutToChange();
     /** Handle updated peer information */
@@ -128,10 +128,9 @@ private:
     void startExecutor();
     void setTrafficGraphRange(int mins);
     /** show detailed information on ui about selected node */
-    void updateNodeDetail(const CNodeCombinedStats *stats);
+    void updateNodeDetail(const CNodeCombinedStats* stats);
 
-    enum ColumnWidths
-    {
+    enum ColumnWidths {
         ADDRESS_COLUMN_WIDTH = 200,
         SUBVERSION_COLUMN_WIDTH = 150,
         PING_COLUMN_WIDTH = 80,

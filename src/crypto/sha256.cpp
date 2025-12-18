@@ -6,25 +6,22 @@
 #include "crypto/common.h"
 
 #include <assert.h>
-#include <string.h>
 #include <atomic>
+#include <string.h>
 
 #if defined(__x86_64__) || defined(__amd64__)
 #if defined(EXPERIMENTAL_ASM)
 #include <cpuid.h>
-namespace sha256_sse4
-{
+namespace sha256_sse4 {
 void Transform(uint32_t* s, const unsigned char* chunk, size_t blocks);
 }
 #endif
 #endif
 
 // Internal implementation code.
-namespace
-{
+namespace {
 /// Internal SHA-256 implementation.
-namespace sha256
-{
+namespace sha256 {
 uint32_t inline Ch(uint32_t x, uint32_t y, uint32_t z) { return z ^ (x & (y ^ z)); }
 uint32_t inline Maj(uint32_t x, uint32_t y, uint32_t z) { return (x & y) | (z & (x | y)); }
 uint32_t inline Sigma0(uint32_t x) { return (x >> 2 | x << 30) ^ (x >> 13 | x << 19) ^ (x >> 22 | x << 10); }

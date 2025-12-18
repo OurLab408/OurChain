@@ -22,5 +22,5 @@ void StartShutdown()
 
 bool ShutdownRequested()
 {
-  return false;
+    return false;
 }

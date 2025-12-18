@@ -24,9 +24,9 @@
 #include <univalue.h>
 
 static const char DEFAULT_RPCCONNECT[] = "127.0.0.1";
-static const int DEFAULT_HTTP_CLIENT_TIMEOUT=900;
-static const bool DEFAULT_NAMED=false;
-static const int CONTINUE_EXECUTION=-1;
+static const int DEFAULT_HTTP_CLIENT_TIMEOUT = 900;
+static const bool DEFAULT_NAMED = false;
+static const int CONTINUE_EXECUTION = -1;
 
 std::string HelpMessageCli()
 {
@@ -63,11 +63,9 @@ std::string HelpMessageCli()
 class CConnectionFailed : public std::runtime_error
 {
 public:
-
-    explicit inline CConnectionFailed(const std::string& msg) :
-        std::runtime_error(msg)
-    {}
-
+    explicit inline CConnectionFailed(const std::string& msg) : std::runtime_error(msg)
+    {
+    }
 };
 
 //
@@ -116,8 +114,7 @@ static int AppInitRPC(int argc, char* argv[])
         fprintf(stderr, "Error: %s\n", e.what());
         return EXIT_FAILURE;
     }
-    if (gArgs.GetBoolArg("-rpcssl", false))
-    {
+    if (gArgs.GetBoolArg("-rpcssl", false)) {
         fprintf(stderr, "Error: SSL mode for RPC (-rpcssl) is no longer supported.\n");
         return EXIT_FAILURE;
     }
@@ -126,9 +123,8 @@ static int AppInitRPC(int argc, char* argv[])
 
 
 /** Reply structure for request_done to fill in */
-struct HTTPReply
-{
-    HTTPReply(): status(0), error(-1) {}
+struct HTTPReply {
+    HTTPReply() : status(0), error(-1) {}
 
     int status;
     int error;
@@ -137,7 +133,7 @@ struct HTTPReply
 
 const char* http_errorstring(int code)
 {
-    switch(code) {
+    switch (code) {
 #if LIBEVENT_VERSION_NUMBER >= 0x02010300
     case EVREQ_HTTP_TIMEOUT:
         return "timeout reached";
@@ -157,9 +153,9 @@ const char* http_errorstring(int code)
     }
 }
 
-static void http_request_done(struct evhttp_request *req, void *ctx)
+static void http_request_done(struct evhttp_request* req, void* ctx)
 {
-    HTTPReply *reply = static_cast<HTTPReply*>(ctx);
+    HTTPReply* reply = static_cast<HTTPReply*>(ctx);
 
     if (req == nullptr) {
         /* If req is nullptr, it means an error occurred while connecting: the
@@ -171,11 +167,10 @@ static void http_request_done(struct evhttp_request *req, void *ctx)
 
     reply->status = evhttp_request_get_response_code(req);
 
-    struct evbuffer *buf = evhttp_request_get_input_buffer(req);
-    if (buf)
-    {
+    struct evbuffer* buf = evhttp_request_get_input_buffer(req);
+    if (buf) {
         size_t size = evbuffer_get_length(buf);
-        const char *data = (const char*)evbuffer_pullup(buf, size);
+        const char* data = (const char*)evbuffer_pullup(buf, size);
         if (data)
             reply->body = std::string(data, size);
         evbuffer_drain(buf, size);
@@ -183,9 +178,9 @@ static void http_request_done(struct evhttp_request *req, void *ctx)
 }
 
 #if LIBEVENT_VERSION_NUMBER >= 0x02010300
-static void http_error_cb(enum evhttp_request_error err, void *ctx)
+static void http_error_cb(enum evhttp_request_error err, void* ctx)
 {
-    HTTPReply *reply = static_cast<HTTPReply*>(ctx);
+    HTTPReply* reply = static_cast<HTTPReply*>(ctx);
     reply->error = err;
 }
 #endif
@@ -245,12 +240,11 @@ UniValue CallRPC(const std::string& strMethod, const UniValue& params)
     std::string endpoint = "/";
     std::string walletName = gArgs.GetArg("-rpcwallet", "");
     if (!walletName.empty()) {
-        char *encodedURI = evhttp_uriencode(walletName.c_str(), walletName.size(), false);
+        char* encodedURI = evhttp_uriencode(walletName.c_str(), walletName.size(), false);
         if (encodedURI) {
-            endpoint = "/wallet/"+ std::string(encodedURI);
+            endpoint = "/wallet/" + std::string(encodedURI);
             free(encodedURI);
-        }
-        else {
+        } else {
             throw CConnectionFailed("uri-encode failed");
         }
     }
@@ -319,7 +313,7 @@ int CommandLineRPC(int argc, char* argv[])
 
                 // Parse reply
                 const UniValue& result = find_value(reply, "result");
-                const UniValue& error  = find_value(reply, "error");
+                const UniValue& error = find_value(reply, "error");
 
                 if (!error.isNull()) {
                     // Error
@@ -328,14 +322,13 @@ int CommandLineRPC(int argc, char* argv[])
                         throw CConnectionFailed("server in warmup");
                     strPrint = "error: " + error.write();
                     nRet = abs(code);
-                    if (error.isObject())
-                    {
+                    if (error.isObject()) {
                         UniValue errCode = find_value(error, "code");
-                        UniValue errMsg  = find_value(error, "message");
-                        strPrint = errCode.isNull() ? "" : "error code: "+errCode.getValStr()+"\n";
+                        UniValue errMsg = find_value(error, "message");
+                        strPrint = errCode.isNull() ? "" : "error code: " + errCode.getValStr() + "\n";
 
                         if (errMsg.isStr())
-                            strPrint += "error message:\n"+errMsg.get_str();
+                            strPrint += "error message:\n" + errMsg.get_str();
 
                         if (errCode.isNum() && errCode.get_int() == RPC_WALLET_NOT_SPECIFIED) {
                             strPrint += "\nTry adding \"-rpcwallet=<filename>\" option to bitcoin-cli command line.";
@@ -352,23 +345,19 @@ int CommandLineRPC(int argc, char* argv[])
                 }
                 // Connection succeeded, no need to retry.
                 break;
-            }
-            catch (const CConnectionFailed&) {
+            } catch (const CConnectionFailed&) {
                 if (fWait)
                     MilliSleep(1000);
                 else
                     throw;
             }
         } while (fWait);
-    }
-    catch (const boost::thread_interrupted&) {
+    } catch (const boost::thread_interrupted&) {
         throw;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         strPrint = std::string("error: ") + e.what();
         nRet = EXIT_FAILURE;
-    }
-    catch (...) {
+    } catch (...) {
         PrintExceptionContinue(nullptr, "CommandLineRPC()");
         throw;
     }
@@ -391,8 +380,7 @@ int main(int argc, char* argv[])
         int ret = AppInitRPC(argc, argv);
         if (ret != CONTINUE_EXECUTION)
             return ret;
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         PrintExceptionContinue(&e, "AppInitRPC()");
         return EXIT_FAILURE;
     } catch (...) {
@@ -403,8 +391,7 @@ int main(int argc, char* argv[])
     int ret = EXIT_FAILURE;
     try {
         ret = CommandLineRPC(argc, argv);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         PrintExceptionContinue(&e, "CommandLineRPC()");
     } catch (...) {
         PrintExceptionContinue(nullptr, "CommandLineRPC()");

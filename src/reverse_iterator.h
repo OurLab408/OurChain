@@ -14,7 +14,7 @@
 template <typename T>
 class reverse_range
 {
-    T &m_x;
+    T& m_x;
 
 public:
     reverse_range(T& x) : m_x(x) {}
@@ -31,7 +31,7 @@ public:
 };
 
 template <typename T>
-reverse_range<T> reverse_iterate(T &x)
+reverse_range<T> reverse_iterate(T& x)
 {
     return reverse_range<T>(x);
 }

@@ -11,7 +11,7 @@
 
 std::string COutPoint::ToString() const
 {
-    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
+    return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0, 10), n);
 }
 
 CTxIn::CTxIn(COutPoint prevoutIn, CScript scriptSigIn, uint32_t nSequenceIn)
@@ -101,12 +101,12 @@ std::string CTransaction::ToString() const
     std::string str;
     str += strprintf("CTransaction(hash=%s, ver=%d, "
                      "contract.action=%u, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
-        GetHash().ToString().substr(0, 10),
-        nVersion,
-        contract.action,
-        vin.size(),
-        vout.size(),
-        nLockTime);
+                     GetHash().ToString().substr(0, 10),
+                     nVersion,
+                     contract.action,
+                     vin.size(),
+                     vout.size(),
+                     nLockTime);
     for (const auto& tx_in : vin)
         str += "    " + tx_in.ToString() + "\n";
     for (const auto& tx_in : vin)

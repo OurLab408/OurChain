@@ -43,10 +43,10 @@
 #else
 
 #ifdef _MSC_VER
-#pragma warning(disable:4786)
-#pragma warning(disable:4804)
-#pragma warning(disable:4805)
-#pragma warning(disable:4717)
+#pragma warning(disable : 4786)
+#pragma warning(disable : 4804)
+#pragma warning(disable : 4805)
+#pragma warning(disable : 4717)
 #endif
 
 #ifdef _WIN32_WINNT
@@ -87,8 +87,8 @@
 // Application startup time (used for uptime calculation)
 const int64_t nStartupTime = GetTime();
 
-const char * const BITCOIN_CONF_FILENAME = "bitcoin.conf";
-const char * const BITCOIN_PID_FILENAME = "bitcoind.pid";
+const char* const BITCOIN_CONF_FILENAME = "bitcoin.conf";
+const char* const BITCOIN_PID_FILENAME = "bitcoind.pid";
 
 ArgsManager gArgs;
 bool fPrintToConsole = false;
@@ -148,8 +148,7 @@ public:
         // Clear the set of locks now to maintain symmetry with the constructor.
         ppmutexOpenSSL.reset();
     }
-}
-instance_of_cinit;
+} instance_of_cinit;
 
 /**
  * LogPrintf() has been broken a couple of times now
@@ -474,18 +473,19 @@ void ArgsManager::ForceSetArg(const std::string& strArg, const std::string& strV
 }
 
 
-
 static const int screenWidth = 79;
 static const int optIndent = 2;
 static const int msgIndent = 7;
 
-std::string HelpMessageGroup(const std::string &message) {
+std::string HelpMessageGroup(const std::string& message)
+{
     return std::string(message) + std::string("\n\n");
 }
 
-std::string HelpMessageOpt(const std::string &option, const std::string &message) {
-    return std::string(optIndent,' ') + std::string(option) +
-           std::string("\n") + std::string(msgIndent,' ') +
+std::string HelpMessageOpt(const std::string& option, const std::string& message)
+{
+    return std::string(optIndent, ' ') + std::string(option) +
+           std::string("\n") + std::string(msgIndent, ' ') +
            FormatParagraph(message, screenWidth - msgIndent, msgIndent) +
            std::string("\n\n");
 }
@@ -543,12 +543,11 @@ static fs::path pathCached;
 static fs::path pathCachedNetSpecific;
 static CCriticalSection csPathCached;
 
-const fs::path &GetDataDir(bool fNetSpecific)
+const fs::path& GetDataDir(bool fNetSpecific)
 {
-
     LOCK(csPathCached);
 
-    fs::path &path = fNetSpecific ? pathCachedNetSpecific : pathCached;
+    fs::path& path = fNetSpecific ? pathCachedNetSpecific : pathCached;
 
     // This can be called during exceptions by LogPrintf(), so we cache the
     // value so we don't have to do memory allocations after that.
@@ -622,11 +621,10 @@ fs::path GetPidFile()
     return pathPidFile;
 }
 
-void CreatePidFile(const fs::path &path, pid_t pid)
+void CreatePidFile(const fs::path& path, pid_t pid)
 {
     FILE* file = fsbridge::fopen(path, "w");
-    if (file)
-    {
+    if (file) {
         fprintf(file, "%d\n", pid);
         fclose(file);
     }
@@ -651,8 +649,7 @@ bool RenameOver(fs::path src, fs::path dest)
  */
 bool TryCreateDirectories(const fs::path& p)
 {
-    try
-    {
+    try {
         return fs::create_directories(p);
     } catch (const fs::filesystem_error&) {
         if (!fs::exists(p) || !fs::is_directory(p))
@@ -670,7 +667,7 @@ void FileCommit(FILE* file)
     HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
     FlushFileBuffers(hFile);
 #else
-    #if defined(__linux__) || defined(__NetBSD__)
+#if defined(__linux__) || defined(__NetBSD__)
     fdatasync(fileno(file));
 #elif defined(__APPLE__) && defined(F_FULLFSYNC)
     fcntl(fileno(file), F_FULLFSYNC, 0);
@@ -680,7 +677,8 @@ void FileCommit(FILE* file)
 #endif
 }
 
-bool TruncateFile(FILE *file, unsigned int length) {
+bool TruncateFile(FILE* file, unsigned int length)
+{
 #if defined(WIN32)
     return _chsize(_fileno(file), length) == 0;
 #else
@@ -692,7 +690,8 @@ bool TruncateFile(FILE *file, unsigned int length) {
  * this function tries to raise the file descriptor limit to the requested number.
  * It returns the actual file descriptor limit (which may be more or less than nMinFD)
  */
-int RaiseFileDescriptorLimit(int nMinFD) {
+int RaiseFileDescriptorLimit(int nMinFD)
+{
 #if defined(WIN32)
     return 2048;
 #else
@@ -715,7 +714,8 @@ int RaiseFileDescriptorLimit(int nMinFD) {
  * this function tries to make a particular range of a file allocated (corresponding to disk space)
  * it is advisory, and the range specified in the arguments will never contain live data
  */
-void AllocateFileRange(FILE *file, unsigned int offset, unsigned int length) {
+void AllocateFileRange(FILE* file, unsigned int offset, unsigned int length)
+{
 #if defined(WIN32)
     // Windows-specific version
     HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(file));
@@ -787,8 +787,7 @@ fs::path GetSpecialFolderPath(int nFolder, bool fCreate)
 {
     char pszPath[MAX_PATH] = "";
 
-    if(SHGetSpecialFolderPathA(nullptr, pszPath, nFolder, fCreate))
-    {
+    if (SHGetSpecialFolderPathA(nullptr, pszPath, nFolder, fCreate)) {
         return fs::path(pszPath);
     }
 
@@ -854,8 +853,8 @@ bool SetupNetworking()
 #ifdef WIN32
     // Initialize Windows Sockets
     WSADATA wsadata;
-    int ret = WSAStartup(MAKEWORD(2,2), &wsadata);
-    if (ret != NO_ERROR || LOBYTE(wsadata.wVersion ) != 2 || HIBYTE(wsadata.wVersion) != 2)
+    int ret = WSAStartup(MAKEWORD(2, 2), &wsadata);
+    if (ret != NO_ERROR || LOBYTE(wsadata.wVersion) != 2 || HIBYTE(wsadata.wVersion) != 2)
         return false;
 #endif
     return true;

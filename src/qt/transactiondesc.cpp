@@ -79,8 +79,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
         strHTML += "<b>" + tr("From") + ":</b> " + GUIUtil::HtmlEscape(wtx.mapValue["from"]) + "<br>";
     } else {
         // Offline transaction
-        if (nNet > 0)
-        {
+        if (nNet > 0) {
             // Credit
             if (CBitcoinAddress(rec->address).IsValid()) {
                 CTxDestination address = CBitcoinAddress(rec->address).Get();
@@ -137,25 +136,23 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
         isminetype fAllFromMe = ISMINE_SPENDABLE;
         for (const CTxIn& txin : wtx.tx->vin) {
             isminetype mine = wallet->IsMine(txin);
-            if(fAllFromMe > mine) fAllFromMe = mine;
+            if (fAllFromMe > mine) fAllFromMe = mine;
         }
 
         isminetype fAllToMe = ISMINE_SPENDABLE;
         for (const CTxOut& txout : wtx.tx->vout) {
             isminetype mine = wallet->IsMine(txout);
-            if(fAllToMe > mine) fAllToMe = mine;
+            if (fAllToMe > mine) fAllToMe = mine;
         }
 
-        if (fAllFromMe)
-        {
-            if(fAllFromMe & ISMINE_WATCH_ONLY)
+        if (fAllFromMe) {
+            if (fAllFromMe & ISMINE_WATCH_ONLY)
                 strHTML += "<b>" + tr("From") + ":</b> " + tr("watch-only") + "<br>";
 
             //
             // Debit
             //
-            for (const CTxOut& txout : wtx.tx->vout)
-            {
+            for (const CTxOut& txout : wtx.tx->vout) {
                 // Ignore change
                 isminetype toSelf = wallet->IsMine(txout);
                 if ((toSelf == ISMINE_SPENDABLE) && (fAllFromMe == ISMINE_SPENDABLE))
@@ -164,27 +161,25 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
                 if (!wtx.mapValue.count("to") || wtx.mapValue["to"].empty()) {
                     // Offline transaction
                     CTxDestination address;
-                    if (ExtractDestination(txout.scriptPubKey, address))
-                    {
+                    if (ExtractDestination(txout.scriptPubKey, address)) {
                         strHTML += "<b>" + tr("To") + ":</b> ";
                         if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
                         strHTML += GUIUtil::HtmlEscape(CBitcoinAddress(address).ToString());
-                        if(toSelf == ISMINE_SPENDABLE)
+                        if (toSelf == ISMINE_SPENDABLE)
                             strHTML += " (own address)";
-                        else if(toSelf & ISMINE_WATCH_ONLY)
+                        else if (toSelf & ISMINE_WATCH_ONLY)
                             strHTML += " (watch-only)";
                         strHTML += "<br>";
                     }
                 }
 
                 strHTML += "<b>" + tr("Debit") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, -txout.nValue) + "<br>";
-                if(toSelf)
+                if (toSelf)
                     strHTML += "<b>" + tr("Credit") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, txout.nValue) + "<br>";
             }
 
-            if (fAllToMe)
-            {
+            if (fAllToMe) {
                 // Payment to self
                 CAmount nChange = wtx.GetChange();
                 CAmount nValue = nCredit - nChange;
@@ -195,9 +190,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
             CAmount nTxFee = nDebit - wtx.tx->GetValueOut();
             if (nTxFee > 0)
                 strHTML += "<b>" + tr("Transaction fee") + ":</b> " + BitcoinUnits::formatHtmlWithUnit(unit, -nTxFee) + "<br>";
-        }
-        else
-        {
+        } else {
             //
             // Mixed debit transaction
             //
@@ -233,8 +226,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     // PaymentRequest info:
     //
     for (const std::pair<std::string, std::string>& r : wtx.vOrderForm) {
-        if (r.first == "PaymentRequest")
-        {
+        if (r.first == "PaymentRequest") {
             PaymentRequestPlus req;
             req.parse(QByteArray::fromRawData(r.second.data(), r.second.size()));
             QString merchant;
@@ -244,7 +236,7 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
     }
 
     if (wtx.IsCoinBase()) {
-        quint32 numBlocksToMaturity = COINBASE_MATURITY +  1;
+        quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
         strHTML += "<br>" + tr("Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
     }
 
@@ -266,18 +258,16 @@ QString TransactionDesc::toHTML(CWallet* wallet, CWalletTx& wtx, TransactionReco
         strHTML += "<br><b>" + tr("Inputs") + ":</b>";
         strHTML += "<ul>";
 
-        for (const CTxIn& txin : wtx.tx->vin)
-        {
+        for (const CTxIn& txin : wtx.tx->vin) {
             COutPoint prevout = txin.prevout;
 
             Coin prev;
             if (pcoinsTip->GetCoin(prevout, prev)) {
                 {
                     strHTML += "<li>";
-                    const CTxOut &vout = prev.out;
+                    const CTxOut& vout = prev.out;
                     CTxDestination address;
-                    if (ExtractDestination(vout.scriptPubKey, address))
-                    {
+                    if (ExtractDestination(vout.scriptPubKey, address)) {
                         if (wallet->mapAddressBook.count(address) && !wallet->mapAddressBook[address].name.empty())
                             strHTML += GUIUtil::HtmlEscape(wallet->mapAddressBook[address].name) + " ";
                         strHTML += QString::fromStdString(CBitcoinAddress(address).ToString());

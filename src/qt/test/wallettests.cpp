@@ -22,39 +22,39 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace
-{
+namespace {
 //! Press "Ok" button in message box dialog.
 void ConfirmMessage(QString* text = nullptr)
 {
     QTimer::singleShot(0, makeCallback([text](Callback* callback) {
-        for (QWidget* widget : QApplication::topLevelWidgets()) {
-            if (widget->inherits("QMessageBox")) {
-                QMessageBox* messageBox = qobject_cast<QMessageBox*>(widget);
-                if (text) *text = messageBox->text();
-                messageBox->defaultButton()->click();
-            }
-        }
-        delete callback;
-    }),
-        SLOT(call()));
+                           for (QWidget* widget : QApplication::topLevelWidgets()) {
+                               if (widget->inherits("QMessageBox")) {
+                                   QMessageBox* messageBox = qobject_cast<QMessageBox*>(widget);
+                                   if (text) *text = messageBox->text();
+                                   messageBox->defaultButton()->click();
+                               }
+                           }
+                           delete callback;
+                       }),
+                       SLOT(call()));
 }
 
 //! Press "Yes" or "Cancel" buttons in modal send confirmation dialog.
 void ConfirmSend(QString* text = nullptr, bool cancel = false)
 {
     QTimer::singleShot(0, makeCallback([text, cancel](Callback* callback) {
-        for (QWidget* widget : QApplication::topLevelWidgets()) {
-            if (widget->inherits("SendConfirmationDialog")) {
-                SendConfirmationDialog* dialog = qobject_cast<SendConfirmationDialog*>(widget);
-                if (text) *text = dialog->text();
-                QAbstractButton* button = dialog->button(cancel ? QMessageBox::Cancel : QMessageBox::Yes);
-                button->setEnabled(true);
-                button->click();
-            }
-        }
-        delete callback;
-    }), SLOT(call()));
+                           for (QWidget* widget : QApplication::topLevelWidgets()) {
+                               if (widget->inherits("SendConfirmationDialog")) {
+                                   SendConfirmationDialog* dialog = qobject_cast<SendConfirmationDialog*>(widget);
+                                   if (text) *text = dialog->text();
+                                   QAbstractButton* button = dialog->button(cancel ? QMessageBox::Cancel : QMessageBox::Yes);
+                                   button->setEnabled(true);
+                                   button->click();
+                               }
+                           }
+                           delete callback;
+                       }),
+                       SLOT(call()));
 }
 
 //! Send coins to address and return txid.

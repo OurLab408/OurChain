@@ -43,7 +43,7 @@ public:
     typedef std::function<void(void)> Function;
 
     // Call func at/after time t
-    void schedule(Function f, boost::chrono::system_clock::time_point t=boost::chrono::system_clock::now());
+    void schedule(Function f, boost::chrono::system_clock::time_point t = boost::chrono::system_clock::now());
 
     // Convenience method: call f once deltaSeconds from now
     void scheduleFromNow(Function f, int64_t deltaMilliSeconds);
@@ -64,12 +64,12 @@ public:
     // Tell any threads running serviceQueue to stop as soon as they're
     // done servicing whatever task they're currently servicing (drain=false)
     // or when there is no work left to be done (drain=true)
-    void stop(bool drain=false);
+    void stop(bool drain = false);
 
     // Returns number of tasks waiting to be serviced,
     // and first and last task times
-    size_t getQueueInfo(boost::chrono::system_clock::time_point &first,
-                        boost::chrono::system_clock::time_point &last) const;
+    size_t getQueueInfo(boost::chrono::system_clock::time_point& first,
+                        boost::chrono::system_clock::time_point& last) const;
 
     // Returns true if there are threads actively running in serviceQueue()
     bool AreThreadsServicingQueue() const;
@@ -90,9 +90,10 @@ private:
  * to be executed on the same thread, but no two jobs will be executed
  * at the same time.
  */
-class SingleThreadedSchedulerClient {
+class SingleThreadedSchedulerClient
+{
 private:
-    CScheduler *m_pscheduler;
+    CScheduler* m_pscheduler;
 
     CCriticalSection m_cs_callbacks_pending;
     std::list<std::function<void(void)>> m_callbacks_pending;
@@ -103,7 +104,7 @@ private:
 
 public:
     SingleThreadedSchedulerClient(CScheduler* pschedulerIn) : m_pscheduler(pschedulerIn) {}
-    void AddToProcessQueue(std::function<void (void)> func);
+    void AddToProcessQueue(std::function<void(void)> func);
 
     // Processes all remaining queue members on the calling thread, blocking until queue is empty
     // Must be called after the CScheduler has no remaining processing threads!

@@ -91,7 +91,8 @@ void static inline DeleteLock(void* cs) {}
 class CCriticalSection : public AnnotatedMixin<boost::recursive_mutex>
 {
 public:
-    ~CCriticalSection() {
+    ~CCriticalSection()
+    {
         DeleteLock((void*)this);
     }
 };
@@ -169,7 +170,7 @@ public:
 
 typedef CMutexLock<CCriticalSection> CCriticalBlock;
 
-#define PASTE(x, y) x ## y
+#define PASTE(x, y) x##y
 #define PASTE2(x, y) PASTE(x, y)
 
 #define LOCK(cs) CCriticalBlock PASTE2(criticalblock, __COUNTER__)(cs, #cs, __FILE__, __LINE__)

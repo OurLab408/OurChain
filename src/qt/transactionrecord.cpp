@@ -39,12 +39,10 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
         //
         // Credit
         //
-        for(unsigned int i = 0; i < wtx.tx->vout.size(); i++)
-        {
+        for (unsigned int i = 0; i < wtx.tx->vout.size(); i++) {
             const CTxOut& txout = wtx.tx->vout[i];
             isminetype mine = wallet->IsMine(txout);
-            if(mine)
-            {
+            if (mine) {
                 TransactionRecord sub(hash, nTime);
                 CTxDestination address;
                 sub.idx = i; // vout index
@@ -72,35 +70,31 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
         isminetype fAllFromMe = ISMINE_SPENDABLE;
         for (const CTxIn& txin : wtx.tx->vin) {
             isminetype mine = wallet->IsMine(txin);
-            if(mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if(fAllFromMe > mine) fAllFromMe = mine;
+            if (mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
+            if (fAllFromMe > mine) fAllFromMe = mine;
         }
 
         isminetype fAllToMe = ISMINE_SPENDABLE;
         for (const CTxOut& txout : wtx.tx->vout) {
             isminetype mine = wallet->IsMine(txout);
-            if(mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
-            if(fAllToMe > mine) fAllToMe = mine;
+            if (mine & ISMINE_WATCH_ONLY) involvesWatchAddress = true;
+            if (fAllToMe > mine) fAllToMe = mine;
         }
 
-        if (fAllFromMe && fAllToMe)
-        {
+        if (fAllFromMe && fAllToMe) {
             // Payment to self
             CAmount nChange = wtx.GetChange();
 
             parts.append(TransactionRecord(hash, nTime, TransactionRecord::SendToSelf, "",
-                            -(nDebit - nChange), nCredit - nChange));
-            parts.last().involvesWatchAddress = involvesWatchAddress;   // maybe pass to TransactionRecord as constructor argument
-        }
-        else if (fAllFromMe)
-        {
+                                           -(nDebit - nChange), nCredit - nChange));
+            parts.last().involvesWatchAddress = involvesWatchAddress; // maybe pass to TransactionRecord as constructor argument
+        } else if (fAllFromMe) {
             //
             // Debit
             //
             CAmount nTxFee = nDebit - wtx.tx->GetValueOut();
 
-            for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++)
-            {
+            for (unsigned int nOut = 0; nOut < wtx.tx->vout.size(); nOut++) {
                 const CTxOut& txout = wtx.tx->vout[nOut];
                 TransactionRecord sub(hash, nTime);
                 sub.idx = nOut;
@@ -125,8 +119,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
 
                 CAmount nValue = txout.nValue;
                 /* Add fee to first output */
-                if (nTxFee > 0)
-                {
+                if (nTxFee > 0) {
                     nValue += nTxFee;
                     nTxFee = 0;
                 }
@@ -134,9 +127,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet* 
 
                 parts.append(sub);
             }
-        }
-        else
-        {
+        } else {
             //
             // Mixed debit transaction, can't break down payees
             //
@@ -161,10 +152,10 @@ void TransactionRecord::updateStatus(const CWalletTx& wtx)
 
     // Sort order, unrecorded transactions sort to the top
     status.sortKey = strprintf("%010d-%01d-%010u-%03d",
-        (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
-        (wtx.IsCoinBase() ? 1 : 0),
-        wtx.nTimeReceived,
-        idx);
+                               (pindex ? pindex->nHeight : std::numeric_limits<int>::max()),
+                               (wtx.IsCoinBase() ? 1 : 0),
+                               wtx.nTimeReceived,
+                               idx);
     status.countsForBalance = wtx.IsTrusted() && !(wtx.GetBlocksToMaturity() > 0);
     status.depth = wtx.GetDepthInMainChain();
     status.cur_num_blocks = chainActive.Height();
@@ -196,8 +187,7 @@ void TransactionRecord::updateStatus(const CWalletTx& wtx)
             status.status = TransactionStatus::Confirmed;
         }
     } else {
-        if (status.depth < 0)
-        {
+        if (status.depth < 0) {
             status.status = TransactionStatus::Conflicted;
         } else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0) {
             status.status = TransactionStatus::Offline;

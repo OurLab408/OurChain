@@ -74,8 +74,7 @@ static bool SignStep(const BaseSignatureCreator& creator, const CScript& scriptP
         return false;
 
     CKeyID keyID;
-    switch (whichTypeRet)
-    {
+    switch (whichTypeRet) {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
         return false;
@@ -145,8 +144,7 @@ bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& fromPu
     CScript subscript;
     sigdata.scriptWitness.stack.clear();
 
-    if (solved && whichType == TX_SCRIPTHASH)
-    {
+    if (solved && whichType == TX_SCRIPTHASH) {
         // Solver returns the subscript that needs to be evaluated;
         // the final scriptSig is the signatures from that
         // and then the serialized subscript:
@@ -155,17 +153,14 @@ bool ProduceSignature(const BaseSignatureCreator& creator, const CScript& fromPu
         P2SH = true;
     }
 
-    if (solved && whichType == TX_WITNESS_V0_KEYHASH)
-    {
+    if (solved && whichType == TX_WITNESS_V0_KEYHASH) {
         CScript witnessscript;
         witnessscript << OP_DUP << OP_HASH160 << ToByteVector(result[0]) << OP_EQUALVERIFY << OP_CHECKSIG;
         txnouttype subType;
         solved = solved && SignStep(creator, witnessscript, result, subType, SIGVERSION_WITNESS_V0);
         sigdata.scriptWitness.stack = result;
         result.clear();
-    }
-    else if (solved && whichType == TX_WITNESS_V0_SCRIPTHASH)
-    {
+    } else if (solved && whichType == TX_WITNESS_V0_SCRIPTHASH) {
         CScript witnessscript(result[0].begin(), result[0].end());
         txnouttype subType;
         solved = solved && SignStep(creator, witnessscript, result, subType, SIGVERSION_WITNESS_V0) && subType != TX_SCRIPTHASH && subType != TX_WITNESS_V0_SCRIPTHASH && subType != TX_WITNESS_V0_KEYHASH;

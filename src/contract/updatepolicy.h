@@ -20,7 +20,7 @@ public:
     virtual ~UpdatePolicy() = default;
 
     virtual UpdatePolicyType getType() const = 0;
-    
+
     virtual bool UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Consensus::Params& consensusParams) = 0;
 };
 

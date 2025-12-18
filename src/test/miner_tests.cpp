@@ -28,7 +28,8 @@ BOOST_FIXTURE_TEST_SUITE(miner_tests, TestingSetup)
 
 static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE);
 
-static BlockAssembler AssemblerForTest(const CChainParams& params) {
+static BlockAssembler AssemblerForTest(const CChainParams& params)
+{
     BlockAssembler::Options options;
 
     options.nBlockMaxWeight = MAX_BLOCK_WEIGHT;
@@ -37,39 +38,120 @@ static BlockAssembler AssemblerForTest(const CChainParams& params) {
     return BlockAssembler(params, options);
 }
 
-static
-struct {
+static struct {
     unsigned char extranonce;
     unsigned int nonce;
 } blockinfo[] = {
-    {4, 0xa4a3e223}, {2, 0x15c32f9e}, {1, 0x0375b547}, {1, 0x7004a8a5},
-    {2, 0xce440296}, {2, 0x52cfe198}, {1, 0x77a72cd0}, {2, 0xbb5d6f84},
-    {2, 0x83f30c2c}, {1, 0x48a73d5b}, {1, 0xef7dcd01}, {2, 0x6809c6c4},
-    {2, 0x0883ab3c}, {1, 0x087bbbe2}, {2, 0x2104a814}, {2, 0xdffb6daa},
-    {1, 0xee8a0a08}, {2, 0xba4237c1}, {1, 0xa70349dc}, {1, 0x344722bb},
-    {3, 0xd6294733}, {2, 0xec9f5c94}, {2, 0xca2fbc28}, {1, 0x6ba4f406},
-    {2, 0x015d4532}, {1, 0x6e119b7c}, {2, 0x43e8f314}, {2, 0x27962f38},
-    {2, 0xb571b51b}, {2, 0xb36bee23}, {2, 0xd17924a8}, {2, 0x6bc212d9},
-    {1, 0x630d4948}, {2, 0x9a4c4ebb}, {2, 0x554be537}, {1, 0xd63ddfc7},
-    {2, 0xa10acc11}, {1, 0x759a8363}, {2, 0xfb73090d}, {1, 0xe82c6a34},
-    {1, 0xe33e92d7}, {3, 0x658ef5cb}, {2, 0xba32ff22}, {5, 0x0227a10c},
-    {1, 0xa9a70155}, {5, 0xd096d809}, {1, 0x37176174}, {1, 0x830b8d0f},
-    {1, 0xc6e3910e}, {2, 0x823f3ca8}, {1, 0x99850849}, {1, 0x7521fb81},
-    {1, 0xaacaabab}, {1, 0xd645a2eb}, {5, 0x7aea1781}, {5, 0x9d6e4b78},
-    {1, 0x4ce90fd8}, {1, 0xabdc832d}, {6, 0x4a34f32a}, {2, 0xf2524c1c},
-    {2, 0x1bbeb08a}, {1, 0xad47f480}, {1, 0x9f026aeb}, {1, 0x15a95049},
-    {2, 0xd1cb95b2}, {2, 0xf84bbda5}, {1, 0x0fa62cd1}, {1, 0xe05f9169},
-    {1, 0x78d194a9}, {5, 0x3e38147b}, {5, 0x737ba0d4}, {1, 0x63378e10},
-    {1, 0x6d5f91cf}, {2, 0x88612eb8}, {2, 0xe9639484}, {1, 0xb7fabc9d},
-    {2, 0x19b01592}, {1, 0x5a90dd31}, {2, 0x5bd7e028}, {2, 0x94d00323},
-    {1, 0xa9b9c01a}, {1, 0x3a40de61}, {1, 0x56e7eec7}, {5, 0x859f7ef6},
-    {1, 0xfd8e5630}, {1, 0x2b0c9f7f}, {1, 0xba700e26}, {1, 0x7170a408},
-    {1, 0x70de86a8}, {1, 0x74d64cd5}, {1, 0x49e738a1}, {2, 0x6910b602},
-    {0, 0x643c565f}, {1, 0x54264b3f}, {2, 0x97ea6396}, {2, 0x55174459},
-    {2, 0x03e8779a}, {1, 0x98f34d8f}, {1, 0xc07b2b07}, {1, 0xdfe29668},
-    {1, 0x3141c7c1}, {1, 0xb3b595f4}, {1, 0x735abf08}, {5, 0x623bfbce},
-    {2, 0xd351e722}, {1, 0xf4ca48c9}, {1, 0x5b19c670}, {1, 0xa164bf0e},
-    {2, 0xbbbeb305}, {2, 0xfe1c810a},
+    {4, 0xa4a3e223},
+    {2, 0x15c32f9e},
+    {1, 0x0375b547},
+    {1, 0x7004a8a5},
+    {2, 0xce440296},
+    {2, 0x52cfe198},
+    {1, 0x77a72cd0},
+    {2, 0xbb5d6f84},
+    {2, 0x83f30c2c},
+    {1, 0x48a73d5b},
+    {1, 0xef7dcd01},
+    {2, 0x6809c6c4},
+    {2, 0x0883ab3c},
+    {1, 0x087bbbe2},
+    {2, 0x2104a814},
+    {2, 0xdffb6daa},
+    {1, 0xee8a0a08},
+    {2, 0xba4237c1},
+    {1, 0xa70349dc},
+    {1, 0x344722bb},
+    {3, 0xd6294733},
+    {2, 0xec9f5c94},
+    {2, 0xca2fbc28},
+    {1, 0x6ba4f406},
+    {2, 0x015d4532},
+    {1, 0x6e119b7c},
+    {2, 0x43e8f314},
+    {2, 0x27962f38},
+    {2, 0xb571b51b},
+    {2, 0xb36bee23},
+    {2, 0xd17924a8},
+    {2, 0x6bc212d9},
+    {1, 0x630d4948},
+    {2, 0x9a4c4ebb},
+    {2, 0x554be537},
+    {1, 0xd63ddfc7},
+    {2, 0xa10acc11},
+    {1, 0x759a8363},
+    {2, 0xfb73090d},
+    {1, 0xe82c6a34},
+    {1, 0xe33e92d7},
+    {3, 0x658ef5cb},
+    {2, 0xba32ff22},
+    {5, 0x0227a10c},
+    {1, 0xa9a70155},
+    {5, 0xd096d809},
+    {1, 0x37176174},
+    {1, 0x830b8d0f},
+    {1, 0xc6e3910e},
+    {2, 0x823f3ca8},
+    {1, 0x99850849},
+    {1, 0x7521fb81},
+    {1, 0xaacaabab},
+    {1, 0xd645a2eb},
+    {5, 0x7aea1781},
+    {5, 0x9d6e4b78},
+    {1, 0x4ce90fd8},
+    {1, 0xabdc832d},
+    {6, 0x4a34f32a},
+    {2, 0xf2524c1c},
+    {2, 0x1bbeb08a},
+    {1, 0xad47f480},
+    {1, 0x9f026aeb},
+    {1, 0x15a95049},
+    {2, 0xd1cb95b2},
+    {2, 0xf84bbda5},
+    {1, 0x0fa62cd1},
+    {1, 0xe05f9169},
+    {1, 0x78d194a9},
+    {5, 0x3e38147b},
+    {5, 0x737ba0d4},
+    {1, 0x63378e10},
+    {1, 0x6d5f91cf},
+    {2, 0x88612eb8},
+    {2, 0xe9639484},
+    {1, 0xb7fabc9d},
+    {2, 0x19b01592},
+    {1, 0x5a90dd31},
+    {2, 0x5bd7e028},
+    {2, 0x94d00323},
+    {1, 0xa9b9c01a},
+    {1, 0x3a40de61},
+    {1, 0x56e7eec7},
+    {5, 0x859f7ef6},
+    {1, 0xfd8e5630},
+    {1, 0x2b0c9f7f},
+    {1, 0xba700e26},
+    {1, 0x7170a408},
+    {1, 0x70de86a8},
+    {1, 0x74d64cd5},
+    {1, 0x49e738a1},
+    {2, 0x6910b602},
+    {0, 0x643c565f},
+    {1, 0x54264b3f},
+    {2, 0x97ea6396},
+    {2, 0x55174459},
+    {2, 0x03e8779a},
+    {1, 0x98f34d8f},
+    {1, 0xc07b2b07},
+    {1, 0xdfe29668},
+    {1, 0x3141c7c1},
+    {1, 0xb3b595f4},
+    {1, 0x735abf08},
+    {5, 0x623bfbce},
+    {2, 0xd351e722},
+    {1, 0xf4ca48c9},
+    {1, 0x5b19c670},
+    {1, 0xa164bf0e},
+    {2, 0xbbbeb305},
+    {2, 0xfe1c810a},
 };
 
 CBlockIndex CreateBlockIndex(int nHeight)
@@ -133,7 +215,7 @@ void TestPackageSelection(const CChainParams& chainparams, CScript scriptPubKey,
 
     // Calculate a fee on child transaction that will put the package just
     // below the block min tx fee (assuming 1 child tx of the same size).
-    CAmount feeToUse = blockMinFeeRate.GetFee(2*freeTxSize) - 1;
+    CAmount feeToUse = blockMinFeeRate.GetFee(2 * freeTxSize) - 1;
 
     tx.vin[0].prevout.hash = hashFreeTx;
     tx.vout[0].nValue = 5000000000LL - 1000 - 50000 - feeToUse;
@@ -141,7 +223,7 @@ void TestPackageSelection(const CChainParams& chainparams, CScript scriptPubKey,
     mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse).FromTx(tx));
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
     // Verify that the free tx and the low fee tx didn't get selected
-    for (size_t i=0; i<pblocktemplate->block.vtx.size(); ++i) {
+    for (size_t i = 0; i < pblocktemplate->block.vtx.size(); ++i) {
         BOOST_CHECK(pblocktemplate->block.vtx[i]->GetHash() != hashFreeTx);
         BOOST_CHECK(pblocktemplate->block.vtx[i]->GetHash() != hashLowFeeTx);
     }
@@ -152,7 +234,7 @@ void TestPackageSelection(const CChainParams& chainparams, CScript scriptPubKey,
     mempool.removeRecursive(tx);
     tx.vout[0].nValue -= 2; // Now we should be just over the min relay fee
     hashLowFeeTx = tx.GetHash();
-    mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse+2).FromTx(tx));
+    mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse + 2).FromTx(tx));
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
     BOOST_CHECK(pblocktemplate->block.vtx[4]->GetHash() == hashFreeTx);
     BOOST_CHECK(pblocktemplate->block.vtx[5]->GetHash() == hashLowFeeTx);
@@ -177,7 +259,7 @@ void TestPackageSelection(const CChainParams& chainparams, CScript scriptPubKey,
     pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
 
     // Verify that this tx isn't selected.
-    for (size_t i=0; i<pblocktemplate->block.vtx.size(); ++i) {
+    for (size_t i = 0; i < pblocktemplate->block.vtx.size(); ++i) {
         BOOST_CHECK(pblocktemplate->block.vtx[i]->GetHash() != hashFreeTx2);
         BOOST_CHECK(pblocktemplate->block.vtx[i]->GetHash() != hashLowFeeTx2);
     }
@@ -216,9 +298,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     // Therefore, load 100 blocks :)
     int baseheight = 0;
     std::vector<CTransactionRef> txFirst;
-    for (unsigned int i = 0; i < sizeof(blockinfo)/sizeof(*blockinfo); ++i)
-    {
-        CBlock *pblock = &pblocktemplate->block; // pointer for convenience
+    for (unsigned int i = 0; i < sizeof(blockinfo) / sizeof(*blockinfo); ++i) {
+        CBlock* pblock = &pblocktemplate->block; // pointer for convenience
         pblock->nVersion = 1;
         pblock->nTime = chainActive.Tip()->GetMedianTimePast() + 1;
         CMutableTransaction txCoinbase(*pblock->vtx[0]);
@@ -243,10 +324,10 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     // Just to make sure we can still make simple blocks
     BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
 
-    const CAmount BLOCKSUBSIDY = 50*COIN;
+    const CAmount BLOCKSUBSIDY = 50 * COIN;
     const CAmount LOWFEE = CENT;
     const CAmount HIGHFEE = COIN;
-    const CAmount HIGHERFEE = 4*COIN;
+    const CAmount HIGHERFEE = 4 * COIN;
 
     // block sigops > limit: 1000 CHECKMULTISIG + 1
     tx.vin.resize(1);
@@ -256,8 +337,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].prevout.n = 0;
     tx.vout.resize(1);
     tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 1001; ++i)
-    {
+    for (unsigned int i = 0; i < 1001; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetHash();
         bool spendsCoinbase = i == 0; // only first tx spends coinbase
@@ -270,8 +350,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 1001; ++i)
-    {
+    for (unsigned int i = 0; i < 1001; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetHash();
         bool spendsCoinbase = i == 0; // only first tx spends coinbase
@@ -291,8 +370,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].scriptSig << OP_1;
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vout[0].nValue = BLOCKSUBSIDY;
-    for (unsigned int i = 0; i < 128; ++i)
-    {
+    for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         hash = tx.GetHash();
         bool spendsCoinbase = i == 0; // only first tx spends coinbase
@@ -311,7 +389,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     // child with higher feerate than parent
     tx.vin[0].scriptSig = CScript() << OP_1;
     tx.vin[0].prevout.hash = txFirst[1]->GetHash();
-    tx.vout[0].nValue = BLOCKSUBSIDY-HIGHFEE;
+    tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
     tx.vin[0].prevout.hash = hash;
@@ -319,7 +397,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[1].scriptSig = CScript() << OP_1;
     tx.vin[1].prevout.hash = txFirst[0]->GetHash();
     tx.vin[1].prevout.n = 0;
-    tx.vout[0].nValue = tx.vout[0].nValue+BLOCKSUBSIDY-HIGHERFEE; //First txn output + fresh coinbase - new txn fee
+    tx.vout[0].nValue = tx.vout[0].nValue + BLOCKSUBSIDY - HIGHERFEE; // First txn output + fresh coinbase - new txn fee
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Fee(HIGHERFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
     BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
@@ -356,7 +434,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     // double spend txn pair in mempool, template creation fails
     tx.vin[0].prevout.hash = txFirst[0]->GetHash();
     tx.vin[0].scriptSig = CScript() << OP_1;
-    tx.vout[0].nValue = BLOCKSUBSIDY-HIGHFEE;
+    tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
@@ -402,8 +480,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     }
 
     // non-final txs in mempool
-    SetMockTime(chainActive.Tip()->GetMedianTimePast()+1);
-    int flags = LOCKTIME_VERIFY_SEQUENCE|LOCKTIME_MEDIAN_TIME_PAST;
+    SetMockTime(chainActive.Tip()->GetMedianTimePast() + 1);
+    int flags = LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
     // height map
     std::vector<int> prevheights;
 
@@ -417,29 +495,29 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].nSequence = chainActive.Tip()->nHeight + 1; // txFirst[0] is the 2nd block
     prevheights[0] = baseheight + 1;
     tx.vout.resize(1);
-    tx.vout[0].nValue = BLOCKSUBSIDY-HIGHFEE;
+    tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     tx.nLockTime = 0;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
-    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
-    BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
+    BOOST_CHECK(CheckFinalTx(tx, flags));                                                                  // Locktime passes
+    BOOST_CHECK(!TestSequenceLocks(tx, flags));                                                            // Sequence locks fail
     BOOST_CHECK(SequenceLocks(tx, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 2))); // Sequence locks pass on 2nd block
 
     // relative time locked
     tx.vin[0].prevout.hash = txFirst[1]->GetHash();
-    tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | (((chainActive.Tip()->GetMedianTimePast()+1-chainActive[1]->GetMedianTimePast()) >> CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) + 1); // txFirst[1] is the 3rd block
+    tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | (((chainActive.Tip()->GetMedianTimePast() + 1 - chainActive[1]->GetMedianTimePast()) >> CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) + 1); // txFirst[1] is the 3rd block
     prevheights[0] = baseheight + 2;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
+    BOOST_CHECK(CheckFinalTx(tx, flags));       // Locktime passes
     BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++)
-        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime += 512; //Trick the MedianTimePast
+        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime += 512;                      // Trick the MedianTimePast
     BOOST_CHECK(SequenceLocks(tx, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 1))); // Sequence locks pass 512 seconds later
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++)
-        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime -= 512; //undo tricked MTP
+        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime -= 512; // undo tricked MTP
 
     // absolute height locked
     tx.vin[0].prevout.hash = txFirst[2]->GetHash();
@@ -448,8 +526,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.nLockTime = chainActive.Tip()->nHeight + 1;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    BOOST_CHECK(!CheckFinalTx(tx, flags)); // Locktime fails
-    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
+    BOOST_CHECK(!CheckFinalTx(tx, flags));                                                              // Locktime fails
+    BOOST_CHECK(TestSequenceLocks(tx, flags));                                                          // Sequence locks pass
     BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast())); // Locktime passes on 2nd block
 
     // absolute time locked
@@ -459,8 +537,8 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     prevheights[0] = baseheight + 4;
     hash = tx.GetHash();
     mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
-    BOOST_CHECK(!CheckFinalTx(tx, flags)); // Locktime fails
-    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
+    BOOST_CHECK(!CheckFinalTx(tx, flags));                                                                  // Locktime fails
+    BOOST_CHECK(TestSequenceLocks(tx, flags));                                                              // Sequence locks pass
     BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast() + 1)); // Locktime passes 1 second later
 
     // mempool-dependent transactions (not added)
@@ -468,7 +546,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     prevheights[0] = chainActive.Tip()->nHeight + 1;
     tx.nLockTime = 0;
     tx.vin[0].nSequence = 0;
-    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
+    BOOST_CHECK(CheckFinalTx(tx, flags));      // Locktime passes
     BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
     tx.vin[0].nSequence = 1;
     BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
@@ -486,7 +564,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     BOOST_CHECK_EQUAL(pblocktemplate->block.vtx.size(), 3);
     // However if we advance height by 1 and time by 512, all of them should be mined
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++)
-        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime += 512; //Trick the MedianTimePast
+        chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime += 512; // Trick the MedianTimePast
     chainActive.Tip()->nHeight++;
     SetMockTime(chainActive.Tip()->GetMedianTimePast() + 1);
 

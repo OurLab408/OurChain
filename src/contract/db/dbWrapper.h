@@ -2,13 +2,13 @@
 #define CONTRACT_DB_WRAPPER_H
 
 #include "util.h"
+#include "json/json.hpp"
+#include <memory>
 #include <rocksdb/db.h>
 #include <rocksdb/utilities/backup_engine.h>
-#include <memory>
 #include <shared_mutex>
 #include <string>
 #include <vector>
-#include "json/json.hpp"
 
 using json = nlohmann::json;
 using WriteLock = std::unique_lock<std::shared_mutex>;
@@ -20,12 +20,13 @@ struct CheckpointInfo {
     std::string hash;
 };
 
-class ContractDBWrapper {
+class ContractDBWrapper
+{
 private:
     std::unique_ptr<rocksdb::DB> db;
     rocksdb::WriteOptions writeOptions;
     std::string dbPath;
-    
+
     mutable std::shared_mutex backup_mutex_;
 
     mutable std::unique_ptr<rocksdb::BackupEngine> backupEngine_;

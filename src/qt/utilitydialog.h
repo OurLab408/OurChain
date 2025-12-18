@@ -11,7 +11,7 @@
 class BitcoinGUI;
 
 namespace Ui {
-    class HelpMessageDialog;
+class HelpMessageDialog;
 }
 
 /** "Help message" dialog box */
@@ -27,7 +27,7 @@ public:
     void showOrPrint();
 
 private:
-    Ui::HelpMessageDialog *ui;
+    Ui::HelpMessageDialog* ui;
     QString text;
 
 private Q_SLOTS:
@@ -42,10 +42,10 @@ class ShutdownWindow : public QWidget
 
 public:
     ShutdownWindow(QWidget* parent = 0, Qt::WindowFlags f = 0);
-    static QWidget *showShutdownWindow(BitcoinGUI *window);
+    static QWidget* showShutdownWindow(BitcoinGUI* window);
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent* event);
 };
 
 #endif // BITCOIN_QT_UTILITYDIALOG_H

@@ -148,7 +148,7 @@ BOOST_AUTO_TEST_CASE(existing_data_no_obfuscate)
     BOOST_CHECK(odbw.Read(key, res2));
     BOOST_CHECK_EQUAL(res2.ToString(), in.ToString());
 
-    BOOST_CHECK(!odbw.IsEmpty()); // There should be existing data
+    BOOST_CHECK(!odbw.IsEmpty());                                       // There should be existing data
     BOOST_CHECK(is_null_key(dbwrapper_private::GetObfuscateKey(odbw))); // The key should be an empty string
 
     uint256 in2 = InsecureRand256();
@@ -202,9 +202,9 @@ BOOST_AUTO_TEST_CASE(iterator_ordering)
 {
     fs::path ph = fs::temp_directory_path() / fs::unique_path();
     CDBWrapper dbw(ph, (1 << 20), true, false, false);
-    for (int x=0x00; x<256; ++x) {
+    for (int x = 0x00; x < 256; ++x) {
         uint8_t key = x;
-        uint32_t value = x*x;
+        uint32_t value = x * x;
         BOOST_CHECK(dbw.Write(key, value));
     }
 
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE(iterator_ordering)
             BOOST_CHECK(it->GetKey(key));
             BOOST_CHECK(it->GetValue(value));
             BOOST_CHECK_EQUAL(key, x);
-            BOOST_CHECK_EQUAL(value, x*x);
+            BOOST_CHECK_EQUAL(value, x * x);
             it->Next();
         }
         BOOST_CHECK(!it->Valid());
@@ -234,7 +234,8 @@ struct StringContentsSerializer {
     StringContentsSerializer() {}
     StringContentsSerializer(const std::string& inp) : str(inp) {}
 
-    StringContentsSerializer& operator+=(const std::string& s) {
+    StringContentsSerializer& operator+=(const std::string& s)
+    {
         str += s;
         return *this;
     }
@@ -243,7 +244,8 @@ struct StringContentsSerializer {
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         if (ser_action.ForRead()) {
             str.clear();
             char c = 0;
@@ -268,13 +270,13 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering)
 
     fs::path ph = fs::temp_directory_path() / fs::unique_path();
     CDBWrapper dbw(ph, (1 << 20), true, false, false);
-    for (int x=0x00; x<10; ++x) {
+    for (int x = 0x00; x < 10; ++x) {
         for (int y = 0; y < 10; y++) {
             snprintf(buf, sizeof(buf), "%d", x);
             StringContentsSerializer key(buf);
             for (int z = 0; z < y; z++)
                 key += key;
-            uint32_t value = x*x;
+            uint32_t value = x * x;
             BOOST_CHECK(dbw.Write(key, value));
         }
     }
@@ -298,14 +300,13 @@ BOOST_AUTO_TEST_CASE(iterator_string_ordering)
                 BOOST_CHECK(it->GetKey(key));
                 BOOST_CHECK(it->GetValue(value));
                 BOOST_CHECK_EQUAL(key.str, exp_key);
-                BOOST_CHECK_EQUAL(value, x*x);
+                BOOST_CHECK_EQUAL(value, x * x);
                 it->Next();
             }
         }
         BOOST_CHECK(!it->Valid());
     }
 }
-
 
 
 BOOST_AUTO_TEST_SUITE_END()

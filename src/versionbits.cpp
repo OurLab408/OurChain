@@ -7,18 +7,17 @@
 
 const struct VBDeploymentInfo VersionBitsDeploymentInfo[Consensus::MAX_VERSION_BITS_DEPLOYMENTS] = {
     {
-        /*.name =*/ "testdummy",
-        /*.gbt_force =*/ true,
+        /*.name =*/"testdummy",
+        /*.gbt_force =*/true,
     },
     {
-        /*.name =*/ "csv",
-        /*.gbt_force =*/ true,
+        /*.name =*/"csv",
+        /*.gbt_force =*/true,
     },
     {
-        /*.name =*/ "segwit",
-        /*.gbt_force =*/ true,
-    }
-};
+        /*.name =*/"segwit",
+        /*.gbt_force =*/true,
+    }};
 
 ThresholdState AbstractThresholdConditionChecker::GetStateFor(const CBlockIndex* pindexPrev, const Consensus::Params& params, ThresholdConditionCache& cache) const
 {
@@ -122,14 +121,14 @@ BIP9Stats AbstractThresholdConditionChecker::GetStateStatisticsFor(const CBlockI
     // Count from current block to beginning of period
     int count = 0;
     const CBlockIndex* currentIndex = pindex;
-    while (pindexEndOfPrevPeriod->nHeight != currentIndex->nHeight){
+    while (pindexEndOfPrevPeriod->nHeight != currentIndex->nHeight) {
         if (Condition(currentIndex, params))
             count++;
         currentIndex = currentIndex->pprev;
     }
 
     stats.count = count;
-    stats.possible = (stats.period - stats.threshold ) >= (stats.elapsed - count);
+    stats.possible = (stats.period - stats.threshold) >= (stats.elapsed - count);
 
     return stats;
 }
@@ -164,12 +163,12 @@ int AbstractThresholdConditionChecker::GetStateSinceHeightFor(const CBlockIndex*
     return pindexPrev->nHeight + 1;
 }
 
-namespace
-{
+namespace {
 /**
  * Class to implement versionbits logic.
  */
-class VersionBitsConditionChecker : public AbstractThresholdConditionChecker {
+class VersionBitsConditionChecker : public AbstractThresholdConditionChecker
+{
 private:
     const Consensus::DeploymentPos id;
 

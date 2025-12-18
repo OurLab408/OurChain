@@ -49,7 +49,7 @@ struct BasicTestingSetup {
  * Included are data directory, coins database, script check threads setup.
  */
 class CConnman;
-struct TestingSetup: public BasicTestingSetup {
+struct TestingSetup : public BasicTestingSetup {
     CCoinsViewDB* pcoinsdbview;
     fs::path pathTemp;
     boost::thread_group threadGroup;
@@ -79,13 +79,12 @@ struct TestChain100Setup : public TestingSetup {
     ~TestChain100Setup();
 
     std::vector<CTransaction> coinbaseTxns; // For convenience, coinbase transactions
-    CKey coinbaseKey; // private/public key needed to spend coinbase transactions
+    CKey coinbaseKey;                       // private/public key needed to spend coinbase transactions
 };
 
 class CTxMemPoolEntry;
 
-struct TestMemPoolEntryHelper
-{
+struct TestMemPoolEntryHelper {
     // Default values
     CAmount nFee;
     int64_t nTime;
@@ -94,18 +93,37 @@ struct TestMemPoolEntryHelper
     unsigned int sigOpCost;
     LockPoints lp;
 
-    TestMemPoolEntryHelper() :
-        nFee(0), nTime(0), nHeight(1),
-        spendsCoinbase(false), sigOpCost(4) { }
+    TestMemPoolEntryHelper() : nFee(0), nTime(0), nHeight(1),
+                               spendsCoinbase(false), sigOpCost(4) {}
 
     CTxMemPoolEntry FromTx(const CMutableTransaction& tx);
     CTxMemPoolEntry FromTx(const CTransaction& tx);
 
     // Change the default value
-    TestMemPoolEntryHelper &Fee(CAmount _fee) { nFee = _fee; return *this; }
-    TestMemPoolEntryHelper &Time(int64_t _time) { nTime = _time; return *this; }
-    TestMemPoolEntryHelper &Height(unsigned int _height) { nHeight = _height; return *this; }
-    TestMemPoolEntryHelper &SpendsCoinbase(bool _flag) { spendsCoinbase = _flag; return *this; }
-    TestMemPoolEntryHelper &SigOpsCost(unsigned int _sigopsCost) { sigOpCost = _sigopsCost; return *this; }
+    TestMemPoolEntryHelper& Fee(CAmount _fee)
+    {
+        nFee = _fee;
+        return *this;
+    }
+    TestMemPoolEntryHelper& Time(int64_t _time)
+    {
+        nTime = _time;
+        return *this;
+    }
+    TestMemPoolEntryHelper& Height(unsigned int _height)
+    {
+        nHeight = _height;
+        return *this;
+    }
+    TestMemPoolEntryHelper& SpendsCoinbase(bool _flag)
+    {
+        spendsCoinbase = _flag;
+        return *this;
+    }
+    TestMemPoolEntryHelper& SigOpsCost(unsigned int _sigopsCost)
+    {
+        sigOpCost = _sigopsCost;
+        return *this;
+    }
 };
 #endif

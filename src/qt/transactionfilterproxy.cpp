@@ -28,7 +28,7 @@ TransactionFilterProxy::TransactionFilterProxy(QObject* parent) : QSortFilterPro
 {
 }
 
-bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
 {
     QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
 
@@ -58,7 +58,7 @@ bool TransactionFilterProxy::filterAcceptsRow(int sourceRow, const QModelIndex &
     return true;
 }
 
-void TransactionFilterProxy::setDateRange(const QDateTime &from, const QDateTime &to)
+void TransactionFilterProxy::setDateRange(const QDateTime& from, const QDateTime& to)
 {
     this->dateFrom = from;
     this->dateTo = to;
@@ -100,14 +100,11 @@ void TransactionFilterProxy::setShowInactive(bool _showInactive)
     invalidateFilter();
 }
 
-int TransactionFilterProxy::rowCount(const QModelIndex &parent) const
+int TransactionFilterProxy::rowCount(const QModelIndex& parent) const
 {
-    if(limitRows != -1)
-    {
+    if (limitRows != -1) {
         return std::min(QSortFilterProxyModel::rowCount(parent), limitRows);
-    }
-    else
-    {
+    } else {
         return QSortFilterProxyModel::rowCount(parent);
     }
 }

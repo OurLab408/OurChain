@@ -16,7 +16,8 @@ class CTransaction;
 struct CMutableTransaction;
 
 /** Virtual base class for signature creators. */
-class BaseSignatureCreator {
+class BaseSignatureCreator
+{
 protected:
     const CKeyStore* keystore;
 
@@ -24,7 +25,7 @@ public:
     BaseSignatureCreator(const CKeyStore* keystoreIn) : keystore(keystoreIn) {}
     const CKeyStore& KeyStore() const { return *keystore; };
     virtual ~BaseSignatureCreator() {}
-    virtual const BaseSignatureChecker& Checker() const =0;
+    virtual const BaseSignatureChecker& Checker() const = 0;
 
     /** Create a singular (non-script) signature. */
     virtual bool CreateSig(std::vector<unsigned char>& vchSig, const CKeyID& keyid, const CScript& scriptCode, SigVersion sigversion) const = 0;

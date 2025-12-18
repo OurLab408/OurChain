@@ -19,7 +19,7 @@ class CWalletTx;
 class WalletModelTransaction
 {
 public:
-    explicit WalletModelTransaction(const QList<SendCoinsRecipient> &recipients);
+    explicit WalletModelTransaction(const QList<SendCoinsRecipient>& recipients);
     ~WalletModelTransaction();
 
     QList<SendCoinsRecipient> getRecipients();

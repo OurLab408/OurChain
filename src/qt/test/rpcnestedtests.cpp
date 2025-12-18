@@ -42,7 +42,7 @@ void RPCNestedTests::rpcNestedTests()
     QDir dir(QString::fromStdString(path));
     dir.mkpath(".");
     gArgs.ForceSetArg("-datadir", path);
-    //mempool.setSanityCheck(1.0);
+    // mempool.setSanityCheck(1.0);
 
     TestingSetup test;
 
@@ -52,7 +52,7 @@ void RPCNestedTests::rpcNestedTests()
     std::string result2;
     std::string filtered;
     RPCConsole::RPCExecuteCommandLine(result, "getblockchaininfo()[chain]", &filtered); // simple result filtering with path
-    QVERIFY(result=="main");
+    QVERIFY(result == "main");
     QVERIFY(filtered == "getblockchaininfo()[chain]");
 
     RPCConsole::RPCExecuteCommandLine(result, "getblock(getbestblockhash())"); // simple 2 level nesting
@@ -61,13 +61,13 @@ void RPCNestedTests::rpcNestedTests()
     RPCConsole::RPCExecuteCommandLine(result, "getblock( getblock( getblock(getbestblockhash())[hash] )[hash], true)"); // 4 level nesting with whitespace, filtering path and boolean parameter
 
     RPCConsole::RPCExecuteCommandLine(result, "getblockchaininfo");
-    QVERIFY(result.substr(0,1) == "{");
+    QVERIFY(result.substr(0, 1) == "{");
 
     RPCConsole::RPCExecuteCommandLine(result, "getblockchaininfo()");
-    QVERIFY(result.substr(0,1) == "{");
+    QVERIFY(result.substr(0, 1) == "{");
 
     RPCConsole::RPCExecuteCommandLine(result, "getblockchaininfo "); // whitespace at the end will be tolerated
-    QVERIFY(result.substr(0,1) == "{");
+    QVERIFY(result.substr(0, 1) == "{");
 
     (RPCConsole::RPCExecuteCommandLine(result, "getblockchaininfo()[\"chain\"]")); // Quote path identifier are allowed, but look after a child contaning the quotes in the key
     QVERIFY(result == "null");

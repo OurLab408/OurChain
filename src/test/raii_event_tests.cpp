@@ -22,7 +22,8 @@ static std::map<void*, short> tags;
 static std::map<void*, uint16_t> orders;
 static uint16_t tagSequence = 0;
 
-static void* tag_malloc(size_t sz) {
+static void* tag_malloc(size_t sz)
+{
     void* mem = malloc(sz);
     if (!mem) return mem;
     tags[mem]++;
@@ -30,7 +31,8 @@ static void* tag_malloc(size_t sz) {
     return mem;
 }
 
-static void tag_free(void* mem) {
+static void tag_free(void* mem)
+{
     tags[mem]--;
     orders[mem] = tagSequence++;
     free(mem);
@@ -91,4 +93,4 @@ BOOST_AUTO_TEST_CASE(raii_event_order)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-#endif  // EVENT_SET_MEM_FUNCTIONS_IMPLEMENTED
+#endif // EVENT_SET_MEM_FUNCTIONS_IMPLEMENTED

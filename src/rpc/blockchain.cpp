@@ -31,11 +31,10 @@
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
-struct CUpdatedBlock
-{
+struct CUpdatedBlock {
     uint256 hash;
     int height;
 };
@@ -48,8 +47,7 @@ extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& 
 
 double GetDifficulty(const CBlockIndex* blockindex)
 {
-    if (blockindex == nullptr)
-    {
+    if (blockindex == nullptr) {
         if (chainActive.Tip() == nullptr)
             return 1.0;
         else
@@ -61,13 +59,11 @@ double GetDifficulty(const CBlockIndex* blockindex)
     double dDiff =
         (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
 
-    while (nShift < 29)
-    {
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
@@ -102,7 +98,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex* pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
@@ -126,15 +122,12 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     result.push_back(Pair("contractstate", block.hashContractState.GetHex()));
     UniValue txs(UniValue::VARR);
-    for(const auto& tx : block.vtx)
-    {
-        if(txDetails)
-        {
+    for (const auto& tx : block.vtx) {
+        if (txDetails) {
             UniValue objTx(UniValue::VOBJ);
             TxToUniv(*tx, uint256(), objTx, true, RPCSerializationFlags());
             txs.push_back(objTx);
-        }
-        else
+        } else
             txs.push_back(tx->GetHash().GetHex());
     }
     result.push_back(Pair("tx", txs));
@@ -154,7 +147,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex* pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
@@ -168,10 +161,8 @@ UniValue getblockcount(const JSONRPCRequest& request)
             "\nReturns the number of blocks in the longest blockchain.\n"
             "\nResult:\n"
             "n    (numeric) The current block count\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockcount", "") + HelpExampleRpc("getblockcount", ""));
 
     LOCK(cs_main);
     return chainActive.Height();
@@ -185,18 +176,16 @@ UniValue getbestblockhash(const JSONRPCRequest& request)
             "\nReturns the hash of the best (tip) block in the longest blockchain.\n"
             "\nResult:\n"
             "\"hex\"      (string) the block hash hex encoded\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getbestblockhash", "")
-            + HelpExampleRpc("getbestblockhash", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getbestblockhash", "") + HelpExampleRpc("getbestblockhash", ""));
 
     LOCK(cs_main);
     return chainActive.Tip()->GetBlockHash().GetHex();
 }
 
-void RPCNotifyBlockChange(bool ibd, const CBlockIndex * pindex)
+void RPCNotifyBlockChange(bool ibd, const CBlockIndex* pindex)
 {
-    if(pindex) {
+    if (pindex) {
         std::lock_guard<std::mutex> lock(cs_blockchange);
         latestblock.hash = pindex->GetBlockHash();
         latestblock.height = pindex->nHeight;
@@ -218,10 +207,8 @@ UniValue waitfornewblock(const JSONRPCRequest& request)
             "  \"hash\" : {       (string) The blockhash\n"
             "  \"height\" : {     (int) Block height\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("waitfornewblock", "1000")
-            + HelpExampleRpc("waitfornewblock", "1000")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("waitfornewblock", "1000") + HelpExampleRpc("waitfornewblock", "1000"));
     int timeout = 0;
     if (!request.params[0].isNull())
         timeout = request.params[0].get_int();
@@ -230,10 +217,10 @@ UniValue waitfornewblock(const JSONRPCRequest& request)
     {
         std::unique_lock<std::mutex> lock(cs_blockchange);
         block = latestblock;
-        if(timeout)
-            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&block]{return latestblock.height != block.height || latestblock.hash != block.hash || !IsRPCRunning(); });
+        if (timeout)
+            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&block] { return latestblock.height != block.height || latestblock.hash != block.hash || !IsRPCRunning(); });
         else
-            cond_blockchange.wait(lock, [&block]{return latestblock.height != block.height || latestblock.hash != block.hash || !IsRPCRunning(); });
+            cond_blockchange.wait(lock, [&block] { return latestblock.height != block.height || latestblock.hash != block.hash || !IsRPCRunning(); });
         block = latestblock;
     }
     UniValue ret(UniValue::VOBJ);
@@ -257,10 +244,8 @@ UniValue waitforblock(const JSONRPCRequest& request)
             "  \"hash\" : {       (string) The blockhash\n"
             "  \"height\" : {     (int) Block height\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\", 1000")
-            + HelpExampleRpc("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\", 1000")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\", 1000") + HelpExampleRpc("waitforblock", "\"0000000000079f8ef3d2c688c244eb7a4570b24c9ed7b4a8c619eb02596f8862\", 1000"));
     int timeout = 0;
 
     uint256 hash = uint256S(request.params[0].get_str());
@@ -271,10 +256,10 @@ UniValue waitforblock(const JSONRPCRequest& request)
     CUpdatedBlock block;
     {
         std::unique_lock<std::mutex> lock(cs_blockchange);
-        if(timeout)
-            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&hash]{return latestblock.hash == hash || !IsRPCRunning();});
+        if (timeout)
+            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&hash] { return latestblock.hash == hash || !IsRPCRunning(); });
         else
-            cond_blockchange.wait(lock, [&hash]{return latestblock.hash == hash || !IsRPCRunning(); });
+            cond_blockchange.wait(lock, [&hash] { return latestblock.hash == hash || !IsRPCRunning(); });
         block = latestblock;
     }
 
@@ -300,10 +285,8 @@ UniValue waitforblockheight(const JSONRPCRequest& request)
             "  \"hash\" : {       (string) The blockhash\n"
             "  \"height\" : {     (int) Block height\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("waitforblockheight", "\"100\", 1000")
-            + HelpExampleRpc("waitforblockheight", "\"100\", 1000")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("waitforblockheight", "\"100\", 1000") + HelpExampleRpc("waitforblockheight", "\"100\", 1000"));
     int timeout = 0;
 
     int height = request.params[0].get_int();
@@ -314,10 +297,10 @@ UniValue waitforblockheight(const JSONRPCRequest& request)
     CUpdatedBlock block;
     {
         std::unique_lock<std::mutex> lock(cs_blockchange);
-        if(timeout)
-            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&height]{return latestblock.height >= height || !IsRPCRunning();});
+        if (timeout)
+            cond_blockchange.wait_for(lock, std::chrono::milliseconds(timeout), [&height] { return latestblock.height >= height || !IsRPCRunning(); });
         else
-            cond_blockchange.wait(lock, [&height]{return latestblock.height >= height || !IsRPCRunning(); });
+            cond_blockchange.wait(lock, [&height] { return latestblock.height >= height || !IsRPCRunning(); });
         block = latestblock;
     }
     UniValue ret(UniValue::VOBJ);
@@ -334,10 +317,8 @@ UniValue getdifficulty(const JSONRPCRequest& request)
             "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
             "\nResult:\n"
             "n.nnn       (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getdifficulty", "")
-            + HelpExampleRpc("getdifficulty", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getdifficulty", "") + HelpExampleRpc("getdifficulty", ""));
 
     LOCK(cs_main);
     return GetDifficulty();
@@ -379,15 +360,13 @@ void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
     info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
     const CTransaction& tx = e.GetTx();
     std::set<std::string> setDepends;
-    for (const CTxIn& txin : tx.vin)
-    {
+    for (const CTxIn& txin : tx.vin) {
         if (mempool.exists(txin.prevout.hash))
             setDepends.insert(txin.prevout.hash.ToString());
     }
 
     UniValue depends(UniValue::VARR);
-    for (const std::string& dep : setDepends)
-    {
+    for (const std::string& dep : setDepends) {
         depends.push_back(dep);
     }
 
@@ -396,21 +375,17 @@ void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
 
 UniValue mempoolToJSON(bool fVerbose)
 {
-    if (fVerbose)
-    {
+    if (fVerbose) {
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
-        for (const CTxMemPoolEntry& e : mempool.mapTx)
-        {
+        for (const CTxMemPoolEntry& e : mempool.mapTx) {
             const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
             o.push_back(Pair(hash.ToString(), info));
         }
         return o;
-    }
-    else
-    {
+    } else {
         std::vector<uint256> vtxid;
         mempool.queryHashes(vtxid);
 
@@ -438,14 +413,11 @@ UniValue getrawmempool(const JSONRPCRequest& request)
             "]\n"
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getrawmempool", "true")
-            + HelpExampleRpc("getrawmempool", "true")
-        );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples:\n" +
+            HelpExampleCli("getrawmempool", "true") + HelpExampleRpc("getrawmempool", "true"));
 
     bool fVerbose = false;
     if (!request.params[0].isNull())
@@ -470,14 +442,11 @@ UniValue getmempoolancestors(const JSONRPCRequest& request)
             "]\n"
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmempoolancestors", "\"mytxid\"")
-            + HelpExampleRpc("getmempoolancestors", "\"mytxid\"")
-            );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples:\n" +
+            HelpExampleCli("getmempoolancestors", "\"mytxid\"") + HelpExampleRpc("getmempoolancestors", "\"mytxid\""));
     }
 
     bool fVerbose = false;
@@ -508,7 +477,7 @@ UniValue getmempoolancestors(const JSONRPCRequest& request)
     } else {
         UniValue o(UniValue::VOBJ);
         for (CTxMemPool::txiter ancestorIt : setAncestors) {
-            const CTxMemPoolEntry &e = *ancestorIt;
+            const CTxMemPoolEntry& e = *ancestorIt;
             const uint256& _hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
@@ -534,14 +503,11 @@ UniValue getmempooldescendants(const JSONRPCRequest& request)
             "]\n"
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmempooldescendants", "\"mytxid\"")
-            + HelpExampleRpc("getmempooldescendants", "\"mytxid\"")
-            );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples:\n" +
+            HelpExampleCli("getmempooldescendants", "\"mytxid\"") + HelpExampleRpc("getmempooldescendants", "\"mytxid\""));
     }
 
     bool fVerbose = false;
@@ -572,7 +538,7 @@ UniValue getmempooldescendants(const JSONRPCRequest& request)
     } else {
         UniValue o(UniValue::VOBJ);
         for (CTxMemPool::txiter descendantIt : setDescendants) {
-            const CTxMemPoolEntry &e = *descendantIt;
+            const CTxMemPoolEntry& e = *descendantIt;
             const uint256& _hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
@@ -591,13 +557,10 @@ UniValue getmempoolentry(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"txid\"                   (string, required) The transaction id (must be in mempool)\n"
             "\nResult:\n"
-            "{                           (json object)\n"
-            + EntryDescriptionString()
-            + "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmempoolentry", "\"mytxid\"")
-            + HelpExampleRpc("getmempoolentry", "\"mytxid\"")
-        );
+            "{                           (json object)\n" +
+            EntryDescriptionString() + "}\n"
+                                       "\nExamples:\n" +
+            HelpExampleCli("getmempoolentry", "\"mytxid\"") + HelpExampleRpc("getmempoolentry", "\"mytxid\""));
     }
 
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
@@ -609,7 +572,7 @@ UniValue getmempoolentry(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not in mempool");
     }
 
-    const CTxMemPoolEntry &e = *it;
+    const CTxMemPoolEntry& e = *it;
     UniValue info(UniValue::VOBJ);
     entryToJSON(info, e);
     return info;
@@ -625,10 +588,8 @@ UniValue getblockhash(const JSONRPCRequest& request)
             "1. height         (numeric, required) The height index\n"
             "\nResult:\n"
             "\"hash\"         (string) The block hash\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockhash", "1000")
-            + HelpExampleRpc("getblockhash", "1000")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockhash", "1000") + HelpExampleRpc("getblockhash", "1000"));
 
     LOCK(cs_main);
 
@@ -669,10 +630,8 @@ UniValue getblockheader(const JSONRPCRequest& request)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
 
     LOCK(cs_main);
 
@@ -688,8 +647,7 @@ UniValue getblockheader(const JSONRPCRequest& request)
 
     CBlockIndex* pblockindex = mapBlockIndex[hash];
 
-    if (!fVerbose)
-    {
+    if (!fVerbose) {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
         ssBlock << pblockindex->GetBlockHeader();
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
@@ -744,10 +702,8 @@ UniValue getblock(const JSONRPCRequest& request)
             "  ],\n"
             "  ,...                     Same output as verbosity = 1.\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
 
     LOCK(cs_main);
 
@@ -756,7 +712,7 @@ UniValue getblock(const JSONRPCRequest& request)
 
     int verbosity = 1;
     if (!request.params[1].isNull()) {
-        if(request.params[1].isNum())
+        if (request.params[1].isNum())
             verbosity = request.params[1].get_int();
         else
             verbosity = request.params[1].get_bool() ? 1 : 0;
@@ -779,8 +735,7 @@ UniValue getblock(const JSONRPCRequest& request)
         // block).
         throw JSONRPCError(RPC_MISC_ERROR, "Block not found on disk");
 
-    if (verbosity <= 0)
-    {
+    if (verbosity <= 0) {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION | RPCSerializationFlags());
         ssBlock << block;
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
@@ -790,8 +745,7 @@ UniValue getblock(const JSONRPCRequest& request)
     return blockToJSON(block, pblockindex, verbosity >= 2);
 }
 
-struct CCoinsStats
-{
+struct CCoinsStats {
     int nHeight;
     uint256 hashBlock;
     uint64_t nTransactions;
@@ -804,7 +758,7 @@ struct CCoinsStats
     CCoinsStats() : nHeight(0), nTransactions(0), nTransactionOutputs(0), nBogoSize(0), nDiskSize(0), nTotalAmount(0) {}
 };
 
-static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash, const std::map<uint32_t, Coin>& outputs)
+static void ApplyStats(CCoinsStats& stats, CHashWriter& ss, const uint256& hash, const std::map<uint32_t, Coin>& outputs)
 {
     assert(!outputs.empty());
     ss << hash;
@@ -823,7 +777,7 @@ static void ApplyStats(CCoinsStats &stats, CHashWriter& ss, const uint256& hash,
 }
 
 //! Calculate statistics about the unspent transaction output set
-static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats)
+static bool GetUTXOStats(CCoinsView* view, CCoinsStats& stats)
 {
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
 
@@ -870,9 +824,8 @@ UniValue pruneblockchain(const JSONRPCRequest& request)
             "                  to prune blocks whose block time is at least 2 hours older than the provided timestamp.\n"
             "\nResult:\n"
             "n    (numeric) Height of the last block pruned.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("pruneblockchain", "1000")
-            + HelpExampleRpc("pruneblockchain", "1000"));
+            "\nExamples:\n" +
+            HelpExampleCli("pruneblockchain", "1000") + HelpExampleRpc("pruneblockchain", "1000"));
 
     if (!fPruneMode)
         throw JSONRPCError(RPC_MISC_ERROR, "Cannot prune blocks because node is not in prune mode.");
@@ -894,8 +847,8 @@ UniValue pruneblockchain(const JSONRPCRequest& request)
         heightParam = pindex->nHeight;
     }
 
-    unsigned int height = (unsigned int) heightParam;
-    unsigned int chainHeight = (unsigned int) chainActive.Height();
+    unsigned int height = (unsigned int)heightParam;
+    unsigned int chainHeight = (unsigned int)chainActive.Height();
     if (chainHeight < Params().PruneAfterHeight())
         throw JSONRPCError(RPC_MISC_ERROR, "Blockchain is too short for pruning.");
     else if (height > chainHeight)
@@ -1035,14 +988,14 @@ UniValue verifychain(const JSONRPCRequest& request)
             "verifychain ( checklevel nblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
-            "1. checklevel   (numeric, optional, 0-4, default=" + strprintf("%d", nCheckLevel) + ") How thorough the block verification is.\n"
-            "2. nblocks      (numeric, optional, default=" + strprintf("%d", nCheckDepth) + ", 0=all) The number of blocks to check.\n"
-            "\nResult:\n"
-            "true|false       (boolean) Verified or not\n"
-            "\nExamples:\n"
-            + HelpExampleCli("verifychain", "")
-            + HelpExampleRpc("verifychain", "")
-        );
+            "1. checklevel   (numeric, optional, 0-4, default=" +
+            strprintf("%d", nCheckLevel) + ") How thorough the block verification is.\n"
+                                           "2. nblocks      (numeric, optional, default=" +
+            strprintf("%d", nCheckDepth) + ", 0=all) The number of blocks to check.\n"
+                                           "\nResult:\n"
+                                           "true|false       (boolean) Verified or not\n"
+                                           "\nExamples:\n" +
+            HelpExampleCli("verifychain", "") + HelpExampleRpc("verifychain", ""));
 
     LOCK(cs_main);
 
@@ -1059,23 +1012,22 @@ static UniValue SoftForkMajorityDesc(int version, CBlockIndex* pindex, const Con
 {
     UniValue rv(UniValue::VOBJ);
     bool activated = false;
-    switch(version)
-    {
-        case 2:
-            activated = pindex->nHeight >= consensusParams.BIP34Height;
-            break;
-        case 3:
-            activated = pindex->nHeight >= consensusParams.BIP66Height;
-            break;
-        case 4:
-            activated = pindex->nHeight >= consensusParams.BIP65Height;
-            break;
+    switch (version) {
+    case 2:
+        activated = pindex->nHeight >= consensusParams.BIP34Height;
+        break;
+    case 3:
+        activated = pindex->nHeight >= consensusParams.BIP66Height;
+        break;
+    case 4:
+        activated = pindex->nHeight >= consensusParams.BIP65Height;
+        break;
     }
     rv.push_back(Pair("status", activated));
     return rv;
 }
 
-static UniValue SoftForkDesc(const std::string &name, int version, CBlockIndex* pindex, const Consensus::Params& consensusParams)
+static UniValue SoftForkDesc(const std::string& name, int version, CBlockIndex* pindex, const Consensus::Params& consensusParams)
 {
     UniValue rv(UniValue::VOBJ);
     rv.push_back(Pair("id", name));
@@ -1206,15 +1158,14 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
 }
 
 /** Comparison function for sorting the getchaintips heads.  */
-struct CompareBlocksByHeight
-{
+struct CompareBlocksByHeight {
     bool operator()(const CBlockIndex* a, const CBlockIndex* b) const
     {
         /* Make sure that unequal blocks with the same height do not compare
            equal. Use the pointers themselves to make a distinction. */
 
         if (a->nHeight != b->nHeight)
-          return (a->nHeight > b->nHeight);
+            return (a->nHeight > b->nHeight);
 
         return a < b;
     }
@@ -1248,10 +1199,8 @@ UniValue getchaintips(const JSONRPCRequest& request)
             "3.  \"valid-headers\"         All blocks are available for this branch, but they were never fully validated\n"
             "4.  \"valid-fork\"            This branch is not part of the active chain, but is fully validated\n"
             "5.  \"active\"                This is the tip of the active main chain, which is certainly valid\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getchaintips", "")
-            + HelpExampleRpc("getchaintips", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getchaintips", "") + HelpExampleRpc("getchaintips", ""));
 
     LOCK(cs_main);
 
@@ -1266,16 +1215,14 @@ UniValue getchaintips(const JSONRPCRequest& request)
     std::set<const CBlockIndex*> setOrphans;
     std::set<const CBlockIndex*> setPrevs;
 
-    for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex)
-    {
+    for (const std::pair<const uint256, CBlockIndex*>& item : mapBlockIndex) {
         if (!chainActive.Contains(item.second)) {
             setOrphans.insert(item.second);
             setPrevs.insert(item.second->pprev);
         }
     }
 
-    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it)
-    {
+    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it) {
         if (setPrevs.erase(*it) == 0) {
             setTips.insert(*it);
         }
@@ -1286,8 +1233,7 @@ UniValue getchaintips(const JSONRPCRequest& request)
 
     /* Construct the output array.  */
     UniValue res(UniValue::VARR);
-    for (const CBlockIndex* block : setTips)
-    {
+    for (const CBlockIndex* block : setTips) {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("height", block->nHeight));
         obj.push_back(Pair("hash", block->phashBlock->GetHex()));
@@ -1368,10 +1314,8 @@ UniValue preciousblock(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"blockhash\"   (string, required) the hash of the block to mark as precious\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("preciousblock", "\"blockhash\"")
-            + HelpExampleRpc("preciousblock", "\"blockhash\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("preciousblock", "\"blockhash\"") + HelpExampleRpc("preciousblock", "\"blockhash\""));
 
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -1404,10 +1348,8 @@ UniValue invalidateblock(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"blockhash\"   (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("invalidateblock", "\"blockhash\"")
-            + HelpExampleRpc("invalidateblock", "\"blockhash\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("invalidateblock", "\"blockhash\"") + HelpExampleRpc("invalidateblock", "\"blockhash\""));
 
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -1443,10 +1385,8 @@ UniValue reconsiderblock(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"blockhash\"   (string, required) the hash of the block to reconsider\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("reconsiderblock", "\"blockhash\"")
-            + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("reconsiderblock", "\"blockhash\"") + HelpExampleRpc("reconsiderblock", "\"blockhash\""));
 
     std::string strHash = request.params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -1566,7 +1506,7 @@ static const CRPCCommand commands[] =
         {"hidden", "waitforblockheight", &waitforblockheight, true, {"height", "timeout"}},
 };
 
-void RegisterBlockchainRPCCommands(CRPCTable &t)
+void RegisterBlockchainRPCCommands(CRPCTable& t)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);

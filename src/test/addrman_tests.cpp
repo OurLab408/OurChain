@@ -229,11 +229,11 @@ BOOST_AUTO_TEST_CASE(addrman_new_collisions)
         CService addr = ResolveService("250.1.1." + boost::to_string(i));
         addrman.Add(CAddress(addr, NODE_NONE), source);
 
-        //Test: No collision in new table yet.
+        // Test: No collision in new table yet.
         BOOST_CHECK_EQUAL(addrman.size(), i);
     }
 
-    //Test: new table collision!
+    // Test: new table collision!
     CService addr1 = ResolveService("250.1.1.18");
     addrman.Add(CAddress(addr1, NODE_NONE), source);
     BOOST_CHECK_EQUAL(addrman.size(), 17);
@@ -256,11 +256,11 @@ BOOST_AUTO_TEST_CASE(addrman_tried_collisions)
         addrman.Add(CAddress(addr, NODE_NONE), source);
         addrman.Good(CAddress(addr, NODE_NONE));
 
-        //Test: No collision in tried table yet.
+        // Test: No collision in tried table yet.
         BOOST_CHECK_EQUAL(addrman.size(), i);
     }
 
-    //Test: tried table collision!
+    // Test: tried table collision!
     CService addr1 = ResolveService("250.1.1.80");
     addrman.Add(CAddress(addr1, NODE_NONE), source);
     BOOST_CHECK_EQUAL(addrman.size(), 79);
@@ -503,7 +503,7 @@ BOOST_AUTO_TEST_CASE(caddrinfo_get_new_bucket)
                                         ResolveService(
                                             boost::to_string(250 + (j / 255)) + "." + boost::to_string(j % 256) + ".1.1"),
                                         NODE_NONE),
-            ResolveIP("251.4.1.1"));
+                                    ResolveIP("251.4.1.1"));
         int bucket = infoj.GetNewBucket(nKey1);
         buckets.insert(bucket);
     }

@@ -220,8 +220,7 @@ UniValue validateaddress(const JSONRPCRequest& request)
 
     UniValue ret(UniValue::VOBJ);
     ret.push_back(Pair("isvalid", isValid));
-    if (isValid)
-    {
+    if (isValid) {
         CTxDestination dest = address.Get();
         std::string currentAddress = address.ToString();
         ret.push_back(Pair("address", currentAddress));
@@ -276,7 +275,7 @@ CScript _createmultisig_redeemScript(CWallet* const pwallet, const UniValue& par
         throw std::runtime_error(
             strprintf("not enough keys supplied "
                       "(got %u keys, but need at least %d to redeem)",
-                keys.size(), nRequired));
+                      keys.size(), nRequired));
     if (keys.size() > 16)
         throw std::runtime_error("Number of addresses involved in the multisignature address creation > 16\nReduce the number");
     std::vector<CPubKey> pubkeys;
@@ -381,21 +380,17 @@ UniValue verifymessage(const JSONRPCRequest& request)
             "\nResult:\n"
             "true|false   (boolean) If the signature is verified or not.\n"
             "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
-            "\nCreate the signature\n"
-            + HelpExampleCli("signmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"my message\"") +
-            "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"signature\" \"my message\"") +
-            "\nAs json rpc\n"
-            + HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"signature\", \"my message\"")
-        );
+            "\nUnlock the wallet for 30 seconds\n" +
+            HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
+            "\nCreate the signature\n" + HelpExampleCli("signmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"my message\"") +
+            "\nVerify the signature\n" + HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"signature\" \"my message\"") +
+            "\nAs json rpc\n" + HelpExampleRpc("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\", \"signature\", \"my message\""));
 
     LOCK(cs_main);
 
-    std::string strAddress  = request.params[0].get_str();
-    std::string strSign     = request.params[1].get_str();
-    std::string strMessage  = request.params[2].get_str();
+    std::string strAddress = request.params[0].get_str();
+    std::string strSign = request.params[1].get_str();
+    std::string strMessage = request.params[2].get_str();
 
     CBitcoinAddress addr(strAddress);
     if (!addr.IsValid())
@@ -434,13 +429,10 @@ UniValue signmessagewithprivkey(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
             "\nExamples:\n"
-            "\nCreate the signature\n"
-            + HelpExampleCli("signmessagewithprivkey", "\"privkey\" \"my message\"") +
-            "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"signature\" \"my message\"") +
-            "\nAs json rpc\n"
-            + HelpExampleRpc("signmessagewithprivkey", "\"privkey\", \"my message\"")
-        );
+            "\nCreate the signature\n" +
+            HelpExampleCli("signmessagewithprivkey", "\"privkey\" \"my message\"") +
+            "\nVerify the signature\n" + HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"signature\" \"my message\"") +
+            "\nAs json rpc\n" + HelpExampleRpc("signmessagewithprivkey", "\"privkey\", \"my message\""));
 
     std::string strPrivkey = request.params[0].get_str();
     std::string strMessage = request.params[1].get_str();
@@ -472,8 +464,7 @@ UniValue setmocktime(const JSONRPCRequest& request)
             "\nSet the local time to given timestamp (-regtest only)\n"
             "\nArguments:\n"
             "1. timestamp  (integer, required) Unix seconds-since-epoch timestamp\n"
-            "   Pass 0 to go back to using the system time."
-        );
+            "   Pass 0 to go back to using the system time.");
 
     if (!Params().MineBlocksOnDemand())
         throw std::runtime_error("setmocktime for regression testing (-regtest mode) only");
@@ -507,9 +498,9 @@ static UniValue RPCLockedMemoryInfo()
 #ifdef HAVE_MALLOC_INFO
 static std::string RPCMallocInfo()
 {
-    char *ptr = nullptr;
+    char* ptr = nullptr;
     size_t size = 0;
-    FILE *f = open_memstream(&ptr, &size);
+    FILE* f = open_memstream(&ptr, &size);
     if (f) {
         malloc_info(0, f);
         fclose(f);
@@ -549,10 +540,8 @@ UniValue getmemoryinfo(const JSONRPCRequest& request)
             "}\n"
             "\nResult (mode \"mallocinfo\"):\n"
             "\"<malloc version=\"1\">...\"\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmemoryinfo", "")
-            + HelpExampleRpc("getmemoryinfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getmemoryinfo", "") + HelpExampleRpc("getmemoryinfo", ""));
 
     std::string mode = (request.params.size() < 1 || request.params[0].isNull()) ? "stats" : request.params[0].get_str();
     if (mode == "stats") {
@@ -644,8 +633,7 @@ UniValue echo(const JSONRPCRequest& request)
             "echo|echojson \"message\" ...\n"
             "\nSimply echo back the input arguments. This command is for testing.\n"
             "\nThe difference between echo and echojson is that echojson has argument conversion enabled in the client-side table in"
-            "bitcoin-cli and the GUI. There is no server-side difference."
-        );
+            "bitcoin-cli and the GUI. There is no server-side difference.");
 
     return request.params;
 }
@@ -668,7 +656,7 @@ static const CRPCCommand commands[] =
         {"hidden", "logging", &logging, true, {"include", "exclude"}},
 };
 
-void RegisterMiscRPCCommands(CRPCTable &t)
+void RegisterMiscRPCCommands(CRPCTable& t)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);

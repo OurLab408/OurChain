@@ -24,8 +24,8 @@
 #endif
 
 #ifdef HAVE_SYS_GETRANDOM
-#include <sys/syscall.h>
 #include <linux/random.h>
+#include <sys/syscall.h>
 #endif
 #if defined(HAVE_GETENTROPY) || (defined(HAVE_GETENTROPY_RAND) && defined(MAC_OSX))
 #include <unistd.h>
@@ -60,11 +60,11 @@ static inline int64_t GetPerformanceCounter()
     return __rdtsc();
 #elif !defined(_MSC_VER) && defined(__i386__)
     uint64_t r = 0;
-    __asm__ volatile ("rdtsc" : "=A"(r)); // Constrain the r variable to the eax:edx pair.
+    __asm__ volatile("rdtsc" : "=A"(r)); // Constrain the r variable to the eax:edx pair.
     return r;
 #elif !defined(_MSC_VER) && (defined(__x86_64__) || defined(__amd64__))
     uint64_t r1 = 0, r2 = 0;
-    __asm__ volatile ("rdtsc" : "=a"(r1), "=d"(r2)); // Constrain r1 to rax and r2 to rdx.
+    __asm__ volatile("rdtsc" : "=a"(r1), "=d"(r2)); // Constrain r1 to rax and r2 to rdx.
     return (r2 << 32) | r1;
 #else
     // Fall back to using C++11 clock (usually microsecond or nanosecond precision)
@@ -90,7 +90,8 @@ static void RDRandInit()
 static void RDRandInit() {}
 #endif
 
-static bool GetHWRand(unsigned char* ent32) {
+static bool GetHWRand(unsigned char* ent32)
+{
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
     assert(hwrand_initialized.load(std::memory_order_relaxed));
     if (rdrand_supported) {
@@ -99,22 +100,20 @@ static bool GetHWRand(unsigned char* ent32) {
 #ifdef __i386__
         for (int iter = 0; iter < 4; ++iter) {
             uint32_t r1, r2;
-            __asm__ volatile (".byte 0x0f, 0xc7, 0xf0;" // rdrand %eax
-                              ".byte 0x0f, 0xc7, 0xf2;" // rdrand %edx
-                              "setc %2" :
-                              "=a"(r1), "=d"(r2), "=q"(ok) :: "cc");
+            __asm__ volatile(".byte 0x0f, 0xc7, 0xf0;" // rdrand %eax
+                             ".byte 0x0f, 0xc7, 0xf2;" // rdrand %edx
+                             "setc %2" : "=a"(r1), "=d"(r2), "=q"(ok)::"cc");
             if (!ok) return false;
             WriteLE32(ent32 + 8 * iter, r1);
             WriteLE32(ent32 + 8 * iter + 4, r2);
         }
 #else
         uint64_t r1, r2, r3, r4;
-        __asm__ volatile (".byte 0x48, 0x0f, 0xc7, 0xf0, " // rdrand %rax
-                                "0x48, 0x0f, 0xc7, 0xf3, " // rdrand %rbx
-                                "0x48, 0x0f, 0xc7, 0xf1, " // rdrand %rcx
-                                "0x48, 0x0f, 0xc7, 0xf2; " // rdrand %rdx
-                          "setc %4" :
-                          "=a"(r1), "=b"(r2), "=c"(r3), "=d"(r4), "=q"(ok) :: "cc");
+        __asm__ volatile(".byte 0x48, 0x0f, 0xc7, 0xf0, " // rdrand %rax
+                         "0x48, 0x0f, 0xc7, 0xf3, "       // rdrand %rbx
+                         "0x48, 0x0f, 0xc7, 0xf1, "       // rdrand %rcx
+                         "0x48, 0x0f, 0xc7, 0xf2; "       // rdrand %rdx
+                         "setc %4" : "=a"(r1), "=b"(r2), "=c"(r3), "=d"(r4), "=q"(ok)::"cc");
         if (!ok) return false;
         WriteLE64(ent32, r1);
         WriteLE64(ent32 + 8, r2);
@@ -199,7 +198,7 @@ void GetDevURandom(unsigned char* ent32)
 #endif
 
 /** Get 32 bytes of system entropy. */
-void GetOSRand(unsigned char *ent32)
+void GetOSRand(unsigned char* ent32)
 {
 #if defined(WIN32)
     HCRYPTPROV hProvider;
@@ -298,7 +297,8 @@ static std::mutex cs_rng_state;
 static unsigned char rng_state[32] = {0};
 static uint64_t rng_counter = 0;
 
-static void AddDataToRng(void* data, size_t len) {
+static void AddDataToRng(void* data, size_t len)
+{
     CSHA512 hasher;
     hasher.Write((const unsigned char*)&len, sizeof(len));
     hasher.Write((const unsigned char*)data, len);
@@ -425,12 +425,12 @@ bool Random_SanityCheck()
     do {
         memset(data, 0, NUM_OS_RANDOM_BYTES);
         GetOSRand(data);
-        for (int x=0; x < NUM_OS_RANDOM_BYTES; ++x) {
+        for (int x = 0; x < NUM_OS_RANDOM_BYTES; ++x) {
             overwritten[x] |= (data[x] != 0);
         }
 
         num_overwritten = 0;
-        for (int x=0; x < NUM_OS_RANDOM_BYTES; ++x) {
+        for (int x = 0; x < NUM_OS_RANDOM_BYTES; ++x) {
             if (overwritten[x]) {
                 num_overwritten += 1;
             }

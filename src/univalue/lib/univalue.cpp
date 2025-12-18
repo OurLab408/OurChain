@@ -223,7 +223,7 @@ int UniValue::findKey(const std::string& key) const
 
 bool UniValue::checkObject(const std::map<std::string, UniValue::VType>& t)
 {
-    for (std::map<std::string,UniValue::VType>::const_iterator it = t.begin();
+    for (std::map<std::string, UniValue::VType>::const_iterator it = t.begin();
          it != t.end(); ++it) {
         int idx = findKey(it->first);
         if (idx < 0)
@@ -258,7 +258,7 @@ const UniValue& UniValue::operator[](unsigned int index) const
     return values.at(index);
 }
 
-const char *uvTypeName(UniValue::VType t)
+const char* uvTypeName(UniValue::VType t)
 {
     switch (t) {
     case UniValue::VNULL: return "null";

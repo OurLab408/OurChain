@@ -27,7 +27,7 @@ static void CCheckQueueSpeed(benchmark::State& state)
         {
             return true;
         }
-        void swap(FakeJobNoWork& x){};
+        void swap(FakeJobNoWork& x) {};
     };
     CCheckQueue<FakeJobNoWork> queue{QUEUE_BATCH_SIZE};
     boost::thread_group tg;
@@ -65,22 +65,23 @@ static void CCheckQueueSpeedPrevectorJob(benchmark::State& state)
 {
     struct PrevectorJob {
         prevector<PREVECTOR_SIZE, uint8_t> p;
-        PrevectorJob(){
+        PrevectorJob()
+        {
         }
         PrevectorJob(FastRandomContext& insecure_rand)
         {
-            p.resize(insecure_rand.randrange(PREVECTOR_SIZE*2));
+            p.resize(insecure_rand.randrange(PREVECTOR_SIZE * 2));
         }
         bool operator()()
         {
             return true;
         }
-        void swap(PrevectorJob& x){p.swap(x.p);};
+        void swap(PrevectorJob& x) { p.swap(x.p); };
     };
-    CCheckQueue<PrevectorJob> queue {QUEUE_BATCH_SIZE};
+    CCheckQueue<PrevectorJob> queue{QUEUE_BATCH_SIZE};
     boost::thread_group tg;
     for (auto x = 0; x < std::max(MIN_CORES, GetNumCores()); ++x) {
-       tg.create_thread([&]{queue.Thread();});
+        tg.create_thread([&] { queue.Thread(); });
     }
     while (state.KeepRunning()) {
         // Make insecure_rand here so that each iteration is identical.

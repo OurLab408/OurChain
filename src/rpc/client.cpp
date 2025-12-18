@@ -152,10 +152,12 @@ private:
 public:
     CRPCConvertTable();
 
-    bool convert(const std::string& method, int idx) {
+    bool convert(const std::string& method, int idx)
+    {
         return (members.count(std::make_pair(method, idx)) > 0);
     }
-    bool convert(const std::string& method, const std::string& name) {
+    bool convert(const std::string& method, const std::string& name)
+    {
         return (membersByName.count(std::make_pair(method, name)) > 0);
     }
 };
@@ -181,13 +183,13 @@ static CRPCConvertTable rpcCvtTable;
 UniValue ParseNonRFCJSONValue(const std::string& strVal)
 {
     UniValue jVal;
-    if (!jVal.read(std::string("[")+strVal+std::string("]")) ||
-        !jVal.isArray() || jVal.size()!=1)
-        throw std::runtime_error(std::string("Error parsing JSON:")+strVal);
+    if (!jVal.read(std::string("[") + strVal + std::string("]")) ||
+        !jVal.isArray() || jVal.size() != 1)
+        throw std::runtime_error(std::string("Error parsing JSON:") + strVal);
     return jVal[0];
 }
 
-UniValue RPCConvertValues(const std::string &strMethod, const std::vector<std::string> &strParams)
+UniValue RPCConvertValues(const std::string& strMethod, const std::vector<std::string>& strParams)
 {
     UniValue params(UniValue::VARR);
 
@@ -206,18 +208,18 @@ UniValue RPCConvertValues(const std::string &strMethod, const std::vector<std::s
     return params;
 }
 
-UniValue RPCConvertNamedValues(const std::string &strMethod, const std::vector<std::string> &strParams)
+UniValue RPCConvertNamedValues(const std::string& strMethod, const std::vector<std::string>& strParams)
 {
     UniValue params(UniValue::VOBJ);
 
-    for (const std::string &s: strParams) {
+    for (const std::string& s : strParams) {
         size_t pos = s.find("=");
         if (pos == std::string::npos) {
-            throw(std::runtime_error("No '=' in named argument '"+s+"', this needs to be present for every argument (even if it is empty)"));
+            throw(std::runtime_error("No '=' in named argument '" + s + "', this needs to be present for every argument (even if it is empty)"));
         }
 
         std::string name = s.substr(0, pos);
-        std::string value = s.substr(pos+1);
+        std::string value = s.substr(pos + 1);
 
         if (!rpcCvtTable.convert(strMethod, name)) {
             // insert string value directly

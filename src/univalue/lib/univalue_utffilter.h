@@ -50,12 +50,12 @@ public:
         if (state) // Only accept full codepoints in open state
             is_valid = false;
         if (codepoint >= 0xD800 && codepoint < 0xDC00) { // First half of surrogate pair
-            if (surpair) // Two subsequent surrogate pair openers - fail
+            if (surpair)                                 // Two subsequent surrogate pair openers - fail
                 is_valid = false;
             else
                 surpair = codepoint;
         } else if (codepoint >= 0xDC00 && codepoint < 0xE000) { // Second half of surrogate pair
-            if (surpair) { // Open surrogate pair, expect second half
+            if (surpair) {                                      // Open surrogate pair, expect second half
                 // Compute code point from UTF-16 surrogate pair
                 append_codepoint(0x10000 | ((surpair - 0xD800) << 10) | (codepoint - 0xDC00));
                 surpair = 0;
@@ -76,8 +76,9 @@ public:
             is_valid = false;
         return is_valid;
     }
+
 private:
-    std::string &str;
+    std::string& str;
     bool is_valid;
     // Current UTF-8 decoding state
     unsigned int codepoint;

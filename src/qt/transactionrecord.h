@@ -21,7 +21,8 @@ class TransactionStatus
 public:
     TransactionStatus() : countsForBalance(false), sortKey(""),
                           matures_in(0), status(Offline), depth(0), open_for(0), cur_num_blocks(-1)
-    { }
+    {
+    }
 
     enum Status {
         Confirmed, /**< Have 6 or more confirmations (normal tx) or fully mature (mined tx) **/
@@ -70,8 +71,7 @@ public:
 class TransactionRecord
 {
 public:
-    enum Type
-    {
+    enum Type {
         Other,
         Generated,
         SendToAddress,
@@ -84,22 +84,19 @@ public:
     /** Number of confirmation recommended for accepting a transaction */
     static const int RecommendedNumConfirmations = 6;
 
-    TransactionRecord():
-            hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0)
+    TransactionRecord() : hash(), time(0), type(Other), address(""), debit(0), credit(0), idx(0)
     {
     }
 
-    TransactionRecord(uint256 _hash, qint64 _time):
-            hash(_hash), time(_time), type(Other), address(""), debit(0),
-            credit(0), idx(0)
+    TransactionRecord(uint256 _hash, qint64 _time) : hash(_hash), time(_time), type(Other), address(""), debit(0),
+                                                     credit(0), idx(0)
     {
     }
 
     TransactionRecord(uint256 _hash, qint64 _time,
-                Type _type, const std::string &_address,
-                const CAmount& _debit, const CAmount& _credit):
-            hash(_hash), time(_time), type(_type), address(_address), debit(_debit), credit(_credit),
-            idx(0)
+                      Type _type, const std::string& _address,
+                      const CAmount& _debit, const CAmount& _credit) : hash(_hash), time(_time), type(_type), address(_address), debit(_debit), credit(_credit),
+                                                                       idx(0)
     {
     }
 

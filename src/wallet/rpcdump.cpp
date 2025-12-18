@@ -32,10 +32,11 @@ std::string static EncodeDumpTime(int64_t nTime)
     return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime);
 }
 
-int64_t static DecodeDumpTime(const std::string &str) {
+int64_t static DecodeDumpTime(const std::string& str)
+{
     static const boost::posix_time::ptime epoch = boost::posix_time::from_time_t(0);
     static const std::locale loc(std::locale::classic(),
-        new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
+                                 new boost::posix_time::time_input_facet("%Y-%m-%dT%H:%M:%SZ"));
     std::istringstream iss(str);
     iss.imbue(loc);
     boost::posix_time::ptime ptime(boost::date_time::not_a_date_time);
@@ -45,7 +46,8 @@ int64_t static DecodeDumpTime(const std::string &str) {
     return (ptime - epoch).total_seconds();
 }
 
-std::string static EncodeDumpString(const std::string &str) {
+std::string static EncodeDumpString(const std::string& str)
+{
     std::stringstream ret;
     for (unsigned char c : str) {
         if (c <= 32 || c >= 128 || c == '%') {
@@ -62,7 +64,7 @@ std::string DecodeDumpString(const std::string& str)
     std::stringstream ret;
     for (unsigned int pos = 0; pos < str.length(); pos++) {
         unsigned char c = str[pos];
-        if (c == '%' && pos+2 < str.length()) {
+        if (c == '%' && pos + 2 < str.length()) {
             c = (((str[pos + 1] >> 6) * 9 + ((str[pos + 1] - '0') & 15)) << 4) |
                 ((str[pos + 2] >> 6) * 9 + ((str[pos + 2] - '0') & 15));
             pos += 2;
@@ -266,8 +268,7 @@ UniValue importaddress(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Bitcoin address or script");
     }
 
-    if (fRescan)
-    {
+    if (fRescan) {
         pwallet->RescanFromTime(TIMESTAMP_MIN, true /* update */);
         pwallet->ReacceptWalletTransactions();
     }
@@ -288,8 +289,7 @@ UniValue importprunedfunds(const JSONRPCRequest& request)
             "\nImports funds without rescan. Corresponding address or script must previously be included in wallet. Aimed towards pruned wallets. The end-user is responsible to import additional transactions that subsequently spend the imported outputs or rescan after the point in the blockchain the transaction is included.\n"
             "\nArguments:\n"
             "1. \"rawtransaction\" (string, required) A raw transaction in hex funding an already-existing address in wallet\n"
-            "2. \"txoutproof\"     (string, required) The hex output from gettxoutproof that contains the transaction\n"
-        );
+            "2. \"txoutproof\"     (string, required) The hex output from gettxoutproof that contains the transaction\n");
 
     CMutableTransaction tx;
     if (!DecodeHexTx(tx, request.params[0].get_str()))
@@ -301,25 +301,23 @@ UniValue importprunedfunds(const JSONRPCRequest& request)
     CMerkleBlock merkleBlock;
     ssMB >> merkleBlock;
 
-    //Search partial merkle tree in proof for our transaction and index in valid block
+    // Search partial merkle tree in proof for our transaction and index in valid block
     std::vector<uint256> vMatch;
     std::vector<unsigned int> vIndex;
     unsigned int txnIndex = 0;
     if (merkleBlock.txn.ExtractMatches(vMatch, vIndex) == merkleBlock.header.hashMerkleRoot) {
-
         LOCK(cs_main);
 
         if (!mapBlockIndex.count(merkleBlock.header.GetHash()) || !chainActive.Contains(mapBlockIndex[merkleBlock.header.GetHash()]))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found in chain");
 
         std::vector<uint256>::const_iterator it;
-        if ((it = std::find(vMatch.begin(), vMatch.end(), hashTx))==vMatch.end()) {
+        if ((it = std::find(vMatch.begin(), vMatch.end(), hashTx)) == vMatch.end()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction given doesn't exist in proof");
         }
 
         txnIndex = vIndex[it - vMatch.begin()];
-    }
-    else {
+    } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Something wrong with merkleblock");
     }
 
@@ -349,11 +347,9 @@ UniValue removeprunedfunds(const JSONRPCRequest& request)
             "\nDeletes the specified transaction from the wallet. Meant for use with pruned wallets and as a companion to importprunedfunds. This will affect wallet balances.\n"
             "\nArguments:\n"
             "1. \"txid\"           (string, required) The hex-encoded id of the transaction you are deleting\n"
-            "\nExamples:\n"
-            + HelpExampleCli("removeprunedfunds", "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\"") +
-            "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("removeprunedfunds", "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("removeprunedfunds", "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\"") +
+            "\nAs a JSON-RPC call\n" + HelpExampleRpc("removeprunedfunds", "\"a8d0c0184dde994a09ec054286f1ce581bebf46446a512166eae7628734ea0a5\""));
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
@@ -367,7 +363,7 @@ UniValue removeprunedfunds(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Could not properly delete the transaction.");
     }
 
-    if(vHashOut.empty()) {
+    if (vHashOut.empty()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Transaction does not exist in wallet.");
     }
 
@@ -421,8 +417,7 @@ UniValue importpubkey(const JSONRPCRequest& request)
     ImportAddress(pwallet, CBitcoinAddress(pubKey.GetID()), strLabel);
     ImportScript(pwallet, GetScriptForRawPubKey(pubKey), strLabel, false);
 
-    if (fRescan)
-    {
+    if (fRescan) {
         pwallet->RescanFromTime(TIMESTAMP_MIN, true /* update */);
         pwallet->ReacceptWalletTransactions();
     }
@@ -545,11 +540,8 @@ UniValue dumpprivkey(const JSONRPCRequest& request)
             "1. \"address\"   (string, required) The bitcoin address for the private key\n"
             "\nResult:\n"
             "\"key\"                (string) The private key\n"
-            "\nExamples:\n"
-            + HelpExampleCli("dumpprivkey", "\"myaddress\"")
-            + HelpExampleCli("importprivkey", "\"mykey\"")
-            + HelpExampleRpc("dumpprivkey", "\"myaddress\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("dumpprivkey", "\"myaddress\"") + HelpExampleCli("importprivkey", "\"mykey\"") + HelpExampleRpc("dumpprivkey", "\"myaddress\""));
 
     LOCK2(cs_main, pwallet->cs_wallet);
 
@@ -606,7 +598,7 @@ UniValue dumpwallet(const JSONRPCRequest& request)
     pwallet->GetKeyBirthTimes(mapKeyBirth);
 
     // sort time/key pairs
-    std::vector<std::pair<int64_t, CKeyID> > vKeyBirth;
+    std::vector<std::pair<int64_t, CKeyID>> vKeyBirth;
     for (const auto& entry : mapKeyBirth) {
         if (const CKeyID* keyID = boost::get<CKeyID>(&entry.first)) { // set and test
             vKeyBirth.push_back(std::make_pair(entry.second, *keyID));
@@ -636,8 +628,8 @@ UniValue dumpwallet(const JSONRPCRequest& request)
             file << "# extended private masterkey: " << b58extkey.ToString() << "\n\n";
         }
     }
-    for (std::vector<std::pair<int64_t, CKeyID> >::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
-        const CKeyID &keyid = it->second;
+    for (std::vector<std::pair<int64_t, CKeyID>>::const_iterator it = vKeyBirth.begin(); it != vKeyBirth.end(); it++) {
+        const CKeyID& keyid = it->second;
         std::string strTime = EncodeDumpTime(it->first);
         std::string strAddr = CBitcoinAddress(keyid).ToString();
         CKey key;
@@ -654,7 +646,7 @@ UniValue dumpwallet(const JSONRPCRequest& request)
             } else {
                 file << "change=1";
             }
-            file << strprintf(" # addr=%s%s\n", strAddr, (pwallet->mapKeyMetadata[keyid].hdKeypath.size() > 0 ? " hdkeypath="+pwallet->mapKeyMetadata[keyid].hdKeypath : ""));
+            file << strprintf(" # addr=%s%s\n", strAddr, (pwallet->mapKeyMetadata[keyid].hdKeypath.size() > 0 ? " hdkeypath=" + pwallet->mapKeyMetadata[keyid].hdKeypath : ""));
         }
     }
     file << "\n";
@@ -1049,7 +1041,7 @@ UniValue importmulti(const JSONRPCRequest& mainRequest)
 
     const UniValue& requests = mainRequest.params[0];
 
-    //Default options
+    // Default options
     bool fRescan = true;
 
     if (!mainRequest.params[1].isNull()) {
@@ -1131,7 +1123,7 @@ UniValue importmulti(const JSONRPCRequest& mainRequest)
                                       "caused by pruning or data corruption (see bitcoind log for details) and could "
                                       "be dealt with by downloading and rescanning the relevant blocks (see -reindex "
                                       "and -rescan options).",
-                                GetImportTimestamp(request, now), scannedTime - TIMESTAMP_WINDOW - 1, TIMESTAMP_WINDOW)));
+                                      GetImportTimestamp(request, now), scannedTime - TIMESTAMP_WINDOW - 1, TIMESTAMP_WINDOW)));
                     response.push_back(std::move(result));
                 }
                 ++i;

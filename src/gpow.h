@@ -64,8 +64,8 @@ static const NONCE_t CONSERVATIVE = (0x01 << 7);
 static const NONCE_t NONCE_COMPRESSED = (0x01 << 6);
 
 enum { REACH_n = -1,
-    OUT_OF_NONCE = -2,
-    OUT_OF_TRY = -3 };
+       OUT_OF_NONCE = -2,
+       OUT_OF_TRY = -3 };
 
 extern uint8_t NONCE_TYPE; // :1　not Conservative :1 not Compressed :4 Bit Size (max 15)
 
@@ -182,17 +182,17 @@ public:
        int i, current_size = (current+1)*NONCE_BIT_SIZE;         // current nonce bit size
        int j = current_size/ARRAY_ENTRY_BITS;
 
-       if (current_size % ARRAY_ENTRY_BITS) --j; 
+       if (current_size % ARRAY_ENTRY_BITS) --j;
        for (i=0; i<j; i+=2) READWRITE(*(NONCE_4t *) &arr[i]);
        if (i!=j+1) READWRITE(*(T*) &arr[i]);  // if j is even
     }
 
     template<typename Stream>
     void Serialize(Stream& s) const
-    {   
+    {
         if (ismDone()){
             ::Serialize(s, VARINT(current));
-            ::Serialize(s, NONCE_TYPE);        
+            ::Serialize(s, NONCE_TYPE);
         }
         s.write((char*)arr, current_size);
     }
@@ -202,7 +202,7 @@ public:
     {
         if (ismDone()){
             ::Unserialize(s, VARINT(m));
-            ::Unserialize(s, NONCE_TYPE);        
+            ::Unserialize(s, NONCE_TYPE);
         }
         s.read((char*)arr, current_size);
     }

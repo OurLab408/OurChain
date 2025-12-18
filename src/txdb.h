@@ -71,16 +71,17 @@ class CCoinsViewDB : public CCoinsView
 {
 protected:
     CDBWrapper db;
+
 public:
     CCoinsViewDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override;
+    bool GetCoin(const COutPoint& outpoint, Coin& coin) const override;
     bool GetContState(const uint256& ctid, ContState& cs) const override;
     bool HaveCoin(const COutPoint& outpoint) const override;
     uint256 GetBestBlock() const override;
     std::vector<uint256> GetHeadBlocks() const override;
     bool BatchWrite(CCoinsMap& mapCoins, CContStateMap& mapContState, const uint256& hashBlock) override;
-    CCoinsViewCursor *Cursor() const override;
+    CCoinsViewCursor* Cursor() const override;
 
     //! Attempt to update from an older database format. Returns whether an error occurred.
     bool Upgrade();
@@ -88,21 +89,20 @@ public:
 };
 
 /** Specialization of CCoinsViewCursor to iterate over a CCoinsViewDB */
-class CCoinsViewDBCursor: public CCoinsViewCursor
+class CCoinsViewDBCursor : public CCoinsViewCursor
 {
 public:
     ~CCoinsViewDBCursor() {}
 
-    bool GetKey(COutPoint &key) const override;
-    bool GetValue(Coin &coin) const override;
+    bool GetKey(COutPoint& key) const override;
+    bool GetValue(Coin& coin) const override;
     unsigned int GetValueSize() const override;
 
     bool Valid() const override;
     void Next() override;
 
 private:
-    CCoinsViewDBCursor(CDBIterator* pcursorIn, const uint256 &hashBlockIn):
-        CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
+    CCoinsViewDBCursor(CDBIterator* pcursorIn, const uint256& hashBlockIn) : CCoinsViewCursor(hashBlockIn), pcursor(pcursorIn) {}
     std::unique_ptr<CDBIterator> pcursor;
     std::pair<char, COutPoint> keyTmp;
 
@@ -120,15 +120,15 @@ private:
     void operator=(const CBlockTreeDB&);
 
 public:
-    bool WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*> >& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo);
+    bool WriteBatchSync(const std::vector<std::pair<int, const CBlockFileInfo*>>& fileInfo, int nLastFile, const std::vector<const CBlockIndex*>& blockinfo);
     bool ReadBlockFileInfo(int nFile, CBlockFileInfo& fileinfo);
-    bool ReadLastBlockFile(int &nFile);
+    bool ReadLastBlockFile(int& nFile);
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool& fReindex);
     bool ReadTxIndex(const uint256& txid, CDiskTxPos& pos);
     bool WriteTxIndex(const std::vector<std::pair<uint256, CDiskTxPos>>& list);
-    bool WriteFlag(const std::string &name, bool fValue);
-    bool ReadFlag(const std::string &name, bool &fValue);
+    bool WriteFlag(const std::string& name, bool fValue);
+    bool ReadFlag(const std::string& name, bool& fValue);
     bool LoadBlockIndexGuts(const Consensus::Params& consensusParams, std::function<CBlockIndex*(const uint256&)> insertBlockIndex);
 };
 

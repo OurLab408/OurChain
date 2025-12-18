@@ -61,10 +61,11 @@ enum txnouttype {
     TX_WITNESS_V0_KEYHASH,
 };
 
-class CNoDestination {
+class CNoDestination
+{
 public:
-    friend bool operator==(const CNoDestination &a, const CNoDestination &b) { return true; }
-    friend bool operator<(const CNoDestination &a, const CNoDestination &b) { return true; }
+    friend bool operator==(const CNoDestination& a, const CNoDestination& b) { return true; }
+    friend bool operator<(const CNoDestination& a, const CNoDestination& b) { return true; }
 };
 
 /**
@@ -79,7 +80,7 @@ typedef boost::variant<CNoDestination, CKeyID, CScriptID, CContID> CTxDestinatio
 
 const char* GetTxnOutputType(txnouttype t);
 
-bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char> >& vSolutionsRet);
+bool Solver(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<std::vector<unsigned char>>& vSolutionsRet);
 bool ExtractDestination(const CScript& scriptPubKey, CTxDestination& addressRet);
 bool ExtractDestinations(const CScript& scriptPubKey, txnouttype& typeRet, std::vector<CTxDestination>& addressRet, int& nRequiredRet);
 

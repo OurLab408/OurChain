@@ -49,8 +49,8 @@ BOOST_AUTO_TEST_CASE(key_test1)
     CKey key2C = bsecret2C.GetKey();
     BOOST_CHECK(key2C.IsCompressed() == true);
 
-    CPubKey pubkey1  = key1. GetPubKey();
-    CPubKey pubkey2  = key2. GetPubKey();
+    CPubKey pubkey1 = key1.GetPubKey();
+    CPubKey pubkey2 = key2.GetPubKey();
     CPubKey pubkey1C = key1C.GetPubKey();
     CPubKey pubkey2C = key2C.GetPubKey();
 
@@ -79,8 +79,7 @@ BOOST_AUTO_TEST_CASE(key_test1)
     BOOST_CHECK(addr1C.Get() == CTxDestination(pubkey1C.GetID()));
     BOOST_CHECK(addr2C.Get() == CTxDestination(pubkey2C.GetID()));
 
-    for (int n=0; n<16; n++)
-    {
+    for (int n = 0; n < 16; n++) {
         std::string strMsg = strprintf("Very secret message %i: 11", n);
         uint256 hashMsg = Hash(strMsg.begin(), strMsg.end());
 
@@ -88,49 +87,49 @@ BOOST_AUTO_TEST_CASE(key_test1)
 
         std::vector<unsigned char> sign1, sign2, sign1C, sign2C;
 
-        BOOST_CHECK(key1.Sign (hashMsg, sign1));
-        BOOST_CHECK(key2.Sign (hashMsg, sign2));
+        BOOST_CHECK(key1.Sign(hashMsg, sign1));
+        BOOST_CHECK(key2.Sign(hashMsg, sign2));
         BOOST_CHECK(key1C.Sign(hashMsg, sign1C));
         BOOST_CHECK(key2C.Sign(hashMsg, sign2C));
 
-        BOOST_CHECK( pubkey1.Verify(hashMsg, sign1));
+        BOOST_CHECK(pubkey1.Verify(hashMsg, sign1));
         BOOST_CHECK(!pubkey1.Verify(hashMsg, sign2));
-        BOOST_CHECK( pubkey1.Verify(hashMsg, sign1C));
+        BOOST_CHECK(pubkey1.Verify(hashMsg, sign1C));
         BOOST_CHECK(!pubkey1.Verify(hashMsg, sign2C));
 
         BOOST_CHECK(!pubkey2.Verify(hashMsg, sign1));
-        BOOST_CHECK( pubkey2.Verify(hashMsg, sign2));
+        BOOST_CHECK(pubkey2.Verify(hashMsg, sign2));
         BOOST_CHECK(!pubkey2.Verify(hashMsg, sign1C));
-        BOOST_CHECK( pubkey2.Verify(hashMsg, sign2C));
+        BOOST_CHECK(pubkey2.Verify(hashMsg, sign2C));
 
-        BOOST_CHECK( pubkey1C.Verify(hashMsg, sign1));
+        BOOST_CHECK(pubkey1C.Verify(hashMsg, sign1));
         BOOST_CHECK(!pubkey1C.Verify(hashMsg, sign2));
-        BOOST_CHECK( pubkey1C.Verify(hashMsg, sign1C));
+        BOOST_CHECK(pubkey1C.Verify(hashMsg, sign1C));
         BOOST_CHECK(!pubkey1C.Verify(hashMsg, sign2C));
 
         BOOST_CHECK(!pubkey2C.Verify(hashMsg, sign1));
-        BOOST_CHECK( pubkey2C.Verify(hashMsg, sign2));
+        BOOST_CHECK(pubkey2C.Verify(hashMsg, sign2));
         BOOST_CHECK(!pubkey2C.Verify(hashMsg, sign1C));
-        BOOST_CHECK( pubkey2C.Verify(hashMsg, sign2C));
+        BOOST_CHECK(pubkey2C.Verify(hashMsg, sign2C));
 
         // compact signatures (with key recovery)
 
         std::vector<unsigned char> csign1, csign2, csign1C, csign2C;
 
-        BOOST_CHECK(key1.SignCompact (hashMsg, csign1));
-        BOOST_CHECK(key2.SignCompact (hashMsg, csign2));
+        BOOST_CHECK(key1.SignCompact(hashMsg, csign1));
+        BOOST_CHECK(key2.SignCompact(hashMsg, csign2));
         BOOST_CHECK(key1C.SignCompact(hashMsg, csign1C));
         BOOST_CHECK(key2C.SignCompact(hashMsg, csign2C));
 
         CPubKey rkey1, rkey2, rkey1C, rkey2C;
 
-        BOOST_CHECK(rkey1.RecoverCompact (hashMsg, csign1));
-        BOOST_CHECK(rkey2.RecoverCompact (hashMsg, csign2));
+        BOOST_CHECK(rkey1.RecoverCompact(hashMsg, csign1));
+        BOOST_CHECK(rkey2.RecoverCompact(hashMsg, csign2));
         BOOST_CHECK(rkey1C.RecoverCompact(hashMsg, csign1C));
         BOOST_CHECK(rkey2C.RecoverCompact(hashMsg, csign2C));
 
-        BOOST_CHECK(rkey1  == pubkey1);
-        BOOST_CHECK(rkey2  == pubkey2);
+        BOOST_CHECK(rkey1 == pubkey1);
+        BOOST_CHECK(rkey2 == pubkey2);
         BOOST_CHECK(rkey1C == pubkey1C);
         BOOST_CHECK(rkey2C == pubkey2C);
     }

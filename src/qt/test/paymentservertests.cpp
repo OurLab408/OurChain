@@ -20,12 +20,12 @@
 #include <QFileOpenEvent>
 #include <QTemporaryFile>
 
-X509 *parse_b64der_cert(const char* cert_data)
+X509* parse_b64der_cert(const char* cert_data)
 {
     std::vector<unsigned char> data = DecodeBase64(cert_data);
     assert(data.size() > 0);
     const unsigned char* dptr = &data[0];
-    X509 *cert = d2i_X509(nullptr, &dptr, data.size());
+    X509* cert = d2i_X509(nullptr, &dptr, data.size());
     assert(cert);
     return cert;
 }
@@ -38,7 +38,7 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
 {
     RecipientCatcher sigCatcher;
     QObject::connect(server, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
-        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
+                     &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
 
     // Write data to a temp file:
     QTemporaryFile f;
@@ -56,7 +56,7 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
     QCoreApplication::sendEvent(&object, &event);
 
     QObject::disconnect(server, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
-        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
+                        &sigCatcher, SLOT(getRecipient(SendCoinsRecipient)));
 
     // Return results from sigCatcher
     return sigCatcher.recipient;
@@ -195,7 +195,7 @@ void PaymentServerTests::paymentServerTests()
     // Ensure the request is initialized
     QVERIFY(r.paymentRequest.IsInitialized());
     // Extract address and amount from the request
-    QList<std::pair<CScript, CAmount> > sendingTos = r.paymentRequest.getPayTo();
+    QList<std::pair<CScript, CAmount>> sendingTos = r.paymentRequest.getPayTo();
     for (const std::pair<CScript, CAmount>& sendingTo : sendingTos) {
         CTxDestination dest;
         if (ExtractDestination(sendingTo.first, dest))

@@ -79,12 +79,9 @@ bool AppInit(int argc, char* argv[])
     if (gArgs.IsArgSet("-?") || gArgs.IsArgSet("-h") || gArgs.IsArgSet("-help") || gArgs.IsArgSet("-version")) {
         std::string strUsage = strprintf(_("%s Daemon"), _(PACKAGE_NAME)) + " " + _("version") + " " + FormatFullVersion() + "\n";
 
-        if (gArgs.IsArgSet("-version"))
-        {
+        if (gArgs.IsArgSet("-version")) {
             strUsage += FormatParagraph(LicenseInfo());
-        }
-        else
-        {
+        } else {
             strUsage += "\n" + _("Usage:") + "\n" +
                         "  bitcoind [options]                     " + strprintf(_("Start %s Daemon"), _(PACKAGE_NAME)) + "\n";
 
@@ -95,10 +92,8 @@ bool AppInit(int argc, char* argv[])
         return true;
     }
 
-    try
-    {
-        if (!fs::is_directory(GetDataDir(false)))
-        {
+    try {
+        if (!fs::is_directory(GetDataDir(false))) {
             fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", gArgs.GetArg("-datadir", "").c_str());
             return false;
         }
@@ -129,23 +124,19 @@ bool AppInit(int argc, char* argv[])
         // Set this early so that parameter interactions go to console
         InitLogging();
         InitParameterInteraction();
-        if (!AppInitBasicSetup())
-        {
+        if (!AppInitBasicSetup()) {
             // InitError will have been called with detailed error, which ends up on console
             exit(EXIT_FAILURE);
         }
-        if (!AppInitParameterInteraction())
-        {
+        if (!AppInitParameterInteraction()) {
             // InitError will have been called with detailed error, which ends up on console
             exit(EXIT_FAILURE);
         }
-        if (!AppInitSanityChecks())
-        {
+        if (!AppInitSanityChecks()) {
             // InitError will have been called with detailed error, which ends up on console
             exit(EXIT_FAILURE);
         }
-        if (gArgs.GetBoolArg("-daemon", false))
-        {
+        if (gArgs.GetBoolArg("-daemon", false)) {
 #if HAVE_DECL_DAEMON
             fprintf(stdout, "Bitcoin server starting\n");
 
@@ -160,21 +151,18 @@ bool AppInit(int argc, char* argv[])
 #endif // HAVE_DECL_DAEMON
         }
         // Lock data directory after daemonization
-        if (!AppInitLockDataDirectory())
-        {
+        if (!AppInitLockDataDirectory()) {
             // If locking the data directory failed, exit immediately
             exit(EXIT_FAILURE);
         }
         fRet = AppInitMain(threadGroup, scheduler);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");
     } catch (...) {
         PrintExceptionContinue(nullptr, "AppInit()");
     }
 
-    if (!fRet)
-    {
+    if (!fRet) {
         Interrupt(threadGroup);
         threadGroup.join_all();
     } else {

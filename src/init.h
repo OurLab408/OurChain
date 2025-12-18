@@ -11,8 +11,7 @@
 class CScheduler;
 class CWallet;
 
-namespace boost
-{
+namespace boost {
 class thread_group;
 } // namespace boost
 
@@ -21,9 +20,9 @@ bool ShutdownRequested();
 /** Interrupt threads */
 void Interrupt(boost::thread_group& threadGroup);
 void Shutdown();
-//!Initialize the logging infrastructure
+//! Initialize the logging infrastructure
 void InitLogging();
-//!Parameter interaction: change current parameters depending on various rules
+//! Parameter interaction: change current parameters depending on various rules
 void InitParameterInteraction();
 
 /** Initialize bitcoin core: Basic context setup.

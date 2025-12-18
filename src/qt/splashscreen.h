@@ -5,8 +5,8 @@
 #ifndef BITCOIN_QT_SPLASHSCREEN_H
 #define BITCOIN_QT_SPLASHSCREEN_H
 
-#include <functional>
 #include <QSplashScreen>
+#include <functional>
 
 class CWallet;
 class NetworkStyle;
@@ -26,21 +26,21 @@ public:
     ~SplashScreen();
 
 protected:
-    void paintEvent(QPaintEvent *event);
-    void closeEvent(QCloseEvent *event);
+    void paintEvent(QPaintEvent* event);
+    void closeEvent(QCloseEvent* event);
 
 public Q_SLOTS:
     /** Slot to call finish() method as it's not defined as slot */
-    void slotFinish(QWidget *mainWin);
+    void slotFinish(QWidget* mainWin);
 
     /** Show message and progress */
-    void showMessage(const QString &message, int alignment, const QColor &color);
+    void showMessage(const QString& message, int alignment, const QColor& color);
 
     /** Sets the break action */
     void setBreakAction(const std::function<void(void)>& action);
 
 protected:
-    bool eventFilter(QObject * obj, QEvent * ev);
+    bool eventFilter(QObject* obj, QEvent* ev);
 
 private:
     /** Connect core signals to splash screen */

@@ -102,8 +102,7 @@ enum class FeeEstimateMode {
 bool FeeModeFromString(const std::string& mode_string, FeeEstimateMode& fee_estimate_mode);
 
 /* Used to return detailed information about a feerate bucket */
-struct EstimatorBucket
-{
+struct EstimatorBucket {
     double start = -1;
     double end = -1;
     double withinTarget = 0;
@@ -113,16 +112,14 @@ struct EstimatorBucket
 };
 
 /* Used to return detailed information about a fee estimate calculation */
-struct EstimationResult
-{
+struct EstimationResult {
     EstimatorBucket pass;
     EstimatorBucket fail;
     double decay = 0;
     unsigned int scale = 0;
 };
 
-struct FeeCalculation
-{
+struct FeeCalculation {
     EstimationResult est;
     FeeReason reason = FeeReason::NONE;
     int desiredTarget = 0;
@@ -208,13 +205,13 @@ public:
      *  the closest target where one can be given.  'conservative' estimates are
      *  valid over longer time horizons also.
      */
-    CFeeRate estimateSmartFee(int confTarget, FeeCalculation *feeCalc, bool conservative) const;
+    CFeeRate estimateSmartFee(int confTarget, FeeCalculation* feeCalc, bool conservative) const;
 
     /** Return a specific fee estimate calculation with a given success
      * threshold and time horizon, and optionally return detailed data about
      * calculation
      */
-    CFeeRate estimateRawFee(int confTarget, double successThreshold, FeeEstimateHorizon horizon, EstimationResult *result = nullptr) const;
+    CFeeRate estimateRawFee(int confTarget, double successThreshold, FeeEstimateHorizon horizon, EstimationResult* result = nullptr) const;
 
     /** Write estimation data to a file */
     bool Write(CAutoFile& fileout) const;
@@ -234,8 +231,7 @@ private:
     unsigned int historicalFirst;
     unsigned int historicalBest;
 
-    struct TxStatsInfo
-    {
+    struct TxStatsInfo {
         unsigned int blockHeight;
         unsigned int bucketIndex;
         TxStatsInfo() : blockHeight(0), bucketIndex(0) {}
@@ -261,9 +257,9 @@ private:
     bool processBlockTx(unsigned int nBlockHeight, const CTxMemPoolEntry* entry);
 
     /** Helper for estimateSmartFee */
-    double estimateCombinedFee(unsigned int confTarget, double successThreshold, bool checkShorterHorizon, EstimationResult *result) const;
+    double estimateCombinedFee(unsigned int confTarget, double successThreshold, bool checkShorterHorizon, EstimationResult* result) const;
     /** Helper for estimateSmartFee */
-    double estimateConservativeFee(unsigned int doubleTarget, EstimationResult *result) const;
+    double estimateConservativeFee(unsigned int doubleTarget, EstimationResult* result) const;
     /** Number of blocks of data recorded while fee estimates have been running */
     unsigned int BlockSpan() const;
     /** Number of blocks of recorded fee estimate data represented in saved data file */

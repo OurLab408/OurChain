@@ -63,9 +63,9 @@ public:
     uint32_t nInternalChainCounter;
     CKeyID masterKeyID; //!< master key hash160
 
-    static const int VERSION_HD_BASE        = 1;
+    static const int VERSION_HD_BASE = 1;
     static const int VERSION_HD_CHAIN_SPLIT = 2;
-    static const int CURRENT_VERSION        = VERSION_HD_CHAIN_SPLIT;
+    static const int CURRENT_VERSION = VERSION_HD_CHAIN_SPLIT;
     int nVersion;
 
     CHDChain() { SetNull(); }
@@ -92,12 +92,12 @@ public:
 class CKeyMetadata
 {
 public:
-    static const int VERSION_BASIC=1;
-    static const int VERSION_WITH_HDDATA=10;
-    static const int CURRENT_VERSION=VERSION_WITH_HDDATA;
+    static const int VERSION_BASIC = 1;
+    static const int VERSION_WITH_HDDATA = 10;
+    static const int CURRENT_VERSION = VERSION_WITH_HDDATA;
     int nVersion;
-    int64_t nCreateTime; // 0 means unknown
-    std::string hdKeypath; //optional HD/bip32 keypath
+    int64_t nCreateTime;   // 0 means unknown
+    std::string hdKeypath; // optional HD/bip32 keypath
     CKeyID hdMasterKeyID;  // id of the HD masterkey used to derive this key
 
     CKeyMetadata()
@@ -113,11 +113,11 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         READWRITE(this->nVersion);
         READWRITE(nCreateTime);
-        if (this->nVersion >= VERSION_WITH_HDDATA)
-        {
+        if (this->nVersion >= VERSION_WITH_HDDATA) {
             READWRITE(hdKeypath);
             READWRITE(hdMasterKeyID);
         }
@@ -175,14 +175,14 @@ public:
     bool WriteTx(const CWalletTx& wtx);
     bool EraseTx(uint256 hash);
 
-    bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata &keyMeta);
-    bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata &keyMeta);
+    bool WriteKey(const CPubKey& vchPubKey, const CPrivKey& vchPrivKey, const CKeyMetadata& keyMeta);
+    bool WriteCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret, const CKeyMetadata& keyMeta);
     bool WriteMasterKey(unsigned int nID, const CMasterKey& kMasterKey);
 
     bool WriteCScript(const uint160& hash, const CScript& redeemScript);
 
-    bool WriteWatchOnly(const CScript &script, const CKeyMetadata &keymeta);
-    bool EraseWatchOnly(const CScript &script);
+    bool WriteWatchOnly(const CScript& script, const CKeyMetadata& keymeta);
+    bool EraseWatchOnly(const CScript& script);
 
     bool WriteBestBlock(const CBlockLocator& locator);
     bool ReadBestBlock(CBlockLocator& locator);
@@ -204,9 +204,9 @@ public:
     bool WriteAccount(const std::string& strAccount, const CAccount& account);
 
     /// Write destination data key,value tuple to database
-    bool WriteDestData(const std::string &address, const std::string &key, const std::string &value);
+    bool WriteDestData(const std::string& address, const std::string& key, const std::string& value);
     /// Erase destination data tuple from wallet database
-    bool EraseDestData(const std::string &address, const std::string &key);
+    bool EraseDestData(const std::string& address, const std::string& key);
 
     CAmount GetAccountCreditDebit(const std::string& strAccount);
     void ListAccountCreditDebit(const std::string& strAccount, std::list<CAccountingEntry>& acentries);
@@ -220,7 +220,7 @@ public:
     /* Recover convenience-function to bypass the key filter callback, called when verify fails, recovers everything */
     static bool Recover(const std::string& filename, std::string& out_backup_filename);
     /* Recover filter (used as callback), will only let keys (cryptographical keys) as KV/key-type pass through */
-    static bool RecoverKeysOnlyFilter(void *callbackData, CDataStream ssKey, CDataStream ssValue);
+    static bool RecoverKeysOnlyFilter(void* callbackData, CDataStream ssKey, CDataStream ssValue);
     /* Function to determine if a certain KV/key-type is a key (cryptographical key) type */
     static bool IsKeyType(const std::string& strType);
     /* verifies the database environment */
@@ -241,6 +241,7 @@ public:
     bool ReadVersion(int& nVersion);
     //! Write wallet version
     bool WriteVersion(int nVersion);
+
 private:
     CDB batch;
     CWalletDBWrapper& m_dbw;

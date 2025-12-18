@@ -114,7 +114,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);
@@ -123,14 +124,12 @@ public:
         if (ser_action.ForRead()) {
             try {
                 READWRITE(fInternal);
-            }
-            catch (std::ios_base::failure&) {
+            } catch (std::ios_base::failure&) {
                 /* flag as external address if we can't read the internal boolean
                    (this will be the case for any wallet before the HD chain split version) */
                 fInternal = false;
             }
-        }
-        else {
+        } else {
             READWRITE(fInternal);
         }
     }
@@ -149,8 +148,7 @@ public:
     StringMap destdata;
 };
 
-struct CRecipient
-{
+struct CRecipient {
     CScript scriptPubKey;
     CAmount nAmount;
     bool fSubtractFeeFromAmount;
@@ -161,8 +159,7 @@ typedef std::map<std::string, std::string> mapValue_t;
 
 static inline void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue)
 {
-    if (!mapValue.count("n"))
-    {
+    if (!mapValue.count("n")) {
         nOrderPos = -1; // TODO: calculate elsewhere
         return;
     }
@@ -177,8 +174,7 @@ static inline void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue)
     mapValue["n"] = i64tostr(nOrderPos);
 }
 
-struct COutputEntry
-{
+struct COutputEntry {
     CTxDestination destination;
     CAmount amount;
     int vout;
@@ -188,7 +184,7 @@ struct COutputEntry
 class CMerkleTx
 {
 private:
-  /** Constant used in hashBlock to indicate tx has been abandoned */
+    /** Constant used in hashBlock to indicate tx has been abandoned */
     static const uint256 ABANDON_HASH;
 
 public:
@@ -232,7 +228,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         std::vector<uint256> vMerkleBranch; // For compatibility with older versions.
         READWRITE(tx);
         READWRITE(hashBlock);
@@ -306,7 +303,7 @@ public:
      *                         2014 (removed in commit 93a18a3)
      */
     mapValue_t mapValue;
-    std::vector<std::pair<std::string, std::string> > vOrderForm;
+    std::vector<std::pair<std::string, std::string>> vOrderForm;
     unsigned int fTimeReceivedIsTxTime;
     unsigned int nTimeReceived; //!< time received by this node
     /**
@@ -445,7 +442,7 @@ public:
         fChangeCached = false;
     }
 
-    void BindWallet(CWallet *pwalletIn)
+    void BindWallet(CWallet* pwalletIn)
     {
         pwallet = pwalletIn;
         MarkDirty();
@@ -454,7 +451,7 @@ public:
     //! filter decides which addresses will count towards the debit
     CAmount GetDebit(const isminefilter& filter) const;
     CAmount GetCredit(const isminefilter& filter) const;
-    CAmount GetImmatureCredit(bool fUseCache=true) const;
+    CAmount GetImmatureCredit(bool fUseCache = true) const;
     CAmount GetAvailableCredit(bool fUseCache = true) const;
     CAmount GetImmatureWatchOnlyCredit(const bool& fUseCache = true) const;
     CAmount GetAvailableWatchOnlyCredit(const bool& fUseCache = true) const;
@@ -520,7 +517,7 @@ public:
 class COutput
 {
 public:
-    const CWalletTx *tx;
+    const CWalletTx* tx;
     int i;
     int nDepth;
 
@@ -567,7 +564,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);
@@ -809,7 +807,7 @@ public:
     std::list<CAccountingEntry> laccentries;
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
-    typedef std::multimap<int64_t, TxPair > TxItems;
+    typedef std::multimap<int64_t, TxPair> TxItems;
     TxItems wtxOrdered;
 
     int64_t nOrderPosNext;
@@ -878,7 +876,7 @@ public:
     bool AddKeyPubKey(const CKey& key, const CPubKey& pubkey) override;
     bool AddKeyPubKeyWithDB(CWalletDB& walletdb, const CKey& key, const CPubKey& pubkey);
     //! Adds a key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadKey(const CKey& key, const CPubKey &pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); }
+    bool LoadKey(const CKey& key, const CPubKey& pubkey) { return CCryptoKeyStore::AddKeyPubKey(key, pubkey); }
     //! Load metadata (used by LoadWallet)
     bool LoadKeyMetadata(const CTxDestination& pubKey, const CKeyMetadata& metadata);
 
@@ -892,20 +890,20 @@ public:
     void UpdateTimeFirstKey(int64_t nCreateTime);
 
     //! Adds an encrypted key to the store, and saves it to disk.
-    bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret) override;
+    bool AddCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret) override;
     //! Adds an encrypted key to the store, without saving it to disk (used by LoadWallet)
-    bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
+    bool LoadCryptedKey(const CPubKey& vchPubKey, const std::vector<unsigned char>& vchCryptedSecret);
     bool AddCScript(const CScript& redeemScript) override;
     bool LoadCScript(const CScript& redeemScript);
 
     //! Adds a destination data tuple to the store, and saves it to disk
-    bool AddDestData(const CTxDestination &dest, const std::string &key, const std::string &value);
+    bool AddDestData(const CTxDestination& dest, const std::string& key, const std::string& value);
     //! Erases a destination data tuple in the store and on disk
-    bool EraseDestData(const CTxDestination &dest, const std::string &key);
+    bool EraseDestData(const CTxDestination& dest, const std::string& key);
     //! Adds a destination data tuple to the store, without saving it to disk
     bool LoadDestData(const CTxDestination& dest, const std::string& key, const std::string& value);
     //! Look up a destination data tuple in the store, return true if found false otherwise
-    bool GetDestData(const CTxDestination &dest, const std::string &key, std::string *value) const;
+    bool GetDestData(const CTxDestination& dest, const std::string& key, std::string* value) const;
     //! Get all destination values matching a prefix.
     std::vector<std::string> GetDestValues(const std::string& prefix) const;
 
@@ -913,7 +911,7 @@ public:
     bool AddWatchOnly(const CScript& dest, int64_t nCreateTime);
     bool RemoveWatchOnly(const CScript& dest) override;
     //! Adds a watch-only address to the store, without saving it to disk (used by LoadWallet)
-    bool LoadWatchOnly(const CScript &dest);
+    bool LoadWatchOnly(const CScript& dest);
 
     //! Holds a timestamp at which point the wallet is scheduled (externally) to be relocked. Caller must arrange for actual relocking to occur via Lock().
     int64_t nRelockTime;
@@ -935,10 +933,10 @@ public:
     bool GetAccountPubkey(CPubKey& pubKey, std::string strAccount, bool bForceNew = false);
 
     void MarkDirty();
-    bool AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose=true);
+    bool AddToWallet(const CWalletTx& wtxIn, bool fFlushOnClose = true);
     bool LoadToWallet(const CWalletTx& wtxIn);
     void TransactionAddedToMempool(const CTransactionRef& tx) override;
-    void BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex *pindex, const std::vector<CTransactionRef>& vtxConflicted) override;
+    void BlockConnected(const std::shared_ptr<const CBlock>& pblock, const CBlockIndex* pindex, const std::vector<CTransactionRef>& vtxConflicted) override;
     void BlockDisconnected(const std::shared_ptr<const CBlock>& pblock) override;
     bool AddToWalletIfInvolvingMe(const CTransactionRef& tx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
     int64_t RescanFromTime(int64_t startTime, bool update);
@@ -997,7 +995,7 @@ public:
     void ReserveKeyFromKeyPool(int64_t& nIndex, CKeyPool& keypool, bool fRequestedInternal);
     void KeepKey(int64_t nIndex);
     void ReturnKey(int64_t nIndex, bool fInternal, const CPubKey& pubkey);
-    bool GetKeyFromPool(CPubKey &key, bool internal = false);
+    bool GetKeyFromPool(CPubKey& key, bool internal = false);
     int64_t GetOldestKeyPoolTime();
     /**
      * Marks all keys in the keypool up to and including reserve_key as used.
@@ -1067,7 +1065,11 @@ public:
     bool SetMaxVersion(int nVersion);
 
     //! get the current wallet format (the oldest client version guaranteed to understand this wallet)
-    int GetVersion() { LOCK(cs_wallet); return nWalletVersion; }
+    int GetVersion()
+    {
+        LOCK(cs_wallet);
+        return nWalletVersion;
+    }
 
     //! Get wallet transactions that conflict with given transaction (spend same outputs)
     std::set<uint256> GetConflicts(const uint256& txid) const;
@@ -1076,7 +1078,7 @@ public:
     bool HasWalletSpend(const uint256& txid) const;
 
     //! Flush wallet (bitdb flush)
-    void Flush(bool shutdown=false);
+    void Flush(bool shutdown = false);
 
     //! Responsible for reading and validating the -wallet arguments and verifying the wallet database.
     //  This function will perform salvage on the wallet if requested, as long as only one wallet is
@@ -1087,23 +1089,24 @@ public:
      * Address book entry changed.
      * @note called with lock cs_wallet held.
      */
-    boost::signals2::signal<void (CWallet *wallet, const CTxDestination
-            &address, const std::string &label, bool isMine,
-            const std::string &purpose,
-            ChangeType status)> NotifyAddressBookChanged;
+    boost::signals2::signal<void(CWallet* wallet, const CTxDestination& address, const std::string& label, bool isMine,
+                                 const std::string& purpose,
+                                 ChangeType status)>
+        NotifyAddressBookChanged;
 
     /**
      * Wallet transaction added, removed or updated.
      * @note called with lock cs_wallet held.
      */
-    boost::signals2::signal<void (CWallet *wallet, const uint256 &hashTx,
-            ChangeType status)> NotifyTransactionChanged;
+    boost::signals2::signal<void(CWallet* wallet, const uint256& hashTx,
+                                 ChangeType status)>
+        NotifyTransactionChanged;
 
     /** Show progress e.g. for rescan */
-    boost::signals2::signal<void (const std::string &title, int nProgress)> ShowProgress;
+    boost::signals2::signal<void(const std::string& title, int nProgress)> ShowProgress;
 
     /** Watch-only address added */
-    boost::signals2::signal<void (bool fHaveWatchOnly)> NotifyWatchonlyChanged;
+    boost::signals2::signal<void(bool fHaveWatchOnly)> NotifyWatchonlyChanged;
 
     /** Inquire whether this wallet broadcasts transactions. */
     bool GetBroadcastTransactions() const { return fBroadcastTransactions; }
@@ -1162,6 +1165,7 @@ protected:
     int64_t nIndex;
     CPubKey vchPubKey;
     bool fInternal;
+
 public:
     CReserveKey(CWallet* pwalletIn)
     {
@@ -1180,7 +1184,7 @@ public:
     }
 
     void ReturnKey();
-    bool GetReservedKey(CPubKey &pubkey, bool internal = false);
+    bool GetReservedKey(CPubKey& pubkey, bool internal = false);
     void KeepKey();
     void KeepScript() override { KeepKey(); }
 };
@@ -1208,7 +1212,8 @@ public:
     ADD_SERIALIZE_METHODS;
 
     template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
+    inline void SerializationOp(Stream& s, Operation ser_action)
+    {
         int nVersion = s.GetVersion();
         if (!(s.GetType() & SER_GETHASH))
             READWRITE(nVersion);

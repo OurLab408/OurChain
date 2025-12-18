@@ -16,16 +16,15 @@
 #include <univalue.h>
 
 //! HTTP status codes
-enum HTTPStatusCode
-{
-    HTTP_OK                    = 200,
-    HTTP_BAD_REQUEST           = 400,
-    HTTP_UNAUTHORIZED          = 401,
-    HTTP_FORBIDDEN             = 403,
-    HTTP_NOT_FOUND             = 404,
-    HTTP_BAD_METHOD            = 405,
+enum HTTPStatusCode {
+    HTTP_OK = 200,
+    HTTP_BAD_REQUEST = 400,
+    HTTP_UNAUTHORIZED = 401,
+    HTTP_FORBIDDEN = 403,
+    HTTP_NOT_FOUND = 404,
+    HTTP_BAD_METHOD = 405,
     HTTP_INTERNAL_SERVER_ERROR = 500,
-    HTTP_SERVICE_UNAVAILABLE   = 503,
+    HTTP_SERVICE_UNAVAILABLE = 503,
 };
 
 //! Bitcoin RPC error codes
@@ -93,9 +92,9 @@ UniValue JSONRPCError(int code, const std::string& message);
 /** Get name of RPC authentication cookie file */
 fs::path GetAuthCookieFile();
 /** Generate a new RPC authentication cookie and write it to disk */
-bool GenerateAuthCookie(std::string *cookie_out);
+bool GenerateAuthCookie(std::string* cookie_out);
 /** Read the RPC authentication cookie from disk */
-bool GetAuthCookie(std::string *cookie_out);
+bool GetAuthCookie(std::string* cookie_out);
 /** Delete RPC authentication cookie from disk */
 void DeleteAuthCookie();
 

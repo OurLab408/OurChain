@@ -15,41 +15,40 @@ private:
     uint32_t nSequence; //!< upcounting per message sequence number
 
 public:
-
     /* send zmq multipart message
        parts:
           * command
           * data
           * message sequence number
     */
-    bool SendMessage(const char *command, const void* data, size_t size);
+    bool SendMessage(const char* command, const void* data, size_t size);
 
-    bool Initialize(void *pcontext) override;
+    bool Initialize(void* pcontext) override;
     void Shutdown() override;
 };
 
 class CZMQPublishHashBlockNotifier : public CZMQAbstractPublishNotifier
 {
 public:
-    bool NotifyBlock(const CBlockIndex *pindex) override;
+    bool NotifyBlock(const CBlockIndex* pindex) override;
 };
 
 class CZMQPublishHashTransactionNotifier : public CZMQAbstractPublishNotifier
 {
 public:
-    bool NotifyTransaction(const CTransaction &transaction) override;
+    bool NotifyTransaction(const CTransaction& transaction) override;
 };
 
 class CZMQPublishRawBlockNotifier : public CZMQAbstractPublishNotifier
 {
 public:
-    bool NotifyBlock(const CBlockIndex *pindex) override;
+    bool NotifyBlock(const CBlockIndex* pindex) override;
 };
 
 class CZMQPublishRawTransactionNotifier : public CZMQAbstractPublishNotifier
 {
 public:
-    bool NotifyTransaction(const CTransaction &transaction) override;
+    bool NotifyTransaction(const CTransaction& transaction) override;
 };
 
 #endif // BITCOIN_ZMQ_ZMQPUBLISHNOTIFIER_H

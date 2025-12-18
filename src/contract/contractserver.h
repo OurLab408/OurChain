@@ -1,12 +1,12 @@
 #ifndef CONTRACT_SERVER_H
 #define CONTRACT_SERVER_H
 
+#include "contract/threadsafe_queue.h"
+#include <atomic>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
-#include <atomic>
-#include <thread>
 #include <memory>
-#include "contract/threadsafe_queue.h"
+#include <thread>
 
 class CBlockIndex; // Forward declaration
 
@@ -19,7 +19,8 @@ class CBlockIndex; // Forward declaration
  * for incoming blocks and a thread pool for executing contract transactions
  * asynchronously, ensuring the main chain-syncing process is not blocked.
  */
-class ContractServer {
+class ContractServer
+{
 public:
     /**
      * @brief Gets the single, global instance of the ContractServer.
@@ -77,13 +78,13 @@ private:
 
     // The thread pool executes individual contract transactions.
     boost::asio::thread_pool transactionPool_;
-    
+
     // An atomic flag to signal all threads to stop.
     std::atomic<bool> stop_flag_{false};
 
     std::atomic<bool> paused_{false};
-    std::mutex server_mutex_; // A mutex to protect pausing/resuming state
+    std::mutex server_mutex_;           // A mutex to protect pausing/resuming state
     std::condition_variable cv_paused_; // To signal when pause is complete
 };
 
-#endif //CONTRACT_SERVER_H
+#endif // CONTRACT_SERVER_H

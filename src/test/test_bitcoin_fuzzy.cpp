@@ -32,7 +32,7 @@ T nMaxTries;
 #endif
 
 enum TEST_ID {
-    CBLOCK_DESERIALIZE=0,
+    CBLOCK_DESERIALIZE = 0,
     CTRANSACTION_DESERIALIZE,
     CBLOCKLOCATOR_DESERIALIZE,
     CBLOCKMERKLEROOT,
@@ -56,13 +56,13 @@ enum TEST_ID {
 bool read_stdin(std::vector<char>& data)
 {
     char buffer[1024];
-    ssize_t length=0;
-    while((length = read(STDIN_FILENO, buffer, 1024)) > 0) {
-        data.insert(data.end(), buffer, buffer+length);
+    ssize_t length = 0;
+    while ((length = read(STDIN_FILENO, buffer, 1024)) > 0) {
+        data.insert(data.end(), buffer, buffer + length);
 
-        if (data.size() > (1<<20)) return false;
+        if (data.size() > (1 << 20)) return false;
     }
-    return length==0;
+    return length == 0;
 }
 
 int do_fuzz()
@@ -87,181 +87,183 @@ int do_fuzz()
         return 0;
     }
 
-    switch(test_id) {
-        case CBLOCK_DESERIALIZE:
-        {
-            try
-            {
-                CBlock block;
-                ds >> block;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CTRANSACTION_DESERIALIZE:
-        {
-            try
-            {
-                CTransaction tx(deserialize, ds);
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBLOCKLOCATOR_DESERIALIZE:
-        {
-            try
-            {
-                CBlockLocator bl;
-                ds >> bl;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBLOCKMERKLEROOT:
-        {
-            try
-            {
-                CBlock block;
-                ds >> block;
-                bool mutated;
-                BlockMerkleRoot(block, &mutated);
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CADDRMAN_DESERIALIZE:
-        {
-            try
-            {
-                CAddrMan am;
-                ds >> am;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBLOCKHEADER_DESERIALIZE:
-        {
-            try
-            {
-                CBlockHeader bh;
-                ds >> bh;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBANENTRY_DESERIALIZE:
-        {
-            try
-            {
-                CBanEntry be;
-                ds >> be;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CTXUNDO_DESERIALIZE:
-        {
-            try
-            {
-                CTxUndo tu;
-                ds >> tu;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBLOCKUNDO_DESERIALIZE:
-        {
-            try
-            {
-                CBlockUndo bu;
-                ds >> bu;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CCOINS_DESERIALIZE:
-        {
-            try
-            {
-                Coin coin;
-                ds >> coin;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CNETADDR_DESERIALIZE:
-        {
-            try
-            {
-                CNetAddr na;
-                ds >> na;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CSERVICE_DESERIALIZE:
-        {
-            try
-            {
-                CService s;
-                ds >> s;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CMESSAGEHEADER_DESERIALIZE:
-        {
-            CMessageHeader::MessageStartChars pchMessageStart = {0x00, 0x00, 0x00, 0x00};
-            try
-            {
-                CMessageHeader mh(pchMessageStart);
-                ds >> mh;
-                if (!mh.IsValid(pchMessageStart)) {return 0;}
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CADDRESS_DESERIALIZE:
-        {
-            try
-            {
-                CAddress a;
-                ds >> a;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CINV_DESERIALIZE:
-        {
-            try
-            {
-                CInv i;
-                ds >> i;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CBLOOMFILTER_DESERIALIZE:
-        {
-            try
-            {
-                CBloomFilter bf;
-                ds >> bf;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CDISKBLOCKINDEX_DESERIALIZE:
-        {
-            try
-            {
-                CDiskBlockIndex dbi;
-                ds >> dbi;
-            } catch (const std::ios_base::failure& e) {return 0;}
-            break;
-        }
-        case CTXOUTCOMPRESSOR_DESERIALIZE:
-        {
-            CTxOut to;
-            CTxOutCompressor toc(to);
-            try
-            {
-                ds >> toc;
-            } catch (const std::ios_base::failure& e) {return 0;}
-
-            break;
-        }
-        default:
+    switch (test_id) {
+    case CBLOCK_DESERIALIZE: {
+        try {
+            CBlock block;
+            ds >> block;
+        } catch (const std::ios_base::failure& e) {
             return 0;
+        }
+        break;
+    }
+    case CTRANSACTION_DESERIALIZE: {
+        try {
+            CTransaction tx(deserialize, ds);
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBLOCKLOCATOR_DESERIALIZE: {
+        try {
+            CBlockLocator bl;
+            ds >> bl;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBLOCKMERKLEROOT: {
+        try {
+            CBlock block;
+            ds >> block;
+            bool mutated;
+            BlockMerkleRoot(block, &mutated);
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CADDRMAN_DESERIALIZE: {
+        try {
+            CAddrMan am;
+            ds >> am;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBLOCKHEADER_DESERIALIZE: {
+        try {
+            CBlockHeader bh;
+            ds >> bh;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBANENTRY_DESERIALIZE: {
+        try {
+            CBanEntry be;
+            ds >> be;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CTXUNDO_DESERIALIZE: {
+        try {
+            CTxUndo tu;
+            ds >> tu;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBLOCKUNDO_DESERIALIZE: {
+        try {
+            CBlockUndo bu;
+            ds >> bu;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CCOINS_DESERIALIZE: {
+        try {
+            Coin coin;
+            ds >> coin;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CNETADDR_DESERIALIZE: {
+        try {
+            CNetAddr na;
+            ds >> na;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CSERVICE_DESERIALIZE: {
+        try {
+            CService s;
+            ds >> s;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CMESSAGEHEADER_DESERIALIZE: {
+        CMessageHeader::MessageStartChars pchMessageStart = {0x00, 0x00, 0x00, 0x00};
+        try {
+            CMessageHeader mh(pchMessageStart);
+            ds >> mh;
+            if (!mh.IsValid(pchMessageStart)) {
+                return 0;
+            }
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CADDRESS_DESERIALIZE: {
+        try {
+            CAddress a;
+            ds >> a;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CINV_DESERIALIZE: {
+        try {
+            CInv i;
+            ds >> i;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CBLOOMFILTER_DESERIALIZE: {
+        try {
+            CBloomFilter bf;
+            ds >> bf;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CDISKBLOCKINDEX_DESERIALIZE: {
+        try {
+            CDiskBlockIndex dbi;
+            ds >> dbi;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+        break;
+    }
+    case CTXOUTCOMPRESSOR_DESERIALIZE: {
+        CTxOut to;
+        CTxOutCompressor toc(to);
+        try {
+            ds >> toc;
+        } catch (const std::ios_base::failure& e) {
+            return 0;
+        }
+
+        break;
+    }
+    default:
+        return 0;
     }
     return 0;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     ECCVerifyHandle globalVerifyHandle;
 #ifdef __AFL_INIT

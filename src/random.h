@@ -41,7 +41,8 @@ void GetStrongRandBytes(unsigned char* buf, int num);
  * is completely deterministic and insecure after that.
  * This class is not thread-safe.
  */
-class FastRandomContext {
+class FastRandomContext
+{
 private:
     bool requires_seed;
     ChaCha20 rng;
@@ -85,7 +86,8 @@ public:
     }
 
     /** Generate a random (bits)-bit integer. */
-    uint64_t randbits(int bits) {
+    uint64_t randbits(int bits)
+    {
         if (bits == 0) {
             return 0;
         } else if (bits > 32) {
@@ -133,7 +135,7 @@ static const ssize_t NUM_OS_RANDOM_BYTES = 32;
 /** Get 32 bytes of system entropy. Do not use this in application code: use
  * GetStrongRandBytes instead.
  */
-void GetOSRand(unsigned char *ent32);
+void GetOSRand(unsigned char* ent32);
 
 /** Check that OS randomness is available and returning the requested number
  * of bytes.

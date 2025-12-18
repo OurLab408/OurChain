@@ -10,7 +10,7 @@
 class WalletModel;
 
 namespace Ui {
-    class AskPassphraseDialog;
+class AskPassphraseDialog;
 }
 
 /** Multifunctional dialog to ask for passphrases. Used for encryption, unlocking, and changing the passphrase.
@@ -27,17 +27,17 @@ public:
         Decrypt     /**< Ask passphrase and decrypt wallet */
     };
 
-    explicit AskPassphraseDialog(Mode mode, QWidget *parent);
+    explicit AskPassphraseDialog(Mode mode, QWidget* parent);
     ~AskPassphraseDialog();
 
     void accept();
 
-    void setModel(WalletModel *model);
+    void setModel(WalletModel* model);
 
 private:
-    Ui::AskPassphraseDialog *ui;
+    Ui::AskPassphraseDialog* ui;
     Mode mode;
-    WalletModel *model;
+    WalletModel* model;
     bool fCapsLock;
 
 private Q_SLOTS:
@@ -45,8 +45,8 @@ private Q_SLOTS:
     void secureClearPassFields();
 
 protected:
-    bool event(QEvent *event);
-    bool eventFilter(QObject *object, QEvent *event);
+    bool event(QEvent* event);
+    bool eventFilter(QObject* object, QEvent* event);
 };
 
 #endif // BITCOIN_QT_ASKPASSPHRASEDIALOG_H

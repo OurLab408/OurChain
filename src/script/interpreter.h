@@ -9,9 +9,9 @@
 #include "primitives/transaction.h"
 #include "script_error.h"
 
-#include <vector>
 #include <stdint.h>
 #include <string>
+#include <vector>
 
 class CPubKey;
 class CScript;
@@ -19,8 +19,7 @@ class CTransaction;
 class uint256;
 
 /** Signature hash types/flags */
-enum
-{
+enum {
     SIGHASH_ALL = 1,
     SIGHASH_NONE = 2,
     SIGHASH_SINGLE = 3,
@@ -107,10 +106,9 @@ enum {
     SCRIPT_VERIFY_WITNESS_PUBKEYTYPE = (1U << 15),
 };
 
-bool CheckSignatureEncoding(const std::vector<unsigned char> &vchSig, unsigned int flags, ScriptError* serror);
+bool CheckSignatureEncoding(const std::vector<unsigned char>& vchSig, unsigned int flags, ScriptError* serror);
 
-struct PrecomputedTransactionData
-{
+struct PrecomputedTransactionData {
     uint256 hashPrevouts, hashSequence, hashOutputs;
 
     PrecomputedTransactionData(const CTransaction& tx);
@@ -133,12 +131,12 @@ public:
 
     virtual bool CheckLockTime(const CScriptNum& nLockTime) const
     {
-         return false;
+        return false;
     }
 
     virtual bool CheckSequence(const CScriptNum& nSequence) const
     {
-         return false;
+        return false;
     }
 
     virtual ~BaseSignatureChecker() {}
@@ -172,7 +170,7 @@ public:
     MutableTransactionSignatureChecker(const CMutableTransaction* txToIn, unsigned int nInIn, const CAmount& amountIn) : TransactionSignatureChecker(&txTo, nInIn, amountIn), txTo(*txToIn) {}
 };
 
-bool EvalScript(std::vector<std::vector<unsigned char> >& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, SigVersion sigversion, ScriptError* error = nullptr);
+bool EvalScript(std::vector<std::vector<unsigned char>>& stack, const CScript& script, unsigned int flags, const BaseSignatureChecker& checker, SigVersion sigversion, ScriptError* error = nullptr);
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror = nullptr);
 
 size_t CountWitnessSigOps(const CScript& scriptSig, const CScript& scriptPubKey, const CScriptWitness* witness, unsigned int flags);

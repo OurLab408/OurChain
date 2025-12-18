@@ -26,7 +26,7 @@
 #endif
 #define FD_SETSIZE 1024 // max number of fds in fd_set
 
-#include <winsock2.h>     // Must be included before mswsock.h and windows.h
+#include <winsock2.h> // Must be included before mswsock.h and windows.h
 
 #include <mswsock.h>
 #include <windows.h>
@@ -50,33 +50,34 @@
 #ifndef WIN32
 typedef unsigned int SOCKET;
 #include "errno.h"
-#define WSAGetLastError()   errno
-#define WSAEINVAL           EINVAL
-#define WSAEALREADY         EALREADY
-#define WSAEWOULDBLOCK      EWOULDBLOCK
-#define WSAEMSGSIZE         EMSGSIZE
-#define WSAEINTR            EINTR
-#define WSAEINPROGRESS      EINPROGRESS
-#define WSAEADDRINUSE       EADDRINUSE
-#define WSAENOTSOCK         EBADF
-#define INVALID_SOCKET      (SOCKET)(~0)
-#define SOCKET_ERROR        -1
+#define WSAGetLastError() errno
+#define WSAEINVAL EINVAL
+#define WSAEALREADY EALREADY
+#define WSAEWOULDBLOCK EWOULDBLOCK
+#define WSAEMSGSIZE EMSGSIZE
+#define WSAEINTR EINTR
+#define WSAEINPROGRESS EINPROGRESS
+#define WSAEADDRINUSE EADDRINUSE
+#define WSAENOTSOCK EBADF
+#define INVALID_SOCKET (SOCKET)(~0)
+#define SOCKET_ERROR -1
 #endif
 
 #ifdef WIN32
 #ifndef S_IRUSR
-#define S_IRUSR             0400
-#define S_IWUSR             0200
+#define S_IRUSR 0400
+#define S_IWUSR 0200
 #endif
 #else
-#define MAX_PATH            1024
+#define MAX_PATH 1024
 #endif
 
 #if HAVE_DECL_STRNLEN == 0
-size_t strnlen( const char *start, size_t max_len);
+size_t strnlen(const char* start, size_t max_len);
 #endif // HAVE_DECL_STRNLEN
 
-bool static inline IsSelectableSocket(const SOCKET& s) {
+bool static inline IsSelectableSocket(const SOCKET& s)
+{
 #ifdef WIN32
     return true;
 #else

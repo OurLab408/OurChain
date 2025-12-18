@@ -16,29 +16,30 @@
 #ifndef CONTRACT_PMONITOR_H
 #define CONTRACT_PMONITOR_H
 
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/lock_types.hpp>
-#include <queue>
-#include <memory>
 #include "sync.h"
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/lock_types.hpp>
+#include <boost/thread/mutex.hpp>
+#include <memory>
+#include <queue>
 
 template <typename T>
-class CPrioritySemaphore {
+class CPrioritySemaphore
+{
 private:
     using pqElem = std::pair<T, std::shared_ptr<boost::condition_variable>>;
     std::priority_queue<
         pqElem,
         std::vector<pqElem>,
-        std::greater<pqElem>
-    > pq;
+        std::greater<pqElem>>
+        pq;
     boost::mutex mutex;
     int value;
 
 public:
     explicit CPrioritySemaphore(int init = 0) : value(init) {}
 
-    void wait(T priority) 
+    void wait(T priority)
     {
         boost::unique_lock<boost::mutex> lock(mutex);
         if (value > 0) {
@@ -50,7 +51,7 @@ public:
         my_cond->wait(lock);
     }
 
-    void post() 
+    void post()
     {
         boost::unique_lock<boost::mutex> lock(mutex);
         std::shared_ptr<boost::condition_variable> cond_to_notify;
@@ -60,14 +61,15 @@ public:
             cond_to_notify = pq.top().second;
             pq.pop();
         }
-        
+
         if (cond_to_notify)
             cond_to_notify->notify_one();
     }
 };
 
 template <typename T>
-class CMonitor {
+class CMonitor
+{
 private:
     CSemaphore mutex, next;
     CPrioritySemaphore<T> x_sem;
@@ -75,9 +77,9 @@ private:
     bool busy;
 
 public:
-    CMonitor() : mutex(1), next(0), x_sem(0) , x_cnt(0), next_cnt(0), busy(false) {}
+    CMonitor() : mutex(1), next(0), x_sem(0), x_cnt(0), next_cnt(0), busy(false) {}
 
-    void acquire(T prio) 
+    void acquire(T prio)
     {
         mutex.wait();
         if (busy) {
@@ -96,7 +98,7 @@ public:
             mutex.post();
     }
 
-    void release() 
+    void release()
     {
         mutex.wait();
         busy = false;

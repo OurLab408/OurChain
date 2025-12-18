@@ -56,7 +56,7 @@ int ClientModel::getNumConnections(unsigned int flags) const
 {
     CConnman::NumConnections connections = CConnman::CONNECTIONS_NONE;
 
-    if(flags == CONNECTIONS_IN)
+    if (flags == CONNECTIONS_IN)
         connections = CConnman::CONNECTIONS_IN;
     else if (flags == CONNECTIONS_OUT)
         connections = CConnman::CONNECTIONS_OUT;
@@ -204,17 +204,17 @@ QString ClientModel::getStatusBarWarnings() const
     return QString::fromStdString(GetWarnings("gui"));
 }
 
-OptionsModel *ClientModel::getOptionsModel()
+OptionsModel* ClientModel::getOptionsModel()
 {
     return optionsModel;
 }
 
-PeerTableModel *ClientModel::getPeerTableModel()
+PeerTableModel* ClientModel::getPeerTableModel()
 {
     return peerTableModel;
 }
 
-BanTableModel *ClientModel::getBanTableModel()
+BanTableModel* ClientModel::getBanTableModel()
 {
     return banTableModel;
 }
@@ -250,7 +250,7 @@ void ClientModel::updateBanlist()
 }
 
 // Handlers for core signals
-static void ShowProgress(ClientModel *clientmodel, const std::string &title, int nProgress)
+static void ShowProgress(ClientModel* clientmodel, const std::string& title, int nProgress)
 {
     // emits signal "showProgress"
     QMetaObject::invokeMethod(clientmodel, "showProgress", Qt::QueuedConnection,
@@ -258,26 +258,26 @@ static void ShowProgress(ClientModel *clientmodel, const std::string &title, int
                               Q_ARG(int, nProgress));
 }
 
-static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConnections)
+static void NotifyNumConnectionsChanged(ClientModel* clientmodel, int newNumConnections)
 {
     // Too noisy: qDebug() << "NotifyNumConnectionsChanged: " + QString::number(newNumConnections);
     QMetaObject::invokeMethod(clientmodel, "updateNumConnections", Qt::QueuedConnection,
                               Q_ARG(int, newNumConnections));
 }
 
-static void NotifyNetworkActiveChanged(ClientModel *clientmodel, bool networkActive)
+static void NotifyNetworkActiveChanged(ClientModel* clientmodel, bool networkActive)
 {
     QMetaObject::invokeMethod(clientmodel, "updateNetworkActive", Qt::QueuedConnection,
                               Q_ARG(bool, networkActive));
 }
 
-static void NotifyAlertChanged(ClientModel *clientmodel)
+static void NotifyAlertChanged(ClientModel* clientmodel)
 {
     qDebug() << "NotifyAlertChanged";
     QMetaObject::invokeMethod(clientmodel, "updateAlert", Qt::QueuedConnection);
 }
 
-static void BannedListChanged(ClientModel *clientmodel)
+static void BannedListChanged(ClientModel* clientmodel)
 {
     qDebug() << QString("%1: Requesting update for peer banlist").arg(__func__);
     QMetaObject::invokeMethod(clientmodel, "updateBanlist", Qt::QueuedConnection);
@@ -301,7 +301,7 @@ static void BlockTipChanged(ClientModel* clientmodel, bool initialSync, const CB
     }
     // if we are in-sync, update the UI regardless of last update time
     if (!initialSync || now - nLastUpdateNotification > MODEL_UPDATE_DELAY) {
-        //pass an async signal to the UI thread
+        // pass an async signal to the UI thread
         QMetaObject::invokeMethod(clientmodel, "numBlocksChanged", Qt::QueuedConnection,
                                   Q_ARG(int, pIndex->nHeight),
                                   Q_ARG(QDateTime, QDateTime::fromTime_t(pIndex->GetBlockTime())),

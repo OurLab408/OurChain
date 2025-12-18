@@ -15,7 +15,7 @@ class RPCNestedTests : public QObject
 {
     Q_OBJECT
 
-    private Q_SLOTS:
+private Q_SLOTS:
     void rpcNestedTests();
 
 private:

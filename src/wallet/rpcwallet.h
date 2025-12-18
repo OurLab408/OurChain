@@ -8,7 +8,7 @@
 class CRPCTable;
 class JSONRPCRequest;
 
-void RegisterWalletRPCCommands(CRPCTable &t);
+void RegisterWalletRPCCommands(CRPCTable& t);
 
 /**
  * Figures out what wallet, if any, to use for a JSONRPCRequest.
@@ -18,8 +18,8 @@ void RegisterWalletRPCCommands(CRPCTable &t);
  */
 CWallet* GetWalletForJSONRPCRequest(const JSONRPCRequest& request);
 
-std::string HelpRequiringPassphrase(CWallet *);
-void EnsureWalletIsUnlocked(CWallet *);
-bool EnsureWalletIsAvailable(CWallet *, bool avoidException);
+std::string HelpRequiringPassphrase(CWallet*);
+void EnsureWalletIsUnlocked(CWallet*);
+bool EnsureWalletIsAvailable(CWallet*, bool avoidException);
 
-#endif //BITCOIN_WALLET_RPCWALLET_H
+#endif // BITCOIN_WALLET_RPCWALLET_H

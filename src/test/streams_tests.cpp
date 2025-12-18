@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(streams_vector_writer)
 {
     unsigned char a(1);
     unsigned char b(2);
-    unsigned char bytes[] = { 3, 4, 5, 6 };
+    unsigned char bytes[] = {3, 4, 5, 6};
     std::vector<unsigned char> vch;
 
     // Each test runs twice. Serializing a second time at the same starting
