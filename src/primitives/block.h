@@ -54,7 +54,9 @@ public:
         READWRITE(nNonce);
 #ifdef ENABLE_GPoW
         READWRITE(nPrecisionTime);
-        READWRITE(hashGPoW);
+        if (!(s.GetType() & SER_GETHASH)) {
+            READWRITE(hashGPoW);
+        }
 #endif
     }
 
