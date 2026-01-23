@@ -6,10 +6,12 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include "gpow.h"
 #include "primitives/transaction.h"
 #include "serialize.h"
 #include "uint256.h"
+#if ENABLE_GPoW
+#include "gpow.h"
+#endif
 
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
@@ -29,10 +31,12 @@ public:
     uint256 hashContractState;
     uint32_t nTime;
     uint32_t nBits;
-    GNonces nNonce;
 #if ENABLE_GPoW
+    GNonces nNonce;
     uint32_t nPrecisionTime;
     uint256 hashGPoW;
+#else
+    uint32_t nNonce;
 #endif
 
     CBlockHeader()

@@ -18,20 +18,31 @@ uint256 CBlockHeader::GetHash() const
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u",
+#if ENABLE_GPoW
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u, nBits=%08x, nNonce=%u, nPrecisionTime=%u, hashGPoW=%s, vtx=%u)\n",
                    GetHash().ToString(),
                    nVersion,
                    hashPrevBlock.ToString(),
                    hashMerkleRoot.ToString(),
                    hashContractState.ToString(),
-                   nTime);
-#if ENABLE_GPoW
-    s << strprintf(", nPrecisionTime=%u, hashGPoW=%s", nPrecisionTime, hashGPoW.ToString());
-#endif
-    s << strprintf(", nBits=%08x, nNonce=%s, vtx=%u\n",
+                   nTime,
                    nBits,
-                   nNonce.ToString(),
+                   nNonce.getNonce(),
+                   nPrecisionTime,
+                   hashGPoW.ToString(),
                    vtx.size());
+#else
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
+                   GetHash().ToString(),
+                   nVersion,
+                   hashPrevBlock.ToString(),
+                   hashMerkleRoot.ToString(),
+                   hashContractState.ToString(),
+                   nTime,
+                   nBits,
+                   nNonce,
+                   vtx.size());
+#endif
     for (const auto& tx : vtx) {
         s << "  " << tx->ToString() << "\n";
     }

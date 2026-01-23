@@ -36,7 +36,7 @@ extern void SetArith(int n);
 #if ENABLE_GPoW
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nPrecisionTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #else
-static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #endif
 {
     CMutableTransaction txNew;
@@ -76,7 +76,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
 #if ENABLE_GPoW
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nPrecisionTIme, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #else
-static CBlock CreateGenesisBlock(uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
+static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #endif
 {
     const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
@@ -177,7 +177,7 @@ public:
         fprintf(stderr, "GNonces: %s\n", genesis.nNonce.ToString().c_str());
 #else
         for (;; ++t) {
-            GNonces n = 0;
+            uint32_t n = 0;
             uint32_t tries = 0;
             bool done = 0;
             genesis = CreateGenesisBlock(t, n, 0x1d7fffff, 1, 50 * COIN);
@@ -443,7 +443,7 @@ public:
 #else
         fprintf(stderr, "Mining regtest genesis block...\n\ntime = %u\n", t);
         for (;; ++t) {
-            GNonces n = 0;
+            uint32_t n = 0;
             uint32_t tries = 0;
             bool done = 0;
             genesis = CreateGenesisBlock(t, n, 0x207fffff, 1, 50 * COIN);
@@ -461,8 +461,8 @@ public:
 
             if (done == 1) {
                 fprintf(stderr,
-                        "\rnonce = %s\nhash = %s\nhashMerkleRoot = %s\n\n",
-                        n.ToString().c_str(),
+                        "\rnonce = %u\nhash = %s\nhashMerkleRoot = %s\n\n",
+                        n,
                         genesis.GetHash().ToString().c_str(),
                         genesis.hashMerkleRoot.ToString().c_str());
                 break;

@@ -223,10 +223,12 @@ public:
     uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
-    GNonces nNonce;
 #if ENABLE_GPoW
+    GNonces nNonce;
     uint32_t nPrecisionTime;
     uint256 hashGPoW;
+#else
+    uint32_t nNonce;
 #endif
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.

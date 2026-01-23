@@ -1,5 +1,4 @@
 #include "OurChain/gpowserver.h"
-#include "gpow.h"
 #include "timedata.h"
 #include "util.h"
 
@@ -10,6 +9,12 @@
 
 #include "support/events.h"
 
+std::mutex cs_roundchange;
+std::condition_variable cond_roundchange;
+int64_t THIS_ROUND_START;
+
+#if ENABLE_GPoW
+#include "gpow.h"
 
 //! libevent event loop
 static struct event_base* eventBase = 0;
@@ -26,10 +31,6 @@ struct timeval mining_tv {
     1, 0
 }; // Valid mining duration
 struct timeval now;
-
-std::mutex cs_roundchange;
-std::condition_variable cond_roundchange;
-int64_t THIS_ROUND_START;
 
 /** libevent event log callback */
 static void libevent_log_cb(int severity, const char* msg)
@@ -120,7 +121,6 @@ static void timeoutCallback(evutil_socket_t fd, short event, void* arg)
     // LogPrintf("DEBUG %ld.%06ld\n", now.tv_sec, now.tv_usec);
 }
 
-
 std::thread* threadGPoW;
 
 bool StartGPoWServer()
@@ -160,3 +160,38 @@ void StopGPoWServer()
         eventBase = 0;
     }
 }
+
+#else // !ENABLE_GPoW
+
+// Stub implementations when GPoW is disabled
+void InterruptMining()
+{
+    // No-op when GPoW is disabled
+}
+
+void TuneRoundStartTime()
+{
+    // No-op when GPoW is disabled
+}
+
+bool IsCurrentRoundBlock(CBlockIndex index)
+{
+    return false;
+}
+
+bool InitGPoWServer()
+{
+    return true;
+}
+
+bool StartGPoWServer()
+{
+    return true;
+}
+
+void StopGPoWServer()
+{
+    // No-op when GPoW is disabled
+}
+
+#endif // ENABLE_GPoW

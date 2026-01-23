@@ -14,6 +14,8 @@ using namespace std;
 
 #include "gpow.h"
 
+#if ENABLE_GPoW
+
 int Debug = 1;
 bool (*CONDITION)();
 
@@ -346,3 +348,4 @@ void PrinfNormalizedMeanNonce(uint256 hash, int decimals) {
     printf("Normalized nonces mean: %.*lf\n", decimals, mpq_get_d(in1));
 }
 */
+#endif // ENABLE_GPoW
