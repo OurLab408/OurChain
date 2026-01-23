@@ -87,7 +87,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     result.push_back(Pair("contractstate", blockindex->hashContractState.GetHex()));
     result.push_back(Pair("time", (int64_t)blockindex->nTime));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     result.push_back(Pair("nonce", (int64_t)blockindex->nNonce.getNonce()));
 #else
     result.push_back(Pair("nonce", (uint64_t)blockindex->nNonce));
@@ -132,11 +132,11 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     }
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     result.push_back(Pair("precision time (us)", (int64_t)block.GetPrecisionBlockTime()));
 #endif
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     result.push_back(Pair("nonce", (int64_t)block.nNonce.getNonce()));
 #else
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));

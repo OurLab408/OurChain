@@ -30,7 +30,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     GNonces nNonce;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     uint32_t nPrecisionTime;
     uint256 hashGPoW;
 #endif
@@ -52,7 +52,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         READWRITE(nPrecisionTime);
         if (!(s.GetType() & SER_GETHASH)) {
             READWRITE(hashGPoW);
@@ -69,7 +69,7 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         nPrecisionTime = 0;
         hashGPoW.SetNull();
 #endif
@@ -87,7 +87,7 @@ public:
         return (int64_t)nTime;
     }
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     uint32_t GetPrecisionBlockTime() const
     {
         return nPrecisionTime;
@@ -145,7 +145,7 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         block.nPrecisionTime = nPrecisionTime;
         block.hashGPoW = hashGPoW;
 #endif

@@ -10,7 +10,7 @@
 #include "util.h"
 #include "validation.h"
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "gpow.h"
 T nMaxTries;
 #endif

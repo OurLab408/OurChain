@@ -14,7 +14,7 @@
 
 #include "chainparamsseeds.h"
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "OurChain/gpowserver.h"
 #include "utiltime.h"
 extern void SetArith(int n);
@@ -33,7 +33,7 @@ extern void SetArith(int n);
 #include <time.h>
 #endif
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nPrecisionTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #else
 static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
@@ -55,7 +55,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     genesis.vtx.push_back(MakeTransactionRef(std::move(txNew)));
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     genesis.nPrecisionTime = nPrecisionTime;
     genesis.hashGPoW.SetNull();
 #endif
@@ -73,7 +73,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
  *   vMerkleTree: 4a5e1e
  */
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nPrecisionTIme, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 #else
 static CBlock CreateGenesisBlock(uint32_t nTime, GNonces nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
@@ -81,7 +81,7 @@ static CBlock CreateGenesisBlock(uint32_t nTime, GNonces nNonce, uint32_t nBits,
 {
     const char* pszTimestamp = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks";
     const CScript genesisOutputScript = CScript() << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f") << OP_CHECKSIG;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nPrecisionTIme, nNonce, nBits, nVersion, genesisReward);
 #else
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
@@ -158,7 +158,7 @@ public:
 #ifdef MINE_MAIN_GENESIS
         uint32_t t = time(NULL);
         fprintf(stderr, "Mining main genesis block...\n\ntime = %u\n", t);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         uint32_t nBits = 0x1d7fffff;
         T m = GPOW_M, N = GPOW_N;
         int cons = GetConservativeDefault(), comp = GetCompressedDefault();
@@ -206,7 +206,7 @@ public:
 #endif // ENABLE_GPoW
 #endif
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         genesis = CreateGenesisBlock(1503244170, 0, 32633120, 0x1d7fffff, 1, 50 * COIN); // Just for compile
 #else
         genesis = CreateGenesisBlock(1503244170, 32633120, 0x1d7fffff, 1, 50 * COIN);
@@ -329,7 +329,7 @@ public:
         }
 #endif
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         genesis = CreateGenesisBlock(1503245336, 0, 26620602, 0x1d7fffff, 1, 50 * COIN); // Just for compile
 #else
         genesis = CreateGenesisBlock(1503245336, 26620602, 0x1d7fffff, 1, 50 * COIN);
@@ -418,7 +418,7 @@ public:
 
 #ifdef MINE_REGTEST_GENESIS
         uint32_t t = time(NULL);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         uint32_t pt = GetSystemPrecisionTime();
         uint32_t nBits = 0x207fffff;
         T m = GPOW_M, N = GPOW_N;
@@ -471,7 +471,7 @@ public:
 #endif // ENABLE_GPoW
 #endif // MINE_REGTEST_GENESIS
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         GNonces n = 0;
         n.setNonce(16);
         genesis = CreateGenesisBlock(GENESIS_BLOCK_TIME, GENESIE_BLOCK_PRECISION_TIME, n, 0x207fffff, 1, 50 * COIN);

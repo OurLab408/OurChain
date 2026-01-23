@@ -3080,7 +3080,7 @@ UniValue generate(const JSONRPCRequest& request)
             "\nMine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.\n"
             "\nArguments:\n"
             "1. nblocks      (numeric, required) How many blocks are generated immediately.\n"
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
             "2. Conservative    (boolean, optional) Whether conservative or not(default = 1)\n"
             "3. maxtries     (numeric, optional) How many iterations to try (default = 1000000).\n"
 #else
@@ -3095,7 +3095,7 @@ UniValue generate(const JSONRPCRequest& request)
 
     int num_generate = request.params[0].get_int();
     uint64_t max_tries = 1000000;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     bool conservative = true;
     if (request.params.size() > 1 && !request.params[1].isNull()) {
         conservative = request.params[1].get_bool();
@@ -3122,7 +3122,7 @@ UniValue generate(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No coinbase script available");
     }
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     return generateBlocks(coinbase_script, num_generate, max_tries, true, conservative);
 #else
     return generateBlocks(coinbase_script, num_generate, max_tries, true);

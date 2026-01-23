@@ -31,7 +31,7 @@
 
 #include <univalue.h>
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 extern void SetArith(int n);
 #include "OurChain/gpowserver.h"
 #endif
@@ -109,13 +109,13 @@ UniValue getnetworkhashps(const JSONRPCRequest& request)
     return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript, bool conservative)
 #else
 UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript)
 #endif
 {
-#ifndef ENABLE_GPoW
+#if !ENABLE_GPoW
     static const int nInnerLoopCount = 0x10000;
 #endif
     int nHeightEnd = 0;
@@ -128,11 +128,11 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
     }
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     int64_t this_round_time;
 #endif
     while (nHeight < nHeightEnd) {
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         this_round_time = THIS_ROUND_START;
         // can commit the block to enable mining when no tx
         // if (nHeight > 2 && mempool.size() == 0) { // For demo. if no transaction, don't mining and wait for round expired.
@@ -214,7 +214,7 @@ UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGen
         if (keepScript) {
             coinbaseScript->KeepScript();
         }
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         std::unique_lock<std::mutex> lock(cs_roundchange);
         cond_roundchange.wait(lock, [&this_round_time] { return THIS_ROUND_START != this_round_time || !IsRPCRunning(); });
         // LogPrintf("Finish ....... %ld, %ld\n", THIS_ROUND_START, this_round_time);
@@ -252,7 +252,7 @@ UniValue generatetoaddress(const JSONRPCRequest& request)
     std::shared_ptr<CReserveScript> coinbaseScript = std::make_shared<CReserveScript>();
     coinbaseScript->reserveScript = GetScriptForDestination(address.Get());
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     return generateBlocks(coinbaseScript, nGenerate, nMaxTries, false, true);
 #else
     return generateBlocks(coinbaseScript, nGenerate, nMaxTries, false);

@@ -50,7 +50,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/thread.hpp>
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "GNonces.h"
 #include "OurChain/gpowserver.h"
 #include "gpow.h"
@@ -107,7 +107,7 @@ namespace {
 struct CBlockIndexWorkComparator {
     bool operator()(const CBlockIndex* pa, const CBlockIndex* pb) const
     {
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         // First sort by most total work, ...
         // LogPrintf("Check nChainWork: pa->%s, pb->%s\n", ArithToUint256(pa->nChainWork).ToString().c_str(), ArithToUint256(pb->nChainWork).ToString().c_str());
         if (pa->nChainWork > pb->nChainWork) return false;
@@ -1002,7 +1002,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, const Consensus:
     }
 
     // Check the header
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     if (!CheckProofOfWork(block.hashGPoW, block.nBits, consensusParams))
         return error("ReadBlockFromDisk: Errors in block header at %s", pos.ToString());
 #else
@@ -2359,7 +2359,7 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
 
         // Connect new blocks.
         for (CBlockIndex* pindexConnect : reverse_iterate(vpindexToConnect)) {
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
             // Two-block epoch mechanism
             if (chainActive.Tip() && chainActive.Tip()->pprev &&
                 pindexConnect->pprev && pindexConnect->pprev->pprev) {
@@ -2804,7 +2804,7 @@ static bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, 
 static bool CheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW = true)
 {
     // Check proof of work matches claimed amount
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     if (fCheckPOW && !CheckProofOfWork(block.hashGPoW, block.nBits, consensusParams))
 #else
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams))
@@ -3222,7 +3222,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
             return error("%s: AcceptBlock FAILED", __func__);
         }
     }
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     InterruptMining();
 #endif
 

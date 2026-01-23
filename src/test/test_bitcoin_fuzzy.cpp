@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <vector>
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "gpow.h"
 T nMaxTries;
 #endif

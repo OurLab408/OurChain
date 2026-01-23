@@ -51,7 +51,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "OurChain/gpowserver.h"
 #endif
 
@@ -723,7 +723,7 @@ bool InitSanityCheck(void)
 
 bool AppInitServers(boost::thread_group& threadGroup)
 {
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     if (!InitGPoWServer()) {
         LogPrintf("GPoW server failed\n");
         return false;

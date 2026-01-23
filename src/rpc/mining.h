@@ -10,7 +10,7 @@
 #include <univalue.h>
 
 /** Generate blocks (mine) */
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript, bool conservative = true);
 #else
 UniValue generateBlocks(std::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript);

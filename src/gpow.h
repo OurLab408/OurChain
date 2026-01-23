@@ -19,7 +19,7 @@ using namespace std;
 
 // #define ENABLE_GPoW
 
-#ifndef ENABLE_GPoW
+#if !ENABLE_GPoW
 typedef uint32_t GNonces;
 #else
 

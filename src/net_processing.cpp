@@ -31,7 +31,7 @@
 #include "validation.h"
 #include "validationinterface.h"
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 #include "OurChain/gpowserver.h"
 #endif
 
@@ -2197,7 +2197,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             return true;
         }
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
         // Not sure, maybe need to move to other place
         if (IsCurrentRoundBlock(headers[0]) && !fAllowedMining) {
             // First round expired, cannot receive new block

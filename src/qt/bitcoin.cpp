@@ -74,7 +74,7 @@ Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
 #endif
 #endif
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 T nMaxTries;
 #endif
 

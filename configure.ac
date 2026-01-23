@@ -105,10 +105,10 @@ AC_ARG_ENABLE([wallet],
 
 dnl Enable GPoW
 AC_ARG_ENABLE([gpow],
-  [AS_HELP_STRING([--disable-gpow],
-  [disable gpow (enabled by default)])],
+  [AS_HELP_STRING([--enable-gpow],
+  [enable gpow (disabled by default)])],
   [enable_gpow=$enableval],
-  [enable_gpow=yes])
+  [enable_gpow=no])
 
 AC_ARG_WITH([miniupnpc],
   [AS_HELP_STRING([--with-miniupnpc],
@@ -171,7 +171,7 @@ AC_ARG_ENABLE([lcov],
   [enable lcov testing (default is no)])],
   [use_lcov=yes],
   [use_lcov=no])
-  
+
 AC_ARG_ENABLE([lcov-branch-coverage],
   [AS_HELP_STRING([--enable-lcov-branch-coverage],
   [enable lcov testing branch coverage (default is no)])],
@@ -1093,6 +1093,7 @@ if test x$enable_gpow != xno; then
   AC_DEFINE_UNQUOTED([ENABLE_GPoW],[1],[Define to 1 to enable GPoW functions])
 else
   AC_MSG_RESULT(no)
+  AC_DEFINE_UNQUOTED([ENABLE_GPoW],[0],[Define to 0 to disable GPoW functions])
 fi
 
 dnl enable upnp support
@@ -1317,7 +1318,7 @@ case ${OS} in
    ;;
 esac
 
-echo 
+echo
 echo "Options used to compile and link:"
 echo "  with wallet   = $enable_wallet"
 echo "  with GPoW     = $enable_gpow"
@@ -1332,7 +1333,7 @@ echo "  with bench    = $use_bench"
 echo "  with upnp     = $use_upnp"
 echo "  debug enabled = $enable_debug"
 echo "  werror        = $enable_werror"
-echo 
+echo
 echo "  target os     = $TARGET_OS"
 echo "  build os      = $BUILD_OS"
 echo

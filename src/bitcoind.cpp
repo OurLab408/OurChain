@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
 T nMaxTries;
 #endif
 

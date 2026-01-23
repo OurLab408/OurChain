@@ -349,7 +349,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nNonce = diskindex.nNonce;
                 pindexNew->nStatus = diskindex.nStatus;
                 pindexNew->nTx = diskindex.nTx;
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
                 if (!CheckProofOfWork(pindexNew->hashGPoW, pindexNew->nBits, consensusParams))
                     return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
 #else

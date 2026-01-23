@@ -25,7 +25,7 @@ std::string CBlock::ToString() const
                    hashMerkleRoot.ToString(),
                    hashContractState.ToString(),
                    nTime);
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     s << strprintf(", nPrecisionTime=%u, hashGPoW=%s", nPrecisionTime, hashGPoW.ToString());
 #endif
     s << strprintf(", nBits=%08x, nNonce=%s, vtx=%u\n",

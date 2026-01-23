@@ -155,7 +155,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         pblock->nVersion = gArgs.GetArg("-blockversion", pblock->nVersion);
 
     pblock->nTime = GetAdjustedTime();
-#ifdef ENABLE_GPoW
+#if ENABLE_GPoW
     pblock->nPrecisionTime = GetSystemPrecisionTime();
 #endif
     const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
