@@ -1,8 +1,8 @@
 #!/bin/bash
 
 mining() {
-    ./src/bitcoin-cli getnewaddress > address.txt
-    ./src/bitcoin-cli generatetoaddress "$1" "$(cat address.txt)"
+    ./src/bitcoin-cli -regtest getnewaddress > address.txt
+    ./src/bitcoin-cli -regtest generatetoaddress "$1" "$(cat address.txt)"
     sleep 5
     rm address.txt
 }
@@ -13,7 +13,7 @@ deploycontract() {
         echo "Error: Contract file '$contract_file' not found."
         return 1
     fi
-    ./src/bitcoin-cli deploycontract "$contract_file" > log.txt
+    ./src/bitcoin-cli -regtest deploycontract "$contract_file" > log.txt
     contract_address=$(grep "contract address" log.txt | awk -F'"' '{print $4}')
     rm log.txt
     echo "$contract_address"
@@ -22,27 +22,27 @@ deploycontract() {
 # compile and install OurChain
 make -j$(nproc) && sudo make install
 # start OurChain with regtest mode
-./src/bitcoind --regtest --daemon -txindex
+./src/bitcoind -regtest -daemon
 sleep 5
 # print the balance of the mining address
-./src/bitcoin-cli getbalance
+./src/bitcoin-cli -regtest getbalance
 mining 11
 # deploy contract
 contract_address=$(deploycontract ./src/test/test_contract.cpp)
 echo "contract: $contract_address"
 # call smart contract
 mining 1
-./src/bitcoin-cli callcontract "$contract_address" "increment" "1"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "3"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "5"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "7"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "9"
-./src/bitcoin-cli callcontract "$contract_address" "decrement" "30"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "11"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "13"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "15"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "17"
-./src/bitcoin-cli callcontract "$contract_address" "increment" "19"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "1"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "3"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "5"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "7"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "9"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "decrement" "30"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "11"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "13"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "15"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "17"
+./src/bitcoin-cli -regtest callcontract "$contract_address" "increment" "19"
 mining 2
 # stop OurChain
-./src/bitcoin-cli --regtest stop
+./src/bitcoin-cli -regtest stop

@@ -475,12 +475,13 @@ public:
         GNonces n = 0;
         n.setNonce(16);
         genesis = CreateGenesisBlock(GENESIS_BLOCK_TIME, GENESIE_BLOCK_PRECISION_TIME, n, 0x207fffff, 1, 50 * COIN);
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0xf0abf13ce536cb0d4f0cc3a275cbc0001ca961ef8d17d5f7db2b855b3c2da567"));
 #else
         genesis = CreateGenesisBlock(1536399020, 0, 0x207fffff, 1, 50 * COIN);
-#endif
         consensus.hashGenesisBlock = genesis.GetHash();
-        /* TODO: Uncomment this when the genesis block is updated */
-        // assert(consensus.hashGenesisBlock == uint256S("0x4782cb5b61723fac0cd83af4fb5af988ccfed80ff4610ba1140bcc0bf1815cb7"));
+        assert(consensus.hashGenesisBlock == uint256S("0x58c96d949c0a5fb094833dcd3ab31f13b204e2ff0c6c7480d5c7585835aea113"));
+#endif
         assert(genesis.hashMerkleRoot == uint256S("0x70357d2c56e4da23c5bcb4bfde33423abe7d8b76d6f218170c6cb94d3efd1d0a"));
 
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.

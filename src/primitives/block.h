@@ -28,7 +28,6 @@ public:
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
-    uint256 hashContractState;
     uint32_t nTime;
     uint32_t nBits;
 #if ENABLE_GPoW
@@ -52,7 +51,6 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
-        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -69,7 +67,6 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
-        hashContractState.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
@@ -145,7 +142,6 @@ public:
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
-        block.hashContractState = hashContractState;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;

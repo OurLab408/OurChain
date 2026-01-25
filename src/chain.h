@@ -220,7 +220,6 @@ public:
     //! block header
     int nVersion;
     uint256 hashMerkleRoot;
-    uint256 hashContractState;
     unsigned int nTime;
     unsigned int nBits;
 #if ENABLE_GPoW
@@ -255,7 +254,6 @@ public:
 
         nVersion = 0;
         hashMerkleRoot = uint256();
-        hashContractState = uint256();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
@@ -276,7 +274,6 @@ public:
 
         nVersion = block.nVersion;
         hashMerkleRoot = block.hashMerkleRoot;
-        hashContractState = block.hashContractState;
         nTime = block.nTime;
         nBits = block.nBits;
         nNonce = block.nNonce;
@@ -313,7 +310,6 @@ public:
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
         block.hashMerkleRoot = hashMerkleRoot;
-        block.hashContractState = hashContractState;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
@@ -364,10 +360,9 @@ public:
 
     std::string ToString() const
     {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, contract=%s, hashBlock=%s)",
+        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, hashBlock=%s)",
                          pprev, nHeight,
                          hashMerkleRoot.ToString(),
-                         hashContractState.ToString(),
                          GetBlockHash().ToString());
     }
 
@@ -448,7 +443,6 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrev);
         READWRITE(hashMerkleRoot);
-        READWRITE(hashContractState);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -464,7 +458,6 @@ public:
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrev;
         block.hashMerkleRoot = hashMerkleRoot;
-        block.hashContractState = hashContractState;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;

@@ -19,12 +19,11 @@ std::string CBlock::ToString() const
 {
     std::stringstream s;
 #if ENABLE_GPoW
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u, nBits=%08x, nNonce=%u, nPrecisionTime=%u, hashGPoW=%s, vtx=%u)\n",
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, nPrecisionTime=%u, hashGPoW=%s, vtx=%u)\n",
                    GetHash().ToString(),
                    nVersion,
                    hashPrevBlock.ToString(),
                    hashMerkleRoot.ToString(),
-                   hashContractState.ToString(),
                    nTime,
                    nBits,
                    nNonce.getNonce(),
@@ -32,12 +31,11 @@ std::string CBlock::ToString() const
                    hashGPoW.ToString(),
                    vtx.size());
 #else
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashContractState=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, vtx=%u)\n",
                    GetHash().ToString(),
                    nVersion,
                    hashPrevBlock.ToString(),
                    hashMerkleRoot.ToString(),
-                   hashContractState.ToString(),
                    nTime,
                    nBits,
                    nNonce,

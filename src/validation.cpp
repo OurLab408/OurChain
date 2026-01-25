@@ -2359,22 +2359,6 @@ static bool ActivateBestChainStep(CValidationState& state, const CChainParams& c
 
         // Connect new blocks.
         for (CBlockIndex* pindexConnect : reverse_iterate(vpindexToConnect)) {
-#if ENABLE_GPoW
-            // Two-block epoch mechanism
-            if (chainActive.Tip() && chainActive.Tip()->pprev &&
-                pindexConnect->pprev && pindexConnect->pprev->pprev) {
-                const uint256& hashExpectedGrandparent = chainActive.Tip()->pprev->GetBlockHash();
-                const uint256& hashIncomingGrandparent = pindexConnect->pprev->pprev->GetBlockHash();
-
-                if (hashExpectedGrandparent != hashIncomingGrandparent) {
-                    LogPrintf("Grandparent block mismatch: expected=%s, got=%s\n",
-                              hashExpectedGrandparent.ToString(), hashIncomingGrandparent.ToString());
-                    fInvalidFound = true;
-                    return state.DoS(50, error("grandparent-mismatch"),
-                                     REJECT_INVALID, "grandparent-mismatch");
-                }
-            }
-#endif
             if (!ConnectTip(state, chainparams, pindexConnect, pindexConnect == pindexMostWork ? pblock : std::shared_ptr<const CBlock>(), connectTrace, disconnectpool)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
