@@ -112,10 +112,6 @@ void ContractServer::processSingleBlock(CBlockIndex* pindex)
     cache.commitBuffer();
     LogPrintf("ContractServer: All contract states committed to database.\n");
 
-    // Now that the block is fully processed, it's safe to update the tip
-    // and handle checkpoint logic.
-    cache.setTip(pindex->nHeight, pindex->GetBlockHash().ToString());
-
     const int CHECKPOINT_INTERVAL = 100;
     const int CHECKPOINTS_TO_KEEP = 10;
     if (pindex->nHeight > 0 && pindex->nHeight % CHECKPOINT_INTERVAL == 0) {

@@ -53,6 +53,11 @@ bool Rebuild::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Conse
         return false;
     }
 
+    // Rebuild must set the tip so we use Forward (not Rebuild) on the next syncToChain.
+    // Otherwise tip stays invalid, we always Rebuild, and we re-process all blocks every sync → 140.
+    if (chainActive.Tip()) {
+        cache.setTip(chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash().ToString());
+    }
     return true;
 }
 
@@ -64,6 +69,7 @@ bool Forward::UpdateSnapshot(ContractDB& cache, CChain& chainActive, const Conse
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->nHeight > tip.height; pindex = pindex->pprev) {
         blockstack.push(pindex);
     }
+    cache.setTip(chainActive.Tip()->nHeight, chainActive.Tip()->GetBlockHash().ToString());
 
     if (!ProcessBlockStack(blockstack)) {
         return false;

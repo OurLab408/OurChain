@@ -2475,6 +2475,11 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 assert(trace.pblock && trace.pindex);
                 GetMainSignals().BlockConnected(trace.pblock, trace.pindex, *trace.conflictedTxs);
             }
+
+            ContractDB& contractcache = ContractDB::getInstance();
+            if (!contractcache.syncToChain(chainActive, chainparams.GetConsensus())) {
+                return false;
+            }
         }
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
 
@@ -2495,14 +2500,6 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(chainparams, state, FLUSH_STATE_PERIODIC)) {
         return false;
-    }
-
-    {
-        LOCK(cs_main);
-        ContractDB& contractcache = ContractDB::getInstance();
-        if (!contractcache.syncToChain(chainActive, chainparams.GetConsensus())) {
-            return false;
-        }
     }
 
     return true;
