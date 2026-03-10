@@ -20,6 +20,16 @@ docker run --name our-chain -it our-chain
 docker run --name our-chain -it -p 8332:8332 our-chain
 ```
 
+**If you build manually in the container** (e.g. after code changes), use the same configure flags as the image:
+
+```bash
+./autogen.sh
+./configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
+make -j$(nproc) && make install && ldconfig
+```
+
+(`--with-incompatible-bdb` is required on Ubuntu 22.04 because it ships Berkeley DB 5.3, not 4.8.)
+
 use below command in container, you can interact with OurChain Node
 
 ```bash

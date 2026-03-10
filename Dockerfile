@@ -1,52 +1,57 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
-# update package manager
-RUN apt-get update -y
+# Prevent interactive prompts during package install
+ENV DEBIAN_FRONTEND=noninteractive
 
-# install dev tools (only for development)
-RUN apt-get install vim gdb -y
-RUN apt-get install software-properties-common -y
+# Update package manager and install dev tools
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+        vim gdb \
+        software-properties-common \
+        git \
+        build-essential libtool autotools-dev pkg-config bsdmainutils python3 \
+        libevent-dev libboost-all-dev libssl-dev libdb++-dev \
+        autoconf automake \
+        libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# install git
-RUN apt-get install git -y
+# Build and install RocksDB (use explicit path; each RUN starts fresh)
+RUN cd /root \
+    && git clone --branch v10.4.2 https://github.com/facebook/rocksdb.git \
+    && cd rocksdb \
+    && make shared_lib -j$(nproc) \
+    && make install-shared \
+    && cd /root \
+    && rm -rf rocksdb
 
-# install core dependencies
-RUN apt-get install build-essential libtool autotools-dev pkg-config bsdmainutils python3 -y
-RUN apt-get install libevent-dev libboost-all-dev libssl-dev libdb++-dev -y
-RUN apt-get install autoconf automake -y
+# Copy current OurChain folder into image (build context = project root)
+RUN mkdir -p /root/Desktop/ourchain
+COPY . /root/Desktop/ourchain
 
-#install rocksdb (constract db)
-RUN apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
-RUN cd ~ && git clone https://github.com/facebook/rocksdb.git && cd rocksdb && make shared_lib -j$(nproc --all) && make install-shared
-RUN cd ~ && rm -rf rocksdb
-
-# git clone ourchain
-ARG REPO_URL=https://github.com/OurLab408/OurChain.git
-ARG REPO_NAME=OurChain
-ARG REPO_BRANCH=master
-RUN cd ~ && mkdir Desktop && cd Desktop && git clone $REPO_URL && mv $REPO_NAME ourchain && cd ourchain && git checkout $REPO_BRANCH && git pull
 WORKDIR /root/Desktop/ourchain
 
-# install bitcoin optional dependencies
-RUN apt-get install libzmq3-dev -y
-
-# install ourchain dependencies
-RUN apt-get install libgmp-dev -y
-
+# Install remaining dependencies (second apt layer for ourchain-specific deps)
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends libzmq3-dev libgmp-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 22
 EXPOSE 8332
 
-# init
-RUN ~/Desktop/ourchain/autogen.sh
-RUN ~/Desktop/ourchain/configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
+# Bootstrap and configure (C++ standard from configure.ac: AX_CXX_COMPILE_STDCXX 17)
+RUN ./autogen.sh \
+    && ./configure --without-gui --with-incompatible-bdb --disable-tests --disable-bench
 
-# set config
-RUN mkdir ~/.bitcoin/
-RUN echo -e "server=1\nrpcuser=test\nrpcpassword=test\nrpcport=8332\nrpcallowip=0.0.0.0/0\nregtest=1" >> /root/.bitcoin/bitcoin.conf
+# Set config
+RUN mkdir -p /root/.bitcoin \
+    && echo -e "server=1\nrpcuser=test\nrpcpassword=test\nrpcport=8332\nrpcallowip=0.0.0.0/0\nregtest=1" >> /root/.bitcoin/bitcoin.conf
 
-# compile
-RUN make -j$(nproc --all) && make install && ldconfig
+# Compile
+RUN make -j$(nproc) \
+    && make install \
+    && ldconfig
 
-# run (only for production)
+# Run (only for production)
 # ENTRYPOINT ["bitcoind", "--regtest", "-txindex"]

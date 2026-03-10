@@ -1,0 +1,35 @@
+# Version control
+.git
+.gitignore
+
+# Build artifact you mentioned
+src/contract/ourcontract-mkdll
+
+# Autotools / make build output (avoid copying host build into image)
+Makefile
+*.make
+.deps
+.libs
+*.lo
+*.la
+*.o
+*.a
+*.Po
+*.Plo
+.dirstamp
+*.gcno
+*.gcda
+
+# IDE / editor
+.vscode
+.cursor
+
+# Python
+__pycache__
+*.py[cod]
+*.pyo
+
+# Misc
+*.log
+.cache
+*~
